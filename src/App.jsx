@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, Eye, EyeOff, X, ChevronLeft, ChevronRight, Sparkles, Zap, BookOpen, Info } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   COSMOS EXPLORER v0.5
+   COSMOS EXPLORER v0.6
    An interactive astrophysics primer at first-year-course depth.
    ─────────────────────────────────────────────────────────────────────────── */
 
@@ -109,7 +109,7 @@ function PageShell({ children, onBack, title, eyebrow }) {
               ⎙ print
             </button>
             <div className="font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: DIM }}>
-              cosmos explorer · v0.5
+              cosmos explorer · v0.6
             </div>
           </div>
         </div>
@@ -565,23 +565,23 @@ const PATHS = {
     title: 'Newcomer',
     sub: 'No mathematical background assumed',
     desc: 'Visual intuition first, equations as context. Start with what you can already observe yourself, then build outward from the familiar to the cosmic. Equations appear, but you can skip past them — the prose carries the story.',
-    order: ['moon', 'obs', 'sizes', 'spec', 'hr', 'life', 'gal', 'bb', 'exo', 'ladder', 'bh', 'fusion'],
-    note: 'Start with topics you can verify with your own eyes (Moon, constellations), then move to what light tells us (Spectra, HR Diagram), and finally to the things that require trust in physics (Fusion, Black Holes).',
+    order: ['moon', 'obs', 'sizes', 'spec', 'hr', 'life', 'gal', 'bb', 'exo', 'ladder', 'bh', 'fusion', 'cmb', 'sr'],
+    note: 'Start with topics you can verify with your own eyes (Moon, constellations), then move to what light tells us (Spectra, HR Diagram), and finally to the things that require trust in physics (Fusion, Black Holes, Relativity).',
   },
   refresher: {
     icon: '🔄',
     title: 'Refresher',
     sub: "You've seen this before",
     desc: "Core spine of stellar physics and cosmology, in the order they're usually taught. Skip the gentle warmups and go straight for the central machinery.",
-    order: ['hr', 'life', 'fusion', 'spec', 'ladder', 'bb', 'gal', 'bh', 'exo', 'moon', 'obs'],
+    order: ['hr', 'life', 'fusion', 'spec', 'sr', 'ladder', 'bb', 'cmb', 'gal', 'bh', 'exo', 'moon', 'obs'],
     note: 'Heavily weighted to stellar astrophysics in the first half, cosmology and exoplanets in the second.',
   },
   deepdiver: {
     icon: '🔬',
     title: 'Deep diver',
     sub: 'Career-transition preparation',
-    desc: 'Follow the physics. Start with the most fundamental processes (nuclear fusion) and build outward. Pay close attention to derivations, scaling laws, and the worked examples in each topic.',
-    order: ['fusion', 'hr', 'life', 'spec', 'bh', 'ladder', 'bb', 'gal', 'exo', 'moon', 'obs'],
+    desc: 'Follow the physics. Start with the most fundamental processes (nuclear fusion, special relativity) and build outward. Pay close attention to derivations, scaling laws, and the worked examples in each topic.',
+    order: ['sr', 'fusion', 'hr', 'life', 'spec', 'bh', 'ladder', 'cmb', 'bb', 'gal', 'exo', 'moon', 'obs'],
     note: 'This path treats astronomy as applied physics. Each topic builds on machinery from the previous ones.',
   },
 };
@@ -709,8 +709,8 @@ const TOPICS = [
   { id: 'exo',    n: '10', title: 'Exoplanet Detection',           sub: 'Transits, radial velocity, microlensing, imaging',    ready: true },
   { id: 'moon',   n: '11', title: 'The Moon · Phases & Tides',     sub: 'Our nearest neighbour and the rhythms it drives',     ready: true },
   { id: 'obs',    n: '12', title: 'Observational Astronomy',       sub: 'Constellations, the sky tonight, and how to look up',  ready: true },
-  { id: 'sr',     n: '13', title: 'Special Relativity Essentials', sub: 'The Lorentz factor and what it does to spacetime',    ready: false },
-  { id: 'cmb',    n: '14', title: 'The Cosmic Microwave Background', sub: 'A baby photo of the universe at 380,000 years',     ready: false },
+  { id: 'sr',     n: '13', title: 'Special Relativity Essentials', sub: 'The Lorentz factor and what it does to spacetime',    ready: true },
+  { id: 'cmb',    n: '14', title: 'The Cosmic Microwave Background', sub: 'A baby photo of the universe at 380,000 years',     ready: true },
 ];
 
 function StarField() {
@@ -735,7 +735,7 @@ function Hub({ onSelect, onShowPaths }) {
       <StarField />
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-16 md:pt-24 pb-16">
         <div className="font-mono text-xs uppercase tracking-[0.3em] mb-4" style={{ color: ACCENT }}>
-          An interactive primer · v0.5
+          An interactive primer · v0.6
         </div>
         <h1 className="font-display font-light text-6xl md:text-7xl leading-[1.0] mb-6 max-w-4xl" style={{ letterSpacing: '-0.025em' }}>
           Cosmos<br />
@@ -1325,6 +1325,67 @@ function SizeComparison({ onBack }) {
           </div>
         </aside>
       </div>
+
+      <Playground
+        title="Compare any two objects"
+        description="The biggest stars are 10⁹ × larger by volume than Earth. Use this to feel the ratios across the universe of sizes. Inputs in any unit (Earth radii, solar radii, AU, light-years) translate freely."
+        inputs={[
+          { key: 'rA', label: 'Object A radius', default: 1, min: -2, max: 9, log: true, unit: 'R☉' },
+          { key: 'rB', label: 'Object B radius', default: 109, min: -2, max: 9, log: true, unit: 'R☉' },
+        ]}
+        compute={(v) => {
+          const ratio = v.rB / v.rA;
+          const volRatio = Math.pow(ratio, 3);
+          const rA_km = v.rA * 6.957e5;
+          const rB_km = v.rB * 6.957e5;
+          const lightCross_A = (2 * rA_km) / 299792.458;
+          const lightCross_B = (2 * rB_km) / 299792.458;
+          return { ratio, volRatio, rA_km, rB_km, lightCross_A, lightCross_B };
+        }}
+        outputs={[
+          { key: 'ratio', label: 'B / A diameter ratio', unit: '×' },
+          { key: 'volRatio', label: 'B / A volume ratio', unit: '×' },
+          { key: 'rA_km', label: 'Radius of A', unit: 'km' },
+          { key: 'rB_km', label: 'Radius of B', unit: 'km' },
+          { key: 'lightCross_A', label: 'Light-crossing time A (diameter)', unit: 's' },
+          { key: 'lightCross_B', label: 'Light-crossing time B (diameter)', unit: 's' },
+        ]}
+      />
+
+      <Section title="A useful intuition: light-crossing times">
+        <p>
+          One way to grasp astronomical sizes is asking how long light takes to cross them. The Sun
+          is ~4.6 light-seconds across. Earth is ~0.04 light-seconds. Jupiter is ~1 light-second. The
+          solar system out to Neptune is ~8 light-hours across. The Milky Way is ~100,000 light-years.
+        </p>
+        <p>
+          Light-crossing time has physical meaning beyond cute units — it sets the fastest possible
+          response time of any astrophysical object. A variable star or AGN that brightens in ~1 hour
+          must be smaller than ~1 light-hour (~10⁹ km) across, otherwise different parts couldn't
+          synchronise the brightening fast enough. This is how we first knew the X-ray emission regions
+          near supermassive black holes had to be tiny.
+        </p>
+      </Section>
+
+      <Quiz questions={[
+        { q: 'The Sun\'s diameter is about 109× Earth\'s. How many Earths would fit inside the Sun by volume?',
+          options: ['~100', '~10,000', '~1.3 million', '~100 million'],
+          correct: 2,
+          explain: 'Volume scales as the cube of the radius. (109)³ ≈ 1.3 million. The Sun could contain about 1.3 million Earths by volume — though only ~330,000 Earths by mass, because the Sun is much less dense on average than Earth.' },
+        { q: 'Why are red supergiants so much larger than the Sun despite having only ~10–20× more mass?',
+          options: ['They have more hydrogen', 'They are heated externally', 'Late-stage shell burning hugely inflates the envelope', 'They rotate faster'],
+          correct: 2,
+          explain: 'After core hydrogen exhaustion, massive stars develop a hot core surrounded by hydrogen-burning shells. The intense shell luminosity inflates the outer envelope by orders of magnitude. Betelgeuse with ~17 M☉ is now ~900× the Sun\'s radius — its volume is ~700 million times the Sun\'s.' },
+        { q: 'Place these in correct order from smallest to largest by physical size:',
+          options: [
+            'Earth → Jupiter → Sun → Sirius → Betelgeuse',
+            'Earth → Sirius → Jupiter → Sun → Betelgeuse',
+            'Earth → Sun → Jupiter → Sirius → Betelgeuse',
+            'Jupiter → Earth → Sun → Sirius → Betelgeuse',
+          ],
+          correct: 0,
+          explain: 'Earth (R = 1) → Jupiter (R = 11) → Sun (R = 109) → Sirius A (R = 192, A-type MS) → Betelgeuse (R ≈ 96,500, red supergiant). The size jump from Sun to Betelgeuse is roughly the same order of magnitude as Earth to Sun.' },
+      ]} />
     </PageShell>
   );
 }
@@ -1539,6 +1600,71 @@ function StellarLifecycle({ onBack }) {
           </div>
         </aside>
       </div>
+
+      <Playground
+        title="Stellar lifetime calculator"
+        description="Massive stars burn brilliantly but briefly. The relation t ∝ M⁻²·⁵ comes from t = (fuel/burn rate) and L ∝ M³·⁵ for main-sequence stars. Adjust the mass to see how lifetime collapses with increasing mass."
+        inputs={[
+          { key: 'M', label: 'Stellar mass', default: 1, min: -1, max: 2.2, log: true, unit: 'M☉' },
+        ]}
+        compute={(v) => {
+          const tMS = 1e10 * Math.pow(v.M, -2.5);
+          const L = Math.pow(v.M, 3.5);
+          const T_surf = 5778 * Math.pow(v.M, 0.5);
+          let fate;
+          if (v.M < 0.08) fate = 'Brown dwarf';
+          else if (v.M < 0.5) fate = 'White dwarf (He core)';
+          else if (v.M < 8) fate = 'White dwarf (C/O core) via planetary nebula';
+          else if (v.M < 25) fate = 'Neutron star via Type II SN';
+          else fate = 'Black hole';
+          const tMS_compare = tMS / 4.6e9;
+          return { tMS, L, T_surf, fate, tMS_compare };
+        }}
+        outputs={[
+          { key: 'fate', label: 'Final fate', unit: '' },
+          { key: 'L', label: 'MS luminosity', unit: 'L☉' },
+          { key: 'T_surf', label: 'Approx surface temperature', unit: 'K' },
+          { key: 'tMS', label: 'Main-sequence lifetime', unit: 'yr' },
+          { key: 'tMS_compare', label: 'In Sun-lifetimes (~4.6 Gyr)', unit: '×' },
+        ]}
+      />
+
+      <Section title="The five gateways">
+        <p>
+          Watching the slider, notice five sharp boundaries where the fate changes qualitatively:
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>0.08 M☉</strong> — minimum mass for hydrogen fusion (the "stellar threshold"). Below this, brown dwarfs.<br/>
+          <strong style={{ color: ACCENT }}>0.5 M☉</strong> — minimum mass to ignite helium fusion. Below this, the helium core is supported by electron degeneracy and the star can never reach the temperatures needed.<br/>
+          <strong style={{ color: ACCENT }}>8 M☉</strong> — approximate boundary between white-dwarf endpoints and neutron-star/supernova endpoints. Stars above this can ignite carbon and beyond.<br/>
+          <strong style={{ color: ACCENT }}>~25 M☉</strong> — approximate threshold between neutron star and black hole formation. Above this, the iron core typically exceeds the Tolman–Oppenheimer–Volkoff limit.<br/>
+          <strong style={{ color: ACCENT }}>~150 M☉</strong> — theoretical upper limit for stable stars (radiation pressure unbinds anything heavier). Observationally, ~300 M☉ objects have been claimed but are debated.
+        </p>
+      </Section>
+
+      <Quiz questions={[
+        { q: 'A star with mass 8 M☉ has a main-sequence lifetime roughly:',
+          options: ['Same as the Sun (~10 Gyr)', '~10× longer than the Sun', '~50× shorter than the Sun (~200 Myr)', '~1000× shorter than the Sun (~10 Myr)'],
+          correct: 2,
+          explain: 't ∝ M^(-2.5). For M = 8: t = 10^10 × 8^(-2.5) ≈ 10^10 / 180 ≈ 55 Myr. So roughly 200× shorter — but the closest answer is "~50× shorter". The 8 M☉ stars near the threshold for core collapse live only a few hundred million years.' },
+        { q: 'Why can\'t a red dwarf become a giant?',
+          options: ['Not enough fuel', 'Cores are fully convective — they don\'t develop a separate inert He core', 'Surrounded by too much dust', 'They explode first'],
+          correct: 1,
+          explain: 'Red dwarfs below ~0.35 M☉ are fully convective: hydrogen is mixed throughout, not just in the core. So they consume essentially all their hydrogen (not just the core\'s) before changing. The fully convective interior also means no inert helium core can build up. Result: they fade directly to helium white dwarfs without ever becoming giants.' },
+        { q: 'A 1.4 M☉ white dwarf accretes mass from a binary companion. When it reaches what mass does it explode?',
+          options: ['Immediately at 1.4 M☉', 'Never; the companion limits transfer', '~1.4 M☉ — the Chandrasekhar limit', '~3 M☉ — the TOV limit'],
+          correct: 2,
+          explain: 'When a CO white dwarf reaches the Chandrasekhar limit (~1.4 M☉), electron degeneracy can no longer support it. Carbon ignition deep in the core triggers a runaway thermonuclear reaction — a Type Ia supernova, completely disrupting the star with no remnant. This is the standardisable candle that revealed dark energy in 1998.' },
+      ]} />
+
+      <OpenQuestions items={[
+        { q: 'What is the maximum mass for a single star?',
+          detail: '— Theory says ~150 M☉ at solar metallicity (above that, radiation pressure expels the envelope). Yet objects of ~300 M☉ have been claimed in 30 Doradus and elsewhere. Whether these are single stars, unresolved binaries, or recent stellar mergers remains debated.' },
+        { q: 'How do the most massive black holes form from stellar collapse?',
+          detail: '— Standard models predict a "mass gap" between ~50–130 M☉ where pair-instability supernovae should obliterate the star (no remnant). Yet LIGO has detected several mergers involving black holes squarely in this gap (e.g. GW190521, with components ~85 + 66 M☉). Either pair-instability theory is incomplete, or these BHs formed via hierarchical mergers in dense clusters.' },
+        { q: 'How important is binary evolution to massive-star fates?',
+          detail: '— Over 70% of O-stars are in binaries close enough to interact during their lives. Mass transfer, common-envelope phases, and stellar mergers fundamentally alter evolution. The "single-star" tracks taught in textbooks may apply to only ~30% of massive stars.' },
+      ]} />
     </PageShell>
   );
 }
@@ -1784,6 +1910,67 @@ function NuclearFusion({ onBack }) {
           </div>
         </aside>
       </div>
+
+      <Playground
+        title="Mass-energy conversion in stars"
+        description="Per fusion event, only ~0.7% of the rest mass is converted to energy. But over a star's lifetime that adds up to staggering totals. Play with luminosity to see annual mass-to-energy conversion."
+        inputs={[
+          { key: 'L', label: 'Luminosity', default: 1, min: -4, max: 6, log: true, unit: 'L☉' },
+          { key: 't', label: 'Time elapsed', default: 1e9, min: 0, max: 10.7, log: true, unit: 'yr' },
+        ]}
+        compute={(v) => {
+          const L_watts = v.L * 3.828e26;
+          const c2 = Math.pow(2.998e8, 2);
+          const dm_per_s = L_watts / c2;
+          const dm_per_yr = dm_per_s * 3.156e7;
+          const dm_total = dm_per_yr * v.t;
+          const Msun_kg = 1.989e30;
+          const dm_total_Msun = dm_total / Msun_kg;
+          const dm_per_yr_tonnes = dm_per_yr / 1000;
+          return { dm_per_s, dm_per_yr_tonnes, dm_total, dm_total_Msun };
+        }}
+        outputs={[
+          { key: 'dm_per_s', label: 'Mass-to-energy per second', unit: 'kg/s' },
+          { key: 'dm_per_yr_tonnes', label: 'Mass-to-energy per year', unit: 'tonnes/yr' },
+          { key: 'dm_total', label: 'Total mass converted over period', unit: 'kg' },
+          { key: 'dm_total_Msun', label: 'In solar masses', unit: 'M☉' },
+        ]}
+      />
+
+      <WorkedExample title="Why does the iron peak end fusion?"
+                     steps={[
+                       { text: 'The binding energy per nucleon peaks at ⁵⁶Fe (~8.79 MeV/nucleon). Fusing two lighter nuclei into a heavier one releases energy if and only if the product sits higher on the binding-energy curve than the reactants.',
+                         eq: 'Q = (BE_product − Σ BE_reactants) × A_product' },
+                       { text: 'For ¹²C + ¹²C → ²⁴Mg: BE(¹²C) = 7.68 MeV/nucleon, BE(²⁴Mg) = 8.26 MeV/nucleon. Energy released per Mg nucleus formed:',
+                         eq: 'Q = 24 × 8.26 − 2 × (12 × 7.68) = 198.2 − 184.3 ≈ +14 MeV (released)' },
+                       { text: 'But for ⁵⁶Fe + ⁴He → ⁶⁰Ni: BE(⁶⁰Ni) = 8.78 MeV/nucleon, similar to ⁵⁶Fe. The total binding energy of the product is barely more than the reactants.',
+                         eq: 'Q = 60 × 8.78 − 56 × 8.79 − 4 × 7.07 ≈ −2 MeV (absorbed)',
+                         answer: 'Fusion past iron consumes energy rather than releasing it. The core has no choice but to collapse once it builds up too much iron. This is the cliff that ends a massive star\'s life.' },
+                     ]} />
+
+      <Quiz questions={[
+        { q: 'In the pp-chain, the slowest step (the rate-limiter for the whole Sun) is:',
+          options: ['p + p → ²H + e⁺ + ν', '²H + p → ³He + γ', '³He + ³He → ⁴He + 2p', 'CNO catalysis'],
+          correct: 0,
+          explain: 'The first step — proton fusing to proton via the weak force — is exquisitely slow. A proton in the Sun\'s core waits ~10⁹ years on average before fusing with another. This is what makes stars long-lived: the weak interaction is feeble enough to throttle fusion to a glacial rate.' },
+        { q: 'Why is CNO dominant in massive stars but minor in the Sun?',
+          options: ['Only massive stars contain C, N, O', 'CNO rate ∝ T¹⁷ — sensitive enough that small temperature differences matter enormously', 'pp is unstable above 1.3 M☉', 'It has nothing to do with mass'],
+          correct: 1,
+          explain: 'The CNO cycle requires hotter cores to overcome the higher Coulomb barriers (C, N, O have Z=6,7,8 vs H\'s Z=1). The rate scales as T¹⁷ near 15 MK. The Sun\'s core (~15.7 MK) sits right at the crossover; a 2 M☉ star\'s core at ~20 MK is dominated by CNO; a 0.5 M☉ star\'s core at ~9 MK runs essentially pure pp.' },
+        { q: 'How much hydrogen does the Sun fuse per second?',
+          options: ['~600 tonnes', '~600,000 tonnes', '~600 million tonnes', '~600 billion tonnes'],
+          correct: 2,
+          explain: '~600 million tonnes per second. Of this, ~0.7% (≈4.3 million tonnes) is converted to pure energy. At this rate the Sun will exhaust its core hydrogen in ~5 Gyr. The total mass loss over the Sun\'s entire MS lifetime is ~10⁻⁴ M☉ — the Sun barely notices.' },
+      ]} />
+
+      <OpenQuestions items={[
+        { q: 'Where exactly do the heaviest elements come from?',
+          detail: '— Elements heavier than iron form by neutron capture (s-process in AGB stars, r-process in extreme environments). The 2017 detection of GW170817 confirmed neutron-star mergers produce r-process elements (gold, platinum, uranium). But how much vs core-collapse SNe vs other channels? An active research area.' },
+        { q: 'What is the precise Hoyle state of ¹²C, and what does it tell us about fundamental physics?',
+          detail: '— The triple-alpha process depends on a specific excited state in ¹²C at 7.65 MeV. Without this state, virtually no carbon would exist — and no us. Lattice QCD calculations now reproduce this state from first principles, but the apparent "fine-tuning" of nuclear parameters that allows it remains a puzzle.' },
+        { q: 'Why do solar neutrino measurements not perfectly match models?',
+          detail: '— The 2002 confirmation of neutrino oscillation resolved the "solar neutrino problem". But finer measurements now hint at small remaining discrepancies in neutrino flux ratios from different solar fusion branches, possibly indicating sub-percent issues with solar opacity or composition models.' },
+      ]} />
     </PageShell>
   );
 }
@@ -1966,6 +2153,64 @@ function SpectralClass({ onBack }) {
           </div>
         </aside>
       </div>
+
+      <Playground
+        title="From temperature to spectral class and colour"
+        description="Wien's displacement law gives the peak emission wavelength from temperature. The spectral class boundary you cross is what observers see in the spectrum: which absorption lines dominate."
+        inputs={[
+          { key: 'T', label: 'Surface temperature', default: 5778, min: 2500, max: 50000, step: 100, unit: 'K' },
+        ]}
+        compute={(v) => {
+          const b = 2.898e-3;
+          const lambda_peak_m = b / v.T;
+          const lambda_peak_nm = lambda_peak_m * 1e9;
+          const spectralClass = spectralLetter(v.T);
+          let colour;
+          if (v.T >= 30000) colour = 'Blue';
+          else if (v.T >= 10000) colour = 'Blue-white';
+          else if (v.T >= 7500) colour = 'White';
+          else if (v.T >= 6000) colour = 'Yellow-white';
+          else if (v.T >= 5200) colour = 'Yellow';
+          else if (v.T >= 3700) colour = 'Orange';
+          else colour = 'Red';
+          let regime;
+          if (lambda_peak_nm < 380) regime = 'UV';
+          else if (lambda_peak_nm < 750) regime = 'Visible';
+          else regime = 'Infrared';
+          return { spectralClass, colour, lambda_peak_nm, regime };
+        }}
+        outputs={[
+          { key: 'spectralClass', label: 'Spectral class (MK)', unit: '' },
+          { key: 'colour', label: 'Apparent colour', unit: '' },
+          { key: 'lambda_peak_nm', label: 'Peak wavelength (Wien)', unit: 'nm' },
+          { key: 'regime', label: 'Spectral regime of peak', unit: '' },
+        ]}
+      />
+
+      <WorkedExample title="Why does Vega look white but Betelgeuse looks red?"
+                     steps={[
+                       { text: 'Vega is an A-type star with T ≈ 9,600 K. Apply Wien\'s law to find where the Planck blackbody curve peaks:',
+                         eq: 'λ_peak = b/T = (2.898 × 10⁻³ m·K) / 9600 K ≈ 302 nm' },
+                       { text: 'That\'s in the near-UV — past the violet edge of human vision. The visible part of Vega\'s spectrum gets light fairly evenly across all wavelengths, with slightly more blue than red. Result: it looks white-ish blue-white.',
+                         eq: 'For Betelgeuse: λ_peak = 2.898e−3 / 3500 ≈ 828 nm' },
+                       { text: 'Betelgeuse peaks in the near-infrared. Of the visible band, its light is heavily weighted toward red. There\'s also a substantial fraction of its emission past 700 nm that we never see.',
+                         answer: 'Vega: peak in UV, visible spectrum heavily blue → white-blue. Betelgeuse: peak in IR, visible spectrum heavily red → distinctly orange-red. Same star colours, very different physical reasons.' },
+                     ]} />
+
+      <Quiz questions={[
+        { q: 'A star with hydrogen Balmer absorption stronger than any other class is most likely:',
+          options: ['O', 'B', 'A', 'M'],
+          correct: 2,
+          explain: 'A-type stars (around 9,000–10,000 K) have the strongest Balmer absorption lines of any spectral class. At lower T, fewer electrons sit in the n=2 state needed to absorb Balmer photons. At higher T, hydrogen is mostly ionised, leaving no neutral atoms to absorb. The Goldilocks zone is class A.' },
+        { q: 'The mnemonic for spectral classes "Oh Be A Fine Girl/Guy, Kiss Me" runs in order of:',
+          options: ['Increasing mass', 'Increasing temperature', 'Decreasing temperature', 'Decreasing luminosity'],
+          correct: 2,
+          explain: 'O is hottest (>30,000 K) and M is coolest (<3,700 K). The sequence runs hot → cool. Mass and luminosity also generally decrease O → M for main-sequence stars, but the primary defining axis is temperature.' },
+        { q: 'TiO molecular absorption bands are a hallmark of which spectral class?',
+          options: ['O', 'A', 'G', 'M'],
+          correct: 3,
+          explain: 'Titanium oxide molecules can only exist at temperatures cool enough not to dissociate. Below ~3,700 K (the M-class regime), TiO carves giant absorption troughs across the spectrum, giving M-dwarfs and red giants their distinctive jagged spectra and reddish appearance.' },
+      ]} />
     </PageShell>
   );
 }
@@ -3088,6 +3333,64 @@ function BigBangTimeline({ onBack }) {
             local and CMB measurements of H₀.
           </p>
         </Section>
+
+        <Playground
+          title="Look-back time and the size of the observable universe"
+          description="From redshift z to age, distance, and the scale factor a = 1/(1+z). Try z = 0 (now), z = 0.5 (~5 Gyr ago), z = 1 (~8 Gyr ago), z = 6 (first stars), z = 1100 (CMB)."
+          inputs={[
+            { key: 'z', label: 'Redshift z', default: 1, min: -2, max: 3.05, log: true, unit: '' },
+          ]}
+          compute={(v) => {
+            const a = 1 / (1 + v.z);
+            // Crude H0 = 70 km/s/Mpc → 1/H0 = 14.4 Gyr Hubble time
+            // For matter-dominated approx: t = (2/3) H0^-1 (1+z)^(-3/2)
+            // For ΛCDM, more complex. Use a reasonable lookback-time approximation:
+            // valid roughly: for z<<1, t_LB ≈ z/H0; for z>>1 matter-dom, t_age ≈ (2/3) H0^-1 (1+z)^(-3/2)
+            const H0_inv_Gyr = 14.4;
+            let t_age_Gyr;
+            if (v.z < 0.5) t_age_Gyr = 13.8 - v.z * H0_inv_Gyr * (1 - v.z * 0.4);
+            else t_age_Gyr = (2/3) * H0_inv_Gyr * Math.pow(1 + v.z, -1.5);
+            const t_LB_Gyr = 13.8 - t_age_Gyr;
+            // Comoving distance approximation (very rough): d_C ≈ c/H0 * 2 * [1 - (1+z)^-0.5] for matter-dom
+            const c_Hubble_Mpc = 299792.458 / 70; // c/H0 in Mpc
+            const d_comoving_Mpc = c_Hubble_Mpc * 2 * (1 - Math.pow(1 + v.z, -0.5));
+            const d_comoving_Gly = d_comoving_Mpc * 3.262e-3;
+            return { a, t_age_Gyr, t_LB_Gyr, d_comoving_Mpc, d_comoving_Gly };
+          }}
+          outputs={[
+            { key: 'a', label: 'Scale factor a = 1/(1+z)', unit: '' },
+            { key: 't_age_Gyr', label: 'Age of universe at that z', unit: 'Gyr' },
+            { key: 't_LB_Gyr', label: 'Lookback time (today − then)', unit: 'Gyr' },
+            { key: 'd_comoving_Mpc', label: 'Comoving distance (approx)', unit: 'Mpc' },
+            { key: 'd_comoving_Gly', label: 'Comoving distance', unit: 'Gly' },
+          ]}
+        />
+
+        <Quiz questions={[
+          { q: 'The cosmic microwave background was released when the universe became:',
+            options: ['Hot enough to ionise hydrogen', 'Cool enough for electrons to combine with nuclei', 'Dense enough for the first stars to form', 'Filled with dark energy'],
+            correct: 1,
+            explain: 'At ~380,000 years after the Big Bang, the universe cooled to ~3,000 K — cool enough for electrons to combine with protons and helium nuclei. Before recombination, photons scattered constantly off free electrons (opaque universe). After: photons free-stream and reach us today as the CMB, redshifted to 2.725 K.' },
+          { q: 'Big Bang nucleosynthesis (BBN) produced roughly:',
+            options: ['100% hydrogen', '75% H, 25% He by mass, traces of D and Li', '50% H, 50% He', '90% H, 10% heavier elements'],
+            correct: 1,
+            explain: 'BBN, in the first ~20 minutes, produced ~75% ¹H, ~25% ⁴He, ~10⁻⁵ each of D and ³He, ~10⁻¹⁰ ⁷Li. Essentially no heavier elements. All the carbon, oxygen, iron etc. in your body was made in stars later, over billions of years.' },
+          { q: 'Inflation is a hypothesised early period of:',
+            options: ['Rapid cooling', 'Exponential expansion of space itself', 'Particle annihilation', 'Star formation'],
+            correct: 1,
+            explain: 'Inflation proposes that between ~10⁻³⁶ and ~10⁻³² seconds after t=0, space itself expanded by a factor of ~10²⁶ in an exponential burst. This solves three big puzzles: why the universe is so flat, why distant regions have nearly the same temperature, and where the structure-seeding density perturbations came from (quantum fluctuations stretched by inflation).' },
+        ]} />
+
+        <OpenQuestions items={[
+          { q: 'What drove inflation, and is the theory testable?',
+            detail: '— The "inflaton" particle/field is purely hypothetical. We have no direct evidence for it; inflation\'s predictions (flat universe, near-scale-invariant perturbations, gaussianity) are confirmed but generic. Detection of primordial gravitational waves from inflation (a "B-mode" CMB polarisation signal at scales ~1°) would be transformative — currently undetected despite intense effort.' },
+          { q: 'Why is there matter rather than equal matter and antimatter?',
+            detail: '— Standard physics predicts equal amounts. Observation: matter outnumbers antimatter by ~10⁹:1. The Sakharov conditions show what kind of physics would produce an asymmetry (CP violation + departure from thermal equilibrium + baryon number violation), but no concrete mechanism has been demonstrated experimentally. Active research at LHC and on neutrino oscillations.' },
+          { q: 'Are the predicted abundances of ⁷Li and observed actually compatible?',
+            detail: '— BBN predicts ⁷Li/H ≈ 5 × 10⁻¹⁰, but observations of metal-poor halo stars give 1.5 × 10⁻¹⁰ — a factor of ~3 discrepancy known as the "lithium problem". Either BBN is wrong, observed stars deplete lithium, or there\'s new physics. Despite many candidate explanations, none is widely accepted.' },
+          { q: 'How big is the universe beyond what we can see?',
+            detail: '— The observable universe is ~93 Gly in diameter (limited by the age of the universe and finite c). What lies beyond is unknown: inflation predicts a much larger "total" universe (maybe ~10²³ × the observable patch in linear scale), possibly infinite. We have no direct way to confirm this.' },
+        ]} />
       </div>
     </PageShell>
   );
@@ -3565,6 +3868,74 @@ function ExoplanetDetection({ onBack }) {
             exoplanets — vastly expanding the potentially habitable population if true.
           </p>
         </Section>
+
+        <Playground
+          title="Habitable zone calculator"
+          description="The habitable zone scales with the square root of stellar luminosity (Stefan-Boltzmann + inverse-square law). A low-luminosity M dwarf has its HZ tucked very close in; a luminous F star has a wide HZ far out."
+          inputs={[
+            { key: 'L', label: 'Stellar luminosity', default: 1, min: -4, max: 2, log: true, unit: 'L☉' },
+            { key: 'M', label: 'Stellar mass', default: 1, min: -1, max: 1.3, log: true, unit: 'M☉' },
+          ]}
+          compute={(v) => {
+            // Conservative HZ boundaries (Kopparapu et al)
+            const HZ_inner_AU = 0.95 * Math.sqrt(v.L);
+            const HZ_outer_AU = 1.67 * Math.sqrt(v.L);
+            // Orbital period at center of HZ (Kepler's third law)
+            const a_center = (HZ_inner_AU + HZ_outer_AU) / 2;
+            const P_yr = Math.sqrt(Math.pow(a_center, 3) / v.M);
+            const P_days = P_yr * 365.25;
+            const T_eq_K = 255 * Math.pow(v.L / Math.pow(a_center, 2), 0.25);
+            return { HZ_inner_AU, HZ_outer_AU, a_center, P_yr, P_days, T_eq_K };
+          }}
+          outputs={[
+            { key: 'HZ_inner_AU', label: 'Inner HZ edge (runaway greenhouse)', unit: 'AU' },
+            { key: 'HZ_outer_AU', label: 'Outer HZ edge (max CO₂ greenhouse)', unit: 'AU' },
+            { key: 'P_days', label: 'Orbital period at HZ centre', unit: 'days' },
+            { key: 'P_yr', label: 'In years', unit: 'yr' },
+            { key: 'T_eq_K', label: 'Equilibrium T (no atmosphere)', unit: 'K' },
+          ]}
+        />
+
+        <WorkedExample title="Detecting Jupiter from a hypothetical alien observer"
+                       steps={[
+                         { text: 'Imagine an alien astronomer 30 light-years away watching the Sun. Could they detect Jupiter via the radial velocity (Doppler wobble) method?',
+                           eq: 'v_★ = v_planet × (m_planet / m_star)' },
+                         { text: 'Jupiter orbits at v_planet ≈ 13 km/s. m_Jupiter / m_Sun ≈ 9.5 × 10⁻⁴. So the Sun\'s reflex motion is:',
+                           eq: 'v_Sun = 13 km/s × 9.5 × 10⁻⁴ ≈ 12.4 m/s' },
+                         { text: 'Compare to instrumental precision: the best current spectrographs (ESPRESSO, EXPRES) reach ~0.5–1 m/s. So Jupiter would be detectable — but barely.',
+                           answer: 'Yes — but only just. The 12 m/s signal is real but lies near the precision floor. They\'d need ~12 years of continuous observation to see the full ~12-year orbital cycle. Their first hint would come around year 6, with a full confirmation by year 12. Earth, by contrast, induces only ~9 cm/s — completely below current detection capability for any star except the Sun itself.' },
+                       ]} />
+
+        <Quiz questions={[
+          { q: 'Why does the transit method have a strong bias toward short-period planets?',
+            options: ['Short-period planets are larger', 'A planet must be in transit when we look, which is more likely if its period is short', 'Stars near us tend to have short-period planets', 'Long-period planets don\'t transit'],
+            correct: 1,
+            explain: 'Transit probability ∝ R★/a. For Earth at 1 AU around the Sun, transit probability is ~0.5%. For a hot Jupiter at 0.05 AU, ~10%. And we need to catch a transit during our observation window — a planet with a 100-day period transits more often per observation campaign than one with a 10-year period. Both effects favour short orbits.' },
+          { q: 'A planet 1 R_Earth in size transits a Sun-like star. The transit depth (flux dip) is approximately:',
+            options: ['~0.01%', '~1%', '~10%', '~50%'],
+            correct: 0,
+            explain: 'Transit depth = (R_planet/R_star)². For Earth/Sun: (1/109)² ≈ 8 × 10⁻⁵ ≈ 0.008%. This is at the very edge of Kepler/TESS sensitivity. By contrast a Jupiter (11 R_Earth) gives a ~1% dip — comfortably detectable from the ground.' },
+          { q: 'The first confirmed exoplanet around a Sun-like star (51 Peg b, 1995) was a:',
+            options: ['Rocky planet in the habitable zone', 'Hot Jupiter — a gas giant orbiting in 4 days', 'Cold gas giant similar to Jupiter', 'Planet around a pulsar'],
+            correct: 1,
+            explain: '51 Pegasi b stunned everyone — a Jupiter-mass planet orbiting in 4.2 days, far closer to its star than Mercury is to the Sun. Theory at the time said this was impossible. The discovery overturned planetary formation theory and led to the now-standard idea of "planetary migration".' },
+        ]} />
+
+        <TryThis title="Engage with real exoplanet data"
+                 items={[
+                   { title: 'Browse NASA\'s Exoplanet Archive', text: 'Go to exoplanetarchive.ipac.caltech.edu and look at the confirmed planets table. Sort by discovery year. Note how the typical detected planet has changed over 30 years — from hot Jupiters in the 1990s to potentially habitable terrestrial planets today.', gear: 'Browser' },
+                   { title: 'Watch a Kepler light curve', text: 'On the same site, pull up Kepler-186f (the first Earth-sized HZ planet around an M dwarf). Plot its phase-folded light curve. You\'ll see a clear flat-bottomed transit dip — the actual signal that announced a potentially habitable world.', gear: 'Browser, basic Python or just the site\'s plot tool' },
+                   { title: 'Imagine the SETI scale', text: 'There are ~4 × 10⁹ stars within 10,000 light-years of Earth. If even 1% host an Earth-like planet in the HZ (a conservative Kepler estimate), that\'s 40 million potentially habitable worlds within radio-communication range. The question "are we alone" is increasingly an empirical one.', gear: 'Imagination + the exoplanet stats' },
+                 ]} />
+
+        <OpenQuestions items={[
+          { q: 'What fraction of stars host habitable-zone Earth-like planets?',
+            detail: '— Kepler\'s statistics suggest the "eta-Earth" frequency for Sun-like stars is somewhere between 10% and 50%. The uncertainty is large because Earth-sized HZ planets are at the limit of Kepler\'s sensitivity. Future missions (Roman Space Telescope, ELT, LUVOIR-like concepts) are designed to nail this down.' },
+          { q: 'Are M-dwarf HZ planets actually habitable?',
+            detail: '— M dwarfs are the most common stars and easiest to find planets around. But their habitable zones are tucked close in, exposing planets to intense flares and tidal locking. TRAPPIST-1, Proxima Cen b, and others are nearby HZ candidates — JWST is starting to characterise their atmospheres, with sobering early results (TRAPPIST-1 b appears bare-rock).' },
+          { q: 'What atmospheric biosignatures would convince us a planet is inhabited?',
+            detail: '— O₂ + CH₄ together (out of chemical equilibrium) would be a strong sign. But abiotic processes (photolysis of water, hydrogen escape) can also produce O₂. False positives are a real concern. The question of "what\'s a definitive biosignature" remains unsettled even for future missions.' },
+        ]} />
       </div>
     </PageShell>
   );
@@ -4904,6 +5275,785 @@ function ObservationalAstronomy({ onBack }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+//  13 · SPECIAL RELATIVITY ESSENTIALS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function SpecialRelativity({ onBack }) {
+  const [tab, setTab] = useState('foundations');
+  const [v, setV] = useState(0.6); // velocity as fraction of c
+
+  const gamma = 1 / Math.sqrt(1 - v * v);
+
+  return (
+    <PageShell onBack={onBack} eyebrow="13 — Spacetime"
+               title={<>Special <em style={{ color: ACCENT, fontStyle: 'italic' }}>Relativity</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        Einstein's 1905 reformulation of mechanics. Two postulates — physics is the same in every
+        inertial frame, and the speed of light is the same in every frame — and the rest is
+        consequences. Time dilates, lengths contract, mass and energy turn out to be the same thing.
+      </p>
+
+      {/* Tabs */}
+      <div className="grid grid-cols-4 gap-px mb-6" style={{ background: BORDER }}>
+        {[
+          ['foundations', 'Foundations'],
+          ['lorentz', 'The Lorentz Factor'],
+          ['phenomena', 'Time, Length, Mass'],
+          ['paradoxes', 'Paradoxes & Tests'],
+        ].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)}
+                  className="p-4 text-center transition"
+                  style={{ background: tab === id ? `${ACCENT}15` : BG,
+                           borderTop: tab === id ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+            <div className="font-display text-sm md:text-base" style={{ color: tab === id ? ACCENT : INK, letterSpacing: '-0.01em' }}>{label}</div>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'foundations' && (
+        <div className="fade-in">
+          <Section title="The two postulates">
+            <p>
+              Einstein in 1905 built all of special relativity from two assumptions:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>1. The principle of relativity.</strong> The laws of physics
+              are identical in every inertial (non-accelerating) reference frame. No experiment can tell
+              you whether you are at rest or moving at constant velocity — only relative motion is meaningful.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>2. The invariance of c.</strong> The speed of light in vacuum
+              is the same value — c = 299,792,458 m/s — for every observer, no matter how they move relative
+              to the source. A flashlight from a passing rocket emits photons that you measure at c, exactly
+              as if the rocket were at rest.
+            </p>
+            <p>
+              These postulates seem innocuous. Their consequences are not.
+            </p>
+          </Section>
+
+          <Section title="Why these specifically?">
+            <p>
+              The first postulate goes back to Galileo. The second was forced by experiment: the 1887
+              Michelson–Morley measurement showed that the speed of light didn't depend on Earth's motion
+              around the Sun. Earlier physicists tried to preserve a luminiferous "aether" with elaborate
+              fixes (length-contracting matter, dragging-aether theories). Einstein simply accepted the
+              experimental result and worked through the consequences.
+            </p>
+            <p>
+              What had to be abandoned: the assumption that simultaneity is absolute, that lengths are
+              the same in all frames, that masses are constant. What survived: causality, momentum
+              conservation (reformulated), energy conservation (reformulated). And out of the rubble fell
+              one of the most famous equations in physics: <Term k="binding energy">E = mc²</Term>.
+            </p>
+          </Section>
+
+          <Section title="What special relativity does not handle">
+            <p>
+              Special relativity covers inertial frames — observers who are not accelerating. It does
+              <em> not</em> describe gravity, accelerating observers, or curved spacetime. Those require
+              general relativity (1915), which uses the same mathematical apparatus (Lorentz transformations,
+              four-vectors, invariant intervals) but applied to curved spacetime instead of flat.
+            </p>
+            <p>
+              In modern physics, "special relativity" usually means the flat-spacetime mathematics that
+              every charged particle, every electromagnetic wave, every relativistic quantum field theory
+              uses. It's not an exotic regime; it's the framework underneath ordinary electrodynamics
+              and the Standard Model of particle physics.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'lorentz' && (
+        <div className="fade-in">
+          <Section title="The Lorentz factor">
+            <p>
+              Define β = v/c (the velocity in units of c) and the Lorentz factor γ:
+            </p>
+            <Eq>γ = 1 / √(1 − β²) = 1 / √(1 − v²/c²)</Eq>
+            <p>
+              γ governs every relativistic effect. At low speeds (β ≪ 1), γ ≈ 1 + ½β² ≈ 1 — nothing
+              relativistic happens. As β approaches 1, γ blows up to infinity. Crossing β = 0.866 puts γ at 2;
+              β = 0.99 puts γ at 7.1; β = 0.999 puts γ at 22.4.
+            </p>
+          </Section>
+
+          <div className="my-8 p-6 rounded" style={{ border: `1px solid ${ACCENT}30`, background: 'rgba(255, 201, 122, 0.04)' }}>
+            <div className="flex items-center gap-3 mb-4"><Pill>interactive</Pill></div>
+            <h4 className="font-display text-xl mb-2" style={{ letterSpacing: '-0.01em' }}>The Lorentz factor in action</h4>
+            <div className="mb-6">
+              <div className="flex justify-between items-baseline mb-3">
+                <span className="font-display text-sm" style={{ color: INK }}>Velocity v / c (β)</span>
+                <span className="font-mono text-sm" style={{ color: ACCENT }}>{v.toFixed(4)}</span>
+              </div>
+              <input type="range" min="0" max="0.9999" step="0.0001" value={v}
+                     onChange={e => setV(parseFloat(e.target.value))} className="w-full" />
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-px" style={{ background: BORDER }}>
+              <div className="p-4" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Lorentz factor γ</div>
+                <div className="font-mono text-2xl" style={{ color: ACCENT, letterSpacing: '-0.02em' }}>{gamma.toFixed(3)}</div>
+              </div>
+              <div className="p-4" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Time dilation</div>
+                <div className="font-mono text-base" style={{ color: INK }}>1 s → {gamma.toFixed(3)} s</div>
+              </div>
+              <div className="p-4" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Length contraction</div>
+                <div className="font-mono text-base" style={{ color: INK }}>1 m → {(1/gamma).toFixed(3)} m</div>
+              </div>
+              <div className="p-4" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Relativistic mass × m₀</div>
+                <div className="font-mono text-base" style={{ color: INK }}>{gamma.toFixed(3)}×</div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-3 md:grid-cols-6 gap-px" style={{ background: BORDER }}>
+              {[0.1, 0.5, 0.866, 0.95, 0.99, 0.999].map(b => (
+                <button key={b} onClick={() => setV(b)}
+                        className="p-3 text-center transition hover:bg-white/5"
+                        style={{ background: BG }}>
+                  <div className="font-mono text-xs" style={{ color: ACCENT }}>v = {b}c</div>
+                  <div className="font-mono text-[10px] mt-1" style={{ color: DIM }}>γ ≈ {(1/Math.sqrt(1-b*b)).toFixed(2)}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Section title="The structure of the Lorentz factor">
+            <p>
+              Why this particular form? It comes from demanding that intervals
+              s² = c²t² − x² are invariant under coordinate change. Under a velocity boost in the x
+              direction, time and space coordinates mix:
+            </p>
+            <Eq>t′ = γ(t − vx/c²),    x′ = γ(x − vt),    y′ = y,    z′ = z</Eq>
+            <p>
+              These are the <em>Lorentz transformations</em>. The factor γ ensures that c stays
+              invariant: a light pulse with x = ct in one frame still has x′ = ct′ in another. Notice
+              that time and space don't transform independently — they mix. Two events simultaneous
+              in one frame (different x, same t) are not simultaneous in another (different t′).
+            </p>
+          </Section>
+
+          <Section title="Spacetime intervals">
+            <p>
+              The invariant quantity in Lorentz transformations is the spacetime interval:
+            </p>
+            <Eq>Δs² = c² Δt² − Δx² − Δy² − Δz²</Eq>
+            <p>
+              All observers, no matter how they move, agree on Δs² between two events. They disagree on
+              Δt and Δx individually, but the combination is the same. This is the most important
+              invariant in special relativity — analogous to how rotations preserve length in 3D but
+              not individual coordinates.
+            </p>
+            <p>
+              When Δs² {'>'} 0, the events are time-like separated (one can causally affect the other).
+              When Δs² {'<'} 0, they are space-like separated (causally disconnected; some observers see
+              event A first, others see B first). When Δs² = 0, they're light-like (connectable by a light
+              ray). This division — the "light cone" structure of spacetime — is the deepest geometric
+              fact in SR.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'phenomena' && (
+        <div className="fade-in">
+          <Section title="Time dilation">
+            <p>
+              A clock moving with velocity v relative to you ticks slowly. Its proper time τ (measured by
+              an observer travelling with the clock) relates to your time t by:
+            </p>
+            <Eq>Δt = γ Δτ</Eq>
+            <p>
+              At v = 0.99c, γ ≈ 7.1. A traveller's wristwatch advances 1 hour while you measure 7.1 hours
+              elapsed. This is not an illusion — every physical process slows: heartbeats, chemical
+              reactions, radioactive decays, the cesium clock. It's measured every day at particle
+              accelerators where unstable particles' lifetimes are stretched exactly as predicted.
+            </p>
+            <p>
+              The most everyday example: GPS satellites move at ~14,000 km/h relative to ground, which
+              would cause their clocks to fall behind ground clocks by ~7 μs per day from special
+              relativity alone. (GR effects from being higher in Earth's gravity cause an opposing ~45 μs
+              advance per day.) GPS positioning would drift kilometers per day without both corrections.
+            </p>
+          </Section>
+
+          <Section title="Length contraction">
+            <p>
+              An object's length L₀ in its rest frame is its <em>proper length</em>. Measured from a
+              frame in which it moves at speed v, the length along the direction of motion is:
+            </p>
+            <Eq>L = L₀ / γ</Eq>
+            <p>
+              A spacecraft 100 m long in its own frame, flying past you at 0.866c, measures 50 m long
+              to you. Transverse dimensions don't change — only lengths along the direction of motion.
+            </p>
+            <p>
+              Important: this is a direct, measurable consequence of how we synchronise clocks. You
+              measure a moving object's "length" by recording its endpoint positions simultaneously
+              <em> in your frame</em>. Because simultaneity is observer-dependent, what you record is
+              shorter than what the object's owner records.
+            </p>
+          </Section>
+
+          <Section title="Relativistic mass and energy">
+            <p>
+              Momentum and energy of a particle with rest mass m₀ moving at velocity v:
+            </p>
+            <Eq>p = γ m₀ v,    E = γ m₀ c²,    E² = (pc)² + (m₀c²)²</Eq>
+            <p>
+              Setting v = 0 gives <Term k="binding energy">E = m₀c²</Term> — the rest energy. Even a
+              stationary particle carries enormous energy equivalent to its mass. A 1 kg object has
+              ~9 × 10¹⁶ J of rest energy, equivalent to ~21 megatonnes of TNT. (This is why fission
+              and fusion are so energetic: a tiny fraction of rest mass is released as kinetic energy.)
+            </p>
+            <p>
+              Setting m₀ = 0 gives E = pc — light. Photons have zero rest mass but non-zero energy and
+              momentum. The combination E² − (pc)² = (m₀c²)² is the invariant rest energy — agreed on
+              by all observers, just like spacetime intervals.
+            </p>
+            <p>
+              The often-quoted "mass increases with velocity" is misleading modern usage. Modern
+              convention: rest mass m₀ is intrinsic; γm₀ is just energy/c² and isn't a separate "mass."
+              But operationally, accelerating a particle to higher velocity requires more force per
+              unit velocity gained — exactly as if its inertia had grown by factor γ.
+            </p>
+          </Section>
+
+          <Section title="The cosmic speed limit">
+            <p>
+              No object with non-zero rest mass can reach v = c. As v → c, the required energy goes to
+              infinity (because γ → ∞). This is one of the most experimentally probed facts in physics:
+              the LHC accelerates protons to v = 0.999999991c — extraordinarily close to but never at c.
+            </p>
+            <p>
+              Photons and gluons travel at exactly c — they have zero rest mass and the energy/momentum
+              equation E = pc holds. Gravitational waves also travel at c (confirmed by GW170817:
+              gravitational and EM signals from a neutron-star merger arrived within ~1.7 seconds of
+              each other after 130 million years of travel — a constraint on speed difference of ~10⁻¹⁵).
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'paradoxes' && (
+        <div className="fade-in">
+          <Section title="The twin paradox">
+            <p>
+              Twin A stays on Earth. Twin B flies to a distant star at high speed, turns around, comes
+              back. Each one sees the other's clocks running slow due to time dilation — so who is
+              actually younger when they reunite?
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Resolution:</strong> the situation is not symmetric.
+              Twin A stays in one inertial frame the entire time. Twin B accelerates (during launch,
+              turnaround, landing). It's the turnaround — the only moment of non-inertial motion — that
+              breaks the symmetry. When they meet again, twin B has aged less by a factor γ relative to
+              twin A.
+            </p>
+            <p>
+              For B travelling at 0.99c to a star 10 light-years away: A measures the trip as ~20 years.
+              B, with γ ≈ 7.1, ages ~2.8 years. They meet again with A 17 years older than B.
+              Confirmed via cosmic-ray muon experiments and atomic-clock-on-airplane experiments — at
+              tiny but measurable scales.
+            </p>
+          </Section>
+
+          <Section title="The ladder paradox (and resolution)">
+            <p>
+              A 10-m ladder runs at 0.866c (γ = 2) toward a 5-m garage. From the garage frame, the
+              ladder length-contracts to 5 m and briefly fits inside. From the ladder's frame, it's the
+              garage that's contracted (to 2.5 m), so the ladder cannot fit.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Resolution:</strong> simultaneity is relative. In the
+              garage frame, the front of the ladder exiting the back wall and the rear of the ladder
+              entering the front are simultaneous. In the ladder's frame, they are not — the front
+              exits first, then later the rear enters. There's never a moment when the ladder is
+              actually contained from the ladder's own perspective; the events that "fit" in the garage
+              frame are not the same events from the ladder frame.
+            </p>
+            <p>
+              The lesson: relativity allows different frames to disagree about simultaneity, ordering of
+              spatially-separated events, lengths, and durations. What everyone must agree on is the
+              invariant spacetime interval and the causal structure (light cones).
+            </p>
+          </Section>
+
+          <Section title="Experimental tests">
+            <p>
+              SR is one of the most thoroughly tested theories in physics. A partial list of confirmations:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Muon lifetimes</strong> — Cosmic-ray muons created in the
+              upper atmosphere should decay (lifetime 2.2 μs at rest) before reaching the ground.
+              Relativistic time dilation extends their observed lifetime by factor γ ≈ 10–30. The flux
+              reaching ground level matches SR predictions exactly.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Particle accelerators</strong> — Every modern accelerator
+              relies on SR to predict particle behaviour. The LHC, Fermilab, etc., would all fail
+              spectacularly if SR were even slightly wrong.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Atomic clock experiments</strong> — Hafele-Keating (1971)
+              flew atomic clocks around the world east- and west-bound and measured the predicted
+              time dilation to within experimental precision. Subsequent experiments using satellites
+              and centrifuges confirm to 10⁻⁹ precision.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>GW170817</strong> — Gravitational waves and gamma rays
+              from a neutron-star merger arrived within 1.74 seconds of each other after travelling
+              ~130 Mly. Both at c to within ~10⁻¹⁵.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      <WorkedExample title="How far is Andromeda in the traveller's frame?"
+                     steps={[
+                       { text: 'Andromeda is 2.5 Mly away. Suppose you fly there at v = 0.999c. In Earth\'s frame, the trip takes how long?',
+                         eq: 't_Earth = 2.5e6 / 0.999 ≈ 2.5 × 10⁶ years' },
+                       { text: 'Compute γ at v = 0.999c.',
+                         eq: 'γ = 1 / √(1 − 0.999²) ≈ 22.4' },
+                       { text: 'Length contraction: in YOUR frame (the traveller\'s), the distance to Andromeda contracts:',
+                         eq: 'L = L₀ / γ = 2.5 Mly / 22.4 ≈ 112,000 ly' },
+                       { text: 'You traverse 112,000 light-years at v = 0.999c, so YOU experience:',
+                         eq: 't_traveller = 112,000 / 0.999 ≈ 112,000 years',
+                         answer: 'Equivalently, Earth\'s 2.5 Myr divided by γ = 22.4 gives ~112,000 years. With γ = 1000 (v = 0.9999995c), the trip would take only ~2,500 years of your time. The galaxy is in principle traversable in a single human lifetime — at sufficient γ. The problem is the energy to reach such speeds: γ × rest energy of even a small spacecraft exceeds anything humans have ever produced.' },
+                     ]} />
+
+      <Quiz questions={[
+        { q: 'A particle with rest mass m₀ moves at v = 0.6c. Its total energy in your frame is:',
+          options: ['m₀c²', '0.6 m₀c²', '1.25 m₀c²', '0.8 m₀c²'],
+          correct: 2,
+          explain: 'γ = 1/√(1 − 0.36) = 1/√0.64 = 1.25. Total energy E = γm₀c² = 1.25 m₀c². Of that, m₀c² is rest energy and 0.25 m₀c² is kinetic energy.' },
+        { q: 'Two events happen at the same time but in different places, in frame A. In a different frame B moving relative to A, the events:',
+          options: ['Are still simultaneous', 'May happen in either order, depending on B\'s velocity direction', 'Become impossible to distinguish', 'Always happen in the same order regardless of B'],
+          correct: 1,
+          explain: 'This is the relativity of simultaneity. From the Lorentz transformation Δt\' = γ(Δt − v Δx/c²), if Δt = 0 (simultaneous in A) but Δx ≠ 0 (different places), then Δt\' = −γ v Δx/c² — non-zero. Different B observers see different orderings. Causality is preserved only for time-like separated events (where Δs² > 0).' },
+        { q: 'A muon at rest has lifetime 2.2 μs. A muon created in the upper atmosphere with γ = 30 lives, as measured from the ground, for:',
+          options: ['2.2 μs', '73 ns', '66 μs', '660 μs'],
+          correct: 2,
+          explain: 'Time dilation: observed lifetime = γ × proper lifetime = 30 × 2.2 μs = 66 μs. That\'s long enough for a muon travelling near c to cover ~20 km — i.e., to reach the ground from where they\'re typically created. Without SR, essentially no muons would arrive at Earth\'s surface. The observed muon flux confirms time dilation directly.' },
+      ]} />
+
+      <OpenQuestions items={[
+        { q: 'Is the speed of light a fundamental constant or could it vary?',
+          detail: '— Many variants of "varying speed of light" theories have been proposed (Moffat, Albrecht-Magueijo). Experimentally, c is constant to better than 10⁻¹⁷ over the age of the universe. But whether c is truly a fundamental constant or a derived quantity in some deeper theory (e.g. emerging from spacetime structure) remains a question for quantum gravity.' },
+        { q: 'Does Lorentz invariance hold at all scales?',
+          detail: '— Some quantum gravity proposals (loop quantum gravity, doubly special relativity) suggest small Lorentz invariance violations at the Planck scale. Experimental searches via gamma-ray bursts, high-energy cosmic rays, and astrophysical neutrinos have placed extraordinarily tight bounds (≤10⁻²⁰ relative deviations at TeV energies). No violations have been found.' },
+        { q: 'How fast can information actually travel?',
+          detail: '— No signal carrying information can exceed c. But quantum entanglement appears to involve "instant" correlation at arbitrary distances, leading to apparent paradoxes (EPR). The standard resolution: correlations are not signals — you can\'t use entanglement to send information. The "no-communication theorem" formally proves this. Quantum mechanics is fully compatible with relativity at the signal level.' },
+      ]} />
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  14 · THE COSMIC MICROWAVE BACKGROUND
+// ═══════════════════════════════════════════════════════════════════════════
+
+function CMB({ onBack }) {
+  const [tab, setTab] = useState('spectrum');
+  const [T, setT] = useState(2.725); // CMB temperature in K
+
+  return (
+    <PageShell onBack={onBack} eyebrow="14 — Relic Radiation"
+               title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>Cosmic Microwave Background</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        Every direction you point a sensitive radio antenna, you receive a faint hum at ~2.725 K. It is
+        the universe's oldest light, released 380,000 years after the Big Bang. Its spectrum is the
+        most perfect blackbody ever measured. Its tiny temperature variations — one part in 100,000 —
+        encode the entire history of cosmic structure.
+      </p>
+
+      {/* Tabs */}
+      <div className="grid grid-cols-4 gap-px mb-6" style={{ background: BORDER }}>
+        {[
+          ['spectrum', 'The Spectrum'],
+          ['origin', 'Origin · Recombination'],
+          ['anisotropies', 'The Anisotropies'],
+          ['cosmology', 'What It Tells Us'],
+        ].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)}
+                  className="p-4 text-center transition"
+                  style={{ background: tab === id ? `${ACCENT}15` : BG,
+                           borderTop: tab === id ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+            <div className="font-display text-sm md:text-base" style={{ color: tab === id ? ACCENT : INK, letterSpacing: '-0.01em' }}>{label}</div>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'spectrum' && (
+        <div className="fade-in">
+          <Section title="The most perfect blackbody known">
+            <p>
+              The CMB has the spectrum of an ideal thermal blackbody at T = 2.7255 ± 0.0006 K. This was
+              measured to extraordinary precision by the FIRAS instrument on the COBE satellite in 1989.
+              The fit is so perfect that the experimental error bars are smaller than the line width on
+              any published plot.
+            </p>
+            <p>
+              Why does this matter so much? A perfect blackbody is what you get from matter and radiation
+              in complete thermal equilibrium. Any departure from a Planck curve would indicate an
+              additional energy injection (decaying particles, residual interactions, exotic physics)
+              that disturbed equilibrium. The CMB's perfection puts extraordinarily strong constraints
+              on any such process: less than ~10⁻⁵ of the total energy density can be in any non-thermal
+              component since recombination.
+            </p>
+          </Section>
+
+          <div className="my-8 p-6 rounded" style={{ border: `1px solid ${ACCENT}30`, background: 'rgba(255, 201, 122, 0.04)' }}>
+            <div className="flex items-center gap-3 mb-4"><Pill>interactive</Pill></div>
+            <h4 className="font-display text-xl mb-4" style={{ letterSpacing: '-0.01em' }}>The CMB through cosmic history</h4>
+            <p className="font-display text-sm leading-relaxed mb-6" style={{ color: '#c8c3b1' }}>
+              The CMB temperature scales as T = 2.725 × (1 + z) K, where z is the redshift of the era you
+              observe it from. Higher z = earlier and hotter universe.
+            </p>
+
+            <div className="mb-6">
+              <div className="flex justify-between items-baseline mb-3">
+                <span className="font-display text-sm" style={{ color: INK }}>CMB temperature</span>
+                <span className="font-mono text-sm" style={{ color: ACCENT }}>{T < 100 ? T.toFixed(3) : T.toFixed(0)} K</span>
+              </div>
+              <input type="range" min="0.435" max="3.5" step="0.01"
+                     value={Math.log10(T)}
+                     onChange={e => setT(Math.pow(10, parseFloat(e.target.value)))} className="w-full" />
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-px" style={{ background: BORDER }}>
+              <div className="p-4" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Redshift z</div>
+                <div className="font-mono text-base" style={{ color: INK }}>{(T / 2.725 - 1).toFixed(2)}</div>
+              </div>
+              <div className="p-4" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Peak wavelength (Wien)</div>
+                <div className="font-mono text-base" style={{ color: INK }}>{(2.898e-3 / T * 1e3).toPrecision(3)} mm</div>
+              </div>
+              <div className="p-4" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Spectral regime</div>
+                <div className="font-mono text-base" style={{ color: INK }}>
+                  {T < 30 ? 'Microwave' : T < 3000 ? 'Far-IR' : T < 10000 ? 'Visible' : 'UV/X-ray'}
+                </div>
+              </div>
+              <div className="p-4" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Cosmic era</div>
+                <div className="font-display text-sm" style={{ color: INK }}>
+                  {T < 3 ? 'Today' : T < 10 ? 'Galaxy formation' : T < 100 ? 'Dark ages' : T < 3000 ? 'Reionisation→present' : T < 10000 ? 'Recombination' : 'Pre-recombination'}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-px" style={{ background: BORDER }}>
+              {[
+                { T: 2.725, z: 0, label: 'Today' },
+                { T: 27.25, z: 9, label: 'First galaxies' },
+                { T: 273.15, z: 99, label: 'Earth-temp era' },
+                { T: 3000, z: 1099, label: 'Recombination' },
+                { T: 10000, z: 3669, label: 'Pre-recomb plasma' },
+              ].map(p => (
+                <button key={p.label} onClick={() => setT(p.T)}
+                        className="p-3 text-center transition hover:bg-white/5"
+                        style={{ background: BG }}>
+                  <div className="font-mono text-xs" style={{ color: ACCENT }}>{p.label}</div>
+                  <div className="font-mono text-[10px] mt-1" style={{ color: DIM }}>T = {p.T} K, z = {p.z}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Section title="Why the CMB peaks in microwaves now">
+            <p>
+              At recombination (z ≈ 1100), the universe was filled with radiation at ~3000 K — the peak
+              wavelength of that blackbody was ~1000 nm, near-infrared. As the universe expanded by a
+              factor of ~1100, all those wavelengths stretched by the same factor. 1000 nm × 1100 = 1.1 mm,
+              squarely in the microwave band. This isn't an accident — it's a direct consequence of cosmic
+              expansion preserving photon-number while increasing wavelength.
+            </p>
+            <Eq>T_CMB(z) = T_today × (1 + z) = 2.725 K × (1 + z)</Eq>
+            <p>
+              The CMB photon number density today is ~411 photons/cm³. There are roughly 2 × 10⁹ CMB
+              photons for every baryon in the universe. By number, the universe is overwhelmingly photons.
+              By energy density, however, matter has dominated since z ≈ 3400, and dark energy since
+              z ≈ 0.4.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'origin' && (
+        <div className="fade-in">
+          <Section title="Before recombination: an opaque plasma">
+            <p>
+              In the first ~380,000 years after the Big Bang, the universe was so hot that hydrogen
+              atoms couldn't form. Every electron knocked into a nucleus was immediately ionised by
+              high-energy photons. The universe was a soup of free electrons, protons, helium nuclei,
+              and photons, all colliding constantly.
+            </p>
+            <p>
+              For a photon, this plasma was opaque. The mean free path between scattering events
+              (off free electrons via Thomson scattering) was minuscule — photons couldn't propagate. The
+              universe was effectively a glowing fog.
+            </p>
+          </Section>
+
+          <Section title="The transition: recombination">
+            <p>
+              As the universe expanded and cooled to ~3000 K (at z ≈ 1100, ~380,000 years after the
+              Big Bang), the photon energies dropped below hydrogen's binding energy of 13.6 eV. Electrons
+              could now bind to nuclei without being immediately knocked off. The plasma rapidly recombined
+              into neutral atoms.
+            </p>
+            <p>
+              The key consequence: Thomson scattering requires free electrons. Once they're bound in atoms,
+              the photon mean free path balloons by orders of magnitude. The universe became transparent
+              within a few thousand years. Photons that had been bouncing around in the plasma began
+              streaming freely — and have been streaming, with no further scattering, for the 13.8
+              billion years since.
+            </p>
+            <p>
+              The name "recombination" is a misnomer — the electrons and nuclei had never been "combined"
+              before. The term was coined by spectroscopists studying gas discharges, where electrons
+              actually do re-combine repeatedly. The astronomical usage stuck.
+            </p>
+          </Section>
+
+          <Section title="The surface of last scattering">
+            <p>
+              When we observe the CMB, we are looking at the moment of last scattering — the last time
+              those photons interacted with matter. This surface is essentially spherical (we see it in
+              all directions) and at a distance of ~14 Gpc (the comoving distance to z = 1100).
+            </p>
+            <p>
+              "Last scattering" wasn't instantaneous — it took ~100,000 years for the universe to fully
+              transition. The CMB we observe is effectively an average over this thickness. The finite
+              width imposes a small smoothing on small angular scales but doesn't fundamentally limit the
+              information we extract.
+            </p>
+            <p>
+              Recombination is one of cosmology's most precise epochs. The Saha equation for hydrogen
+              ionisation, combined with cooling cosmic expansion, predicts the exact temperature and
+              redshift to within fractions of a percent. CMB observations confirm these predictions.
+            </p>
+          </Section>
+
+          <Section title="Discovery">
+            <p>
+              In 1965, Arno Penzias and Robert Wilson at Bell Labs were testing a sensitive radio antenna
+              and found a persistent ~3 K signal that didn't go away no matter where they pointed.
+              Initially baffled (they spent months cleaning out pigeon droppings, suspecting that was the
+              source), they learned from a colleague that Dicke and Peebles at Princeton had just predicted
+              such a signal as a relic of the Big Bang.
+            </p>
+            <p>
+              Penzias and Wilson won the 1978 Nobel Prize for the accidental discovery. The CMB is one of
+              the three pillars of Big Bang cosmology (along with the abundance of light elements from
+              BBN and the redshift-distance relation from Hubble expansion). It established the hot Big
+              Bang as the correct cosmological model and effectively ended the steady-state theory.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'anisotropies' && (
+        <div className="fade-in">
+          <Section title="The CMB is not perfectly uniform">
+            <p>
+              Initial observations of the CMB suggested perfect uniformity in all directions — to within
+              measurement precision. As detectors improved, structure emerged at progressively smaller
+              levels:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>~10⁻³ (10⁻³ K):</strong> the dipole. The CMB is ~3.4 mK
+              warmer in one direction (toward Leo) and ~3.4 mK cooler in the opposite. This is our motion
+              through the CMB rest frame — the Sun moves at ~370 km/s. The Local Group as a whole moves
+              at ~620 km/s, probably toward the Great Attractor and Shapley supercluster.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>~10⁻⁵ (~30 μK):</strong> intrinsic anisotropies. Tiny
+              temperature variations from one patch of sky to another, present at the surface of last
+              scattering, frozen in by free-streaming since. These were first detected by COBE in 1992
+              (Smoot and Mather, 2006 Nobel).
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Polarisation:</strong> ~10⁻⁶ in linear polarisation,
+              from Thomson scattering at last scattering. E-modes (curl-free) detected confidently; B-modes
+              (divergence-free, potentially from inflationary gravitational waves) much harder, still
+              undetected at the inflationary level.
+            </p>
+          </Section>
+
+          <Section title="The acoustic peaks">
+            <p>
+              The most famous structure in the CMB is the angular power spectrum — temperature variance
+              as a function of angular scale. It shows a series of peaks: the first at ~1° angular
+              separation, then progressively smaller. These are the imprint of <em>acoustic oscillations</em>
+              in the pre-recombination plasma.
+            </p>
+            <p>
+              Density fluctuations in the photon-baryon fluid oscillated like sound waves. The wavelength
+              of the strongest oscillation at recombination — when sound froze in — sets the angular scale
+              of the first peak: about 1°. The harmonics of that fundamental show up as subsequent peaks
+              at smaller angular scales.
+            </p>
+            <p>
+              The exact pattern is exquisitely sensitive to cosmological parameters:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Peak positions</strong> tell us the geometry of space (the universe is flat to ~0.4%)<br />
+              <strong style={{ color: ACCENT }}>Relative heights</strong> tell us the ratio of baryons to dark matter (~1:5)<br />
+              <strong style={{ color: ACCENT }}>Damping tail</strong> tells us the number of relativistic species (neutrinos)<br />
+              <strong style={{ color: ACCENT }}>Polarisation cross-spectrum</strong> tells us about reionisation, gravitational lensing, primordial gravitational waves
+            </p>
+          </Section>
+
+          <Section title="The Planck satellite measurement">
+            <p>
+              ESA's Planck satellite (2009–2013) measured the CMB anisotropy power spectrum across nine
+              frequency bands with unprecedented precision. Its 2018 final analysis yielded:
+            </p>
+            <p>
+              H₀ = 67.4 ± 0.5 km/s/Mpc<br />
+              Ω_m (matter density) = 0.315 ± 0.007<br />
+              Ω_Λ (dark energy density) = 0.685 ± 0.007<br />
+              Ω_b (baryon density) = 0.0493 ± 0.0006<br />
+              Age of universe = 13.797 ± 0.023 Gyr<br />
+              Universe is flat to ±0.4%
+            </p>
+            <p>
+              The H₀ value from Planck differs from local distance-ladder measurements (~73 km/s/Mpc) by
+              ~5σ — the so-called Hubble tension. Either there's an unidentified systematic in one of
+              the measurements, or the standard ΛCDM cosmological model is incomplete.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'cosmology' && (
+        <div className="fade-in">
+          <Section title="The universe is flat">
+            <p>
+              The first acoustic peak in the CMB spectrum sits at angular scale ℓ ≈ 220, corresponding
+              to ~1° on the sky. In a closed universe, this peak would shift to larger angles (larger ℓ
+              values); in an open universe, smaller angles. The observed position matches a flat universe
+              to within 0.4%.
+            </p>
+            <p>
+              This was one of the great pre-Planck predictions of inflation: inflation should drive the
+              universe arbitrarily close to flat. CMB confirms it. The total energy density is, to high
+              precision, exactly the critical density needed to make spatial geometry Euclidean on cosmic
+              scales.
+            </p>
+          </Section>
+
+          <Section title="The composition of the universe">
+            <p>
+              The acoustic peak heights give the ratio of baryons to dark matter to radiation. The
+              modern values, from CMB combined with BBN and large-scale structure:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Ordinary matter (baryons):</strong> ~5%. Atoms, stars, planets, you.<br />
+              <strong style={{ color: ACCENT }}>Dark matter:</strong> ~27%. Gravitating but invisible. Particle nature unknown.<br />
+              <strong style={{ color: ACCENT }}>Dark energy:</strong> ~68%. Causing accelerating expansion. Nature unknown.<br />
+              <strong style={{ color: ACCENT }}>Photons + neutrinos:</strong> ~0.01% today (was dominant until z ≈ 3400)
+            </p>
+            <p>
+              The fact that we know these numbers to ~1% — for components we don't yet understand the
+              fundamental nature of — is one of the most striking achievements of late-20th-century physics.
+            </p>
+          </Section>
+
+          <Section title="Reionisation signature">
+            <p>
+              When the first stars and galaxies turned on (~150 Myr to ~1 Gyr after the Big Bang), their
+              UV light reionised the universe again. CMB photons travelling through this reionised plasma
+              scattered off free electrons — leaving a polarisation signature at large angular scales.
+            </p>
+            <p>
+              This signature gives an "optical depth to reionisation" τ ≈ 0.054. Combined with theory, that
+              implies reionisation completed around z ≈ 7, ~770 Myr after the Big Bang. JWST is now imaging
+              galaxies from this era and trying to determine if they produced enough UV to do the job.
+            </p>
+          </Section>
+
+          <Section title="Gravitational lensing of the CMB">
+            <p>
+              CMB photons travel through 13.8 Gyr of cosmic structure. They are gravitationally deflected
+              by dark matter halos along the way, smearing and re-arranging the temperature pattern slightly.
+              This lensing has been detected by Planck, ACT, and SPT and provides an independent map of
+              the dark matter distribution out to high redshift.
+            </p>
+            <p>
+              The lensing also constrains the sum of neutrino masses (~Σm_ν {'<'} 0.12 eV from current data),
+              the dark-energy equation of state, and parameters of inflation.
+            </p>
+          </Section>
+
+          <Section title="Open: primordial B-modes">
+            <p>
+              Inflation predicts that quantum fluctuations of spacetime during the inflationary epoch should
+              imprint a faint pattern of "B-mode" polarisation on the CMB. B-modes have a curl-like pattern
+              (unlike E-modes from density fluctuations, which are gradient-like). Detecting primordial B-modes
+              would be a smoking gun for inflation — and would let us measure the energy scale at which
+              inflation occurred.
+            </p>
+            <p>
+              No detection yet. Upper limits from BICEP/Keck place the tensor-to-scalar ratio r {'<'} 0.036.
+              Future experiments (CMB-S4, LiteBIRD, Simons Observatory) aim for r ≈ 0.001, which would
+              probe inflation at the GUT scale ~10¹⁶ GeV. A detection would be one of the most important
+              measurements of the 21st century.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      <WorkedExample title="What angular scale is the first acoustic peak?"
+                     steps={[
+                       { text: 'At recombination, sound waves in the photon-baryon plasma had been oscillating for ~380,000 years. The sound speed in this plasma is c_s ≈ c/√3.',
+                         eq: 'sound horizon at recombination: r_s = c_s × t_rec ≈ (c/√3) × 380,000 yr × (cosmic expansion factor)' },
+                       { text: 'After accounting for cosmic expansion during this time, the comoving sound horizon comes out to about 150 Mpc.',
+                         eq: 'r_s ≈ 150 Mpc (comoving)' },
+                       { text: 'This 150 Mpc scale is observed today at angular size:',
+                         eq: 'θ ≈ r_s / D_A ≈ 150 Mpc / 14,000 Mpc ≈ 0.011 rad ≈ 0.6°' },
+                       { text: 'Translating to angular wavenumber ℓ ≈ π/θ:',
+                         eq: 'ℓ_peak ≈ π / 0.011 ≈ 280',
+                         answer: 'The first acoustic peak should appear at multipole ℓ ≈ 220–280, corresponding to about 0.7–1° on the sky. Observationally Planck finds the peak at ℓ = 220.0 ± 0.5 — matching the prediction beautifully. The agreement gives us our most precise measurement of the universe\'s spatial flatness.' },
+                     ]} />
+
+      <Quiz questions={[
+        { q: 'The CMB photons that arrive at Earth today were emitted from:',
+          options: ['Stars in distant galaxies', 'The surface of last scattering at z ≈ 1100', 'The first galaxies at z ≈ 10', 'Hot intergalactic gas'],
+          correct: 1,
+          explain: 'The CMB is photons released ~380,000 years after the Big Bang at z ≈ 1100, when the universe transitioned from opaque plasma to transparent neutral gas. They\'ve been streaming freely ever since — for ~13.8 Gyr.' },
+        { q: 'Why does the CMB show such tiny temperature variations (~10⁻⁵) across the sky?',
+          options: ['Measurement noise', 'Quantum fluctuations imprinted on the plasma at recombination', 'Doppler effects from galaxy motion', 'Stars between us and the CMB'],
+          correct: 1,
+          explain: 'The 10⁻⁵ variations are real density perturbations in the photon-baryon plasma at the moment of recombination. They originated as quantum vacuum fluctuations during inflation, stretched to macroscopic size by exponential expansion. These same fluctuations seeded all subsequent structure — galaxies, clusters, you.' },
+        { q: 'Planck satellite gives H₀ = 67.4 km/s/Mpc. Cepheid+SN distance ladder gives H₀ ≈ 73 km/s/Mpc. This 5σ disagreement is called:',
+          options: ['The flatness problem', 'The Hubble tension', 'The CMB problem', 'The dark energy crisis'],
+          correct: 1,
+          explain: 'The "Hubble tension" — currently one of the most important problems in cosmology. Either there\'s an undetected systematic in one of the measurements, or our cosmological model needs new physics: early dark energy, modified neutrino interactions, or deviations from ΛCDM at recombination.' },
+      ]} />
+
+      <OpenQuestions items={[
+        { q: 'Is the Hubble tension real, and if so what does it mean?',
+          detail: '— A decade of work has not narrowed the ~5σ Planck/distance-ladder disagreement. Either systematic errors in one or both measurements, or new physics. Candidate explanations: early dark energy, additional neutrino species, modified gravity at recombination — all introduce other problems and none is universally accepted.' },
+        { q: 'Can we detect primordial gravitational waves in CMB B-modes?',
+          detail: '— A confirmed detection would establish inflation as essentially fact and measure the energy scale at which it happened. The 2014 BICEP2 claim turned out to be galactic dust. Current limits r < 0.036 are very tight. Future missions (LiteBIRD, CMB-S4) target r ≈ 0.001 — small enough to detect (or rule out) the simplest inflation models.' },
+        { q: 'What does the CMB tell us about the nature of dark matter?',
+          detail: '— The CMB confirms dark matter exists and quantifies its abundance (~27% of cosmic energy density). It constrains the relative populations of cold/warm/hot dark matter. But it does not (yet) point to what particle dark matter is. WIMPs, axions, primordial black holes, sterile neutrinos all remain candidates.' },
+        { q: 'Are there anomalies in the CMB we should take seriously?',
+          detail: '— Several mild anomalies (the "axis of evil", the cold spot in Eridanus, hemispherical power asymmetry) appear in the data at 2-3σ level. These could be cosmic variance (we only have one universe to observe), residual foregrounds, or genuine new physics. They\'ve been persistent through Planck and have prompted serious theoretical attention but no consensus interpretation.' },
+      ]} />
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 //  ROOT
 // ═══════════════════════════════════════════════════════════════════════════
 export default function App() {
@@ -4923,6 +6073,8 @@ export default function App() {
     exo:    <ExoplanetDetection onBack={() => setView('hub')} />,
     moon:   <MoonTopic         onBack={() => setView('hub')} />,
     obs:    <ObservationalAstronomy onBack={() => setView('hub')} />,
+    sr:     <SpecialRelativity onBack={() => setView('hub')} />,
+    cmb:    <CMB               onBack={() => setView('hub')} />,
     paths:  <LearningPaths     onBack={() => setView('hub')} onSelect={setView} />,
   };
   return views[view] || <Hub onSelect={setView} onShowPaths={() => setView('paths')} />;
