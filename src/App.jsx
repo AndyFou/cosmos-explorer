@@ -1,0 +1,2817 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { ArrowLeft, Eye, EyeOff, X, ChevronLeft, ChevronRight, Sparkles, Zap, BookOpen, Info } from 'lucide-react';
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COSMOS EXPLORER v0.3
+   An interactive astrophysics primer at first-year-course depth.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+// ─── Theme ──────────────────────────────────────────────────────────────────
+const BG = '#0b0e17';
+const PANEL = '#070912';
+const INK = '#e8e4d4';
+const DIM = '#8a8676';
+const FAINT = '#5a5749';
+const ACCENT = '#ffc97a';
+const ACCENT2 = '#7ac4ff';
+const ACCENT3 = '#ff8a70';
+const BORDER = 'rgba(232, 228, 212, 0.12)';
+const BORDER_STRONG = 'rgba(232, 228, 212, 0.22)';
+
+const FontStyles = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,800&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+    .font-display { font-family: 'Fraunces', 'Times New Roman', serif; font-optical-sizing: auto; }
+    .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .grain::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+      mix-blend-mode: overlay; opacity: 0.5;
+    }
+    @keyframes twinkle { 0%, 100% { opacity: 0.3 } 50% { opacity: 0.9 } }
+    .twinkle { animation: twinkle 4s ease-in-out infinite; }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+    .fade-in { animation: fade-in 0.45s ease-out both; }
+    input[type="range"] { -webkit-appearance: none; height: 2px; background: ${BORDER_STRONG}; border-radius: 1px; outline: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: ${ACCENT}; border-radius: 50%; cursor: pointer; border: 2px solid ${BG}; }
+    input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; background: ${ACCENT}; border-radius: 50%; cursor: pointer; border: 2px solid ${BG}; }
+  `}</style>
+);
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+function spectralColor(temp) {
+  if (temp >= 30000) return '#9bb0ff';
+  if (temp >= 10000) return '#aabfff';
+  if (temp >= 7500)  return '#cad7ff';
+  if (temp >= 6000)  return '#f8f7ff';
+  if (temp >= 5200)  return '#fff4ea';
+  if (temp >= 3700)  return '#ffd2a1';
+  return '#ffa070';
+}
+function spectralLetter(temp) {
+  if (temp >= 30000) return 'O';
+  if (temp >= 10000) return 'B';
+  if (temp >= 7500)  return 'A';
+  if (temp >= 6000)  return 'F';
+  if (temp >= 5200)  return 'G';
+  if (temp >= 3700)  return 'K';
+  return 'M';
+}
+function fmt(n, digits = 2) {
+  if (n === 0) return '0';
+  const abs = Math.abs(n);
+  if (abs >= 1e6 || abs < 1e-3) return n.toExponential(digits);
+  if (abs >= 100) return Math.round(n).toLocaleString();
+  return Number(n.toPrecision(digits + 1)).toString();
+}
+const fmtSci = (n, d = 2) => {
+  if (n === 0) return '0';
+  const exp = Math.floor(Math.log10(Math.abs(n)));
+  const mant = n / Math.pow(10, exp);
+  if (exp >= -2 && exp <= 3) return mant === 1 && exp === 0 ? '1' : (n).toPrecision(d + 1);
+  const sup = String(Math.abs(exp)).split('').map(c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[+c]).join('');
+  return `${mant.toPrecision(d + 1)} × 10${exp < 0 ? '⁻' : ''}${sup}`;
+};
+
+// ─── Shared components ──────────────────────────────────────────────────────
+function PageShell({ children, onBack, title, eyebrow }) {
+  return (
+    <div className="min-h-screen relative grain" style={{ background: BG, color: INK }}>
+      <FontStyles />
+      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-6 pb-16">
+        <div className="flex items-center justify-between mb-8">
+          {onBack ? (
+            <button onClick={onBack}
+              className="font-mono text-xs uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded hover:bg-white/5 transition"
+              style={{ color: DIM }}>
+              <ArrowLeft size={14} /> back to index
+            </button>
+          ) : <div />}
+          <div className="font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: DIM }}>
+            cosmos explorer · v0.3
+          </div>
+        </div>
+        {eyebrow && (
+          <div className="font-mono text-xs uppercase tracking-[0.25em] mb-2" style={{ color: ACCENT }}>{eyebrow}</div>
+        )}
+        {title && (
+          <h1 className="font-display font-light text-5xl md:text-6xl mb-8 leading-[1.05]" style={{ letterSpacing: '-0.02em' }}>
+            {title}
+          </h1>
+        )}
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Eq({ children }) {
+  return (
+    <div className="font-mono text-sm py-3 px-4 my-3 rounded"
+         style={{ background: 'rgba(255, 201, 122, 0.05)', border: `1px solid ${ACCENT}25`, color: INK }}>
+      {children}
+    </div>
+  );
+}
+
+function Section({ title, children }) {
+  return (
+    <div className="mb-8">
+      <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT }}>{title}</div>
+      <div className="font-display text-[15px] leading-relaxed space-y-3" style={{ color: '#c8c3b1' }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function KV({ label, value, mono = true }) {
+  return (
+    <div className="flex justify-between items-baseline gap-4 py-1.5" style={{ borderBottom: `1px solid ${BORDER}` }}>
+      <dt className="font-mono text-xs" style={{ color: DIM }}>{label}</dt>
+      <dd className={`${mono ? 'font-mono' : 'font-display'} text-xs`} style={{ color: INK }}>{value}</dd>
+    </div>
+  );
+}
+
+function Pill({ children, color = ACCENT }) {
+  return (
+    <span className="font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-1 rounded-sm"
+          style={{ color, border: `1px solid ${color}40` }}>{children}</span>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  STAR CATALOGUE (curated for teaching)
+// ═══════════════════════════════════════════════════════════════════════════
+const STARS = [
+  { name: 'Proxima Centauri',   temp: 3042,  lum: 0.0017,  radius: 0.154, mass: 0.122, type: 'M5.5Ve', cls: 'MS', dist: 4.24,    fact: 'The closest star to the Sun. Hosts at least one Earth-mass planet in its habitable zone.' },
+  { name: "Barnard's Star",     temp: 3134,  lum: 0.0035,  radius: 0.196, mass: 0.144, type: 'M4V',    cls: 'MS', dist: 5.96,    fact: 'Highest known proper motion — visibly drifts across our sky over decades.' },
+  { name: 'Lacaille 9352',      temp: 3626,  lum: 0.0367,  radius: 0.482, mass: 0.486, type: 'M0.5V',  cls: 'MS', dist: 10.74,   fact: 'One of the brightest red dwarfs as seen from Earth.' },
+  { name: 'Alpha Centauri B',   temp: 5260,  lum: 0.5,     radius: 0.865, mass: 0.907, type: 'K1V',    cls: 'MS', dist: 4.37,    fact: 'The Sun’s slightly cooler companion — an orange dwarf in our nearest stellar system.' },
+  { name: 'Epsilon Eridani',    temp: 5084,  lum: 0.34,    radius: 0.735, mass: 0.82,  type: 'K2V',    cls: 'MS', dist: 10.5,    fact: 'A young (~800 Myr) K-dwarf with debris disks — like seeing our solar system as a child.' },
+  { name: 'Sun',                temp: 5778,  lum: 1,       radius: 1,     mass: 1,     type: 'G2V',    cls: 'MS', dist: 0.0000158, fact: 'Our home star. Halfway through its ~10-billion-year main-sequence life.' },
+  { name: 'Alpha Centauri A',   temp: 5790,  lum: 1.519,   radius: 1.2234,mass: 1.0788,type: 'G2V',    cls: 'MS', dist: 4.37,    fact: 'Nearly a twin of the Sun — a key benchmark for stellar physics.' },
+  { name: 'Tau Ceti',           temp: 5344,  lum: 0.52,    radius: 0.793, mass: 0.783, type: 'G8V',    cls: 'MS', dist: 11.9,    fact: 'A nearby Sun-like star searched repeatedly for Earth-like planets.' },
+  { name: 'Procyon A',          temp: 6530,  lum: 6.93,    radius: 2.048, mass: 1.499, type: 'F5IV-V', cls: 'MS', dist: 11.46,   fact: 'Already beginning to evolve off the main sequence.' },
+  { name: 'Altair',             temp: 7550,  lum: 10.6,    radius: 1.79,  mass: 1.86,  type: 'A7V',    cls: 'MS', dist: 16.73,   fact: 'Spins so fast (~9 hours per rotation) that it is visibly flattened.' },
+  { name: 'Vega',               temp: 9602,  lum: 40.12,   radius: 2.362, mass: 2.135, type: 'A0V',    cls: 'MS', dist: 25.04,   fact: 'Photometric magnitude standard. Pole star ~12,000 BCE.' },
+  { name: 'Sirius A',           temp: 9940,  lum: 25.4,    radius: 1.711, mass: 2.063, type: 'A1V',    cls: 'MS', dist: 8.6,     fact: 'Brightest star in our night sky — largely because it is close.' },
+  { name: 'Fomalhaut',          temp: 8590,  lum: 16.63,   radius: 1.842, mass: 1.92,  type: 'A3V',    cls: 'MS', dist: 25.13,   fact: 'Surrounded by a sharp-edged debris ring directly imaged from Earth.' },
+  { name: 'Regulus A',          temp: 12460, lum: 316,     radius: 4.35,  mass: 3.8,   type: 'B8IVn',  cls: 'MS', dist: 79.3,    fact: 'Spinning near its breakup velocity — visibly oblate.' },
+  { name: 'Bellatrix',          temp: 22000, lum: 9211,    radius: 5.75,  mass: 8.6,   type: 'B2III',  cls: 'MS', dist: 250,     fact: 'A massive hot star nearing the end of core hydrogen burning.' },
+  { name: 'Spica',              temp: 22400, lum: 20512,   radius: 7.47,  mass: 11.43, type: 'B1V',    cls: 'MS', dist: 250,     fact: 'A binary of two hot blue stars — among the most luminous nearby stars.' },
+  { name: 'Pollux',             temp: 4666,  lum: 43,      radius: 9.06,  mass: 1.91,  type: 'K0III',  cls: 'G',  dist: 33.78,   fact: 'An orange giant — has exhausted core hydrogen and swollen.' },
+  { name: 'Arcturus',           temp: 4286,  lum: 170,     radius: 25.4,  mass: 1.08,  type: 'K1.5III',cls: 'G',  dist: 36.66,   fact: 'What the Sun will resemble in ~5 Gyr. Currently burning helium in the core.' },
+  { name: 'Aldebaran',          temp: 3910,  lum: 518,     radius: 45.1,  mass: 1.16,  type: 'K5III',  cls: 'G',  dist: 65,      fact: 'The “eye of Taurus” — a cool, large red giant.' },
+  { name: 'Capella Aa',         temp: 4970,  lum: 78.7,    radius: 11.98, mass: 2.5687,type: 'G8III',  cls: 'G',  dist: 42.92,   fact: 'Brightest yellow giant in our skies; part of a quadruple system.' },
+  { name: 'Mira',               temp: 3000,  lum: 8400,    radius: 332,   mass: 1.18,  type: 'M7IIIe', cls: 'G',  dist: 92,      fact: 'A pulsating asymptotic-giant-branch (AGB) star — brightness varies ~1500×.' },
+  { name: 'Polaris Aa',         temp: 6015,  lum: 1260,    radius: 37.5,  mass: 5.4,   type: 'F7Ib',   cls: 'SG', dist: 132.6,   fact: 'A yellow supergiant Cepheid variable — a distance calibrator.' },
+  { name: 'Deneb',              temp: 8525,  lum: 196000,  radius: 203,   mass: 19,    type: 'A2Ia',   cls: 'SG', dist: 802,     fact: 'Among the most luminous naked-eye stars, despite ~800 ly distance.' },
+  { name: 'Rigel',              temp: 12100, lum: 120000,  radius: 78.9,  mass: 21,    type: 'B8Ia',   cls: 'SG', dist: 264.6,   fact: 'Blue supergiant in Orion. Future core-collapse supernova.' },
+  { name: 'Antares',            temp: 3660,  lum: 75900,   radius: 680,   mass: 12,    type: 'M1.5Iab',cls: 'SG', dist: 169.7,   fact: 'A red supergiant — placed at the Sun, would engulf Mars.' },
+  { name: 'Betelgeuse',         temp: 3500,  lum: 126000,  radius: 887,   mass: 17.5,  type: 'M1-2Ia', cls: 'SG', dist: 168,     fact: 'A red supergiant late in its life — supernova candidate within ~100 kyr.' },
+  { name: 'VY Canis Majoris',   temp: 3490,  lum: 270000,  radius: 1420,  mass: 17,    type: 'M3-M5e Ia', cls: 'SG', dist: 1170, fact: 'A red hypergiant — among the largest known stars.' },
+  { name: 'Sirius B',           temp: 25200, lum: 0.056,   radius: 0.0084,mass: 1.018, type: 'DA2',    cls: 'WD', dist: 8.6,     fact: 'A white dwarf — Earth-sized but Sun-massed. A teaspoon weighs tonnes.' },
+  { name: 'Procyon B',          temp: 7740,  lum: 0.00049, radius: 0.012, mass: 0.602, type: 'DQZ',    cls: 'WD', dist: 11.46,   fact: 'A white dwarf cooling slowly toward eventual black-dwarf state.' },
+  { name: "Van Maanen's Star",  temp: 6220,  lum: 0.00017, radius: 0.014, mass: 0.68,  type: 'DZ8',    cls: 'WD', dist: 14.07,   fact: 'First isolated white dwarf ever discovered (1917).' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  HUB
+// ═══════════════════════════════════════════════════════════════════════════
+const TOPICS = [
+  { id: 'hr',     n: '01', title: 'Hertzsprung–Russell Diagram',  sub: 'Temperature, luminosity, and the lives of stars',     ready: true },
+  { id: 'sizes',  n: '02', title: 'Stellar Size Comparison',       sub: 'From Earth to hypergiant by orders of magnitude',     ready: true },
+  { id: 'life',   n: '03', title: 'The Stellar Lifecycle',         sub: 'How a star’s initial mass decides its entire fate',   ready: true },
+  { id: 'fusion', n: '04', title: 'Nuclear Fusion in Stars',       sub: 'The binding energy curve and the chains of burning', ready: true },
+  { id: 'spec',   n: '05', title: 'Spectral Classification',       sub: 'Reading the bar code of stellar light',               ready: true },
+  { id: 'ladder', n: '06', title: 'The Cosmic Distance Ladder',    sub: 'How we measure the universe, step by step',           ready: true },
+  { id: 'bh',     n: '07', title: 'Anatomy of a Black Hole',       sub: 'Horizons, photon spheres, and Hawking evaporation',   ready: true },
+  { id: 'gal',    n: '08', title: 'Galaxy Morphology',             sub: 'The Hubble sequence and modern classifications',      ready: true },
+  { id: 'bb',     n: '09', title: 'The Big Bang Timeline',         sub: 'From Planck era to recombination, logarithmically',   ready: true },
+  { id: 'exo',    n: '10', title: 'Exoplanet Detection',           sub: 'Transits, radial velocity, microlensing, imaging',    ready: true },
+  { id: 'sr',     n: '11', title: 'Special Relativity Essentials', sub: 'The Lorentz factor and what it does to spacetime',    ready: false },
+  { id: 'cmb',    n: '12', title: 'The Cosmic Microwave Background', sub: 'A baby photo of the universe at 380,000 years',     ready: false },
+];
+
+function StarField() {
+  const stars = useMemo(() => Array.from({ length: 140 }, () => ({
+    x: Math.random() * 100, y: Math.random() * 100, r: Math.random() * 1.2 + 0.2,
+    o: Math.random() * 0.6 + 0.2, d: Math.random() * 4,
+  })), []);
+  return (
+    <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
+      {stars.map((s, i) => (
+        <circle key={i} cx={`${s.x}%`} cy={`${s.y}%`} r={s.r} fill="#fff" opacity={s.o}
+                className={i % 7 === 0 ? 'twinkle' : ''} style={{ animationDelay: `${s.d}s` }} />
+      ))}
+    </svg>
+  );
+}
+
+function Hub({ onSelect }) {
+  return (
+    <div className="min-h-screen relative grain overflow-hidden" style={{ background: BG, color: INK }}>
+      <FontStyles />
+      <StarField />
+      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-16 md:pt-24 pb-16">
+        <div className="font-mono text-xs uppercase tracking-[0.3em] mb-4" style={{ color: ACCENT }}>
+          An interactive primer · v0.3
+        </div>
+        <h1 className="font-display font-light text-6xl md:text-7xl leading-[1.0] mb-6 max-w-4xl" style={{ letterSpacing: '-0.025em' }}>
+          Cosmos<br />
+          <span style={{ fontStyle: 'italic', color: ACCENT }}>Explorer.</span>
+        </h1>
+        <p className="font-display text-lg md:text-xl max-w-3xl mb-16 leading-relaxed" style={{ color: '#c8c3b1' }}>
+          A growing collection of interactive astrophysics primers — built at first-year-course depth,
+          with real equations, derivations, and connections between topics. Each entry stands alone;
+          taken together they form a curriculum.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px"
+             style={{ background: BORDER }}>
+          {TOPICS.map((t, idx) => (
+            <button key={t.id} onClick={() => t.ready && onSelect(t.id)} disabled={!t.ready}
+              className={`text-left p-7 md:p-8 transition-all group relative fade-in ${
+                t.ready ? 'hover:bg-white/[0.03] cursor-pointer' : 'cursor-not-allowed'
+              }`} style={{ background: BG, animationDelay: `${idx * 50}ms` }}>
+              <div className="flex items-start justify-between mb-12">
+                <span className="font-mono text-xs tracking-widest" style={{ color: DIM }}>{t.n}</span>
+                {t.ready ? <Pill>open</Pill> : <span className="font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: FAINT }}>soon</span>}
+              </div>
+              <h2 className="font-display text-2xl md:text-[26px] leading-tight mb-3"
+                  style={{ color: t.ready ? INK : '#6a6757', letterSpacing: '-0.01em' }}>
+                {t.title}
+              </h2>
+              <p className="font-display text-sm leading-relaxed" style={{ color: DIM }}>{t.sub}</p>
+              {t.ready && (
+                <div className="absolute bottom-7 right-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="font-mono text-xs" style={{ color: ACCENT }}>→</span>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-12 flex items-start gap-3 max-w-2xl">
+          <Sparkles size={14} style={{ color: ACCENT, marginTop: 4 }} />
+          <p className="font-mono text-xs leading-relaxed" style={{ color: DIM }}>
+            Each topic is designed to be roughly one lecture's worth of material. Suggest any direction
+            you want explored — gravitational lensing, the Saha equation, MHD basics, GR primer, whatever
+            calls to you next.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  01 · H-R DIAGRAM (enhanced)
+// ═══════════════════════════════════════════════════════════════════════════
+function HRDiagram({ onBack }) {
+  const [selected, setSelected] = useState(null);
+  const [hovered, setHovered] = useState(null);
+  const [showRegions, setShowRegions] = useState(true);
+  const [showLabels, setShowLabels] = useState(false);
+  const [showRadius, setShowRadius] = useState(false);
+  const [showTracks, setShowTracks] = useState(false);
+
+  const W = 900, H = 600;
+  const PL = 90, PR = 820, PT = 50, PB = 510;
+  const PW = PR - PL, PH = PB - PT;
+  const logT_min = Math.log10(2200), logT_max = Math.log10(45000);
+  const logL_min = -5, logL_max = 7;
+  const xT = t => PL + PW * (1 - (Math.log10(t) - logT_min) / (logT_max - logT_min));
+  const yL = l => PT + PH * (1 - (Math.log10(l) - logL_min) / (logL_max - logL_min));
+
+  // Stefan-Boltzmann: L/L☉ = (R/R☉)² (T/T☉)⁴
+  // Lines of constant radius: log L = 2 log R + 4 log(T/5778)
+  const constR = (R, t) => Math.pow(R, 2) * Math.pow(t / 5778, 4);
+  const radiusLines = [0.01, 0.1, 1, 10, 100, 1000];
+
+  // Evolutionary tracks (simplified, schematic but qualitatively correct)
+  const tracks = [
+    { mass: 1, color: '#fff4ea', points: [
+      [5778, 1], [5500, 1.5], [5000, 3], [4500, 10], [4000, 50], [3500, 500], // RGB
+      [4500, 50], [4800, 60], [4500, 200], [3500, 3000], // AGB
+      [50000, 0.01], [25000, 0.001] // PN → WD
+    ]},
+    { mass: 5, color: '#cad7ff', points: [
+      [17000, 600], [12000, 800], [8000, 1500], [5000, 2500], [4000, 4000], [3500, 6000]
+    ]},
+    { mass: 25, color: '#9bb0ff', points: [
+      [38000, 80000], [30000, 100000], [25000, 130000], [15000, 180000], [8000, 250000], [4000, 300000], [3500, 350000]
+    ]},
+  ];
+
+  const mainSeq = `
+    M ${xT(40000)} ${yL(800000)} L ${xT(20000)} ${yL(20000)} L ${xT(10000)} ${yL(100)}
+    L ${xT(6000)}  ${yL(1.5)}    L ${xT(4000)}  ${yL(0.1)}   L ${xT(2500)} ${yL(0.001)}
+    L ${xT(2500)}  ${yL(0.0001)} L ${xT(4000)}  ${yL(0.01)}  L ${xT(6000)} ${yL(0.3)}
+    L ${xT(10000)} ${yL(20)}     L ${xT(20000)} ${yL(3000)}  L ${xT(40000)} ${yL(100000)} Z`;
+  const giants = `M ${xT(6000)} ${yL(10)} L ${xT(3000)} ${yL(20)} L ${xT(3000)} ${yL(2000)} L ${xT(6000)} ${yL(1000)} Z`;
+  const supergiants = `M ${xT(40000)} ${yL(2000000)} L ${xT(3000)} ${yL(30000)} L ${xT(3000)} ${yL(1000000)} L ${xT(40000)} ${yL(5000000)} Z`;
+  const whiteDwarfs = `M ${xT(35000)} ${yL(0.1)} L ${xT(5000)} ${yL(0.0001)} L ${xT(5000)} ${yL(0.00001)} L ${xT(35000)} ${yL(0.005)} Z`;
+
+  const tempTicks = [40000, 20000, 10000, 7500, 6000, 5000, 3700, 2500];
+  const lumTicks = [1e7, 1e5, 1e3, 10, 1, 0.01, 1e-4];
+  const specBands = [
+    { letter: 'O', t: 35000, c: '#9bb0ff' }, { letter: 'B', t: 17000, c: '#aabfff' },
+    { letter: 'A', t: 8700, c: '#cad7ff' },  { letter: 'F', t: 6700, c: '#f8f7ff' },
+    { letter: 'G', t: 5500, c: '#fff4ea' },  { letter: 'K', t: 4400, c: '#ffd2a1' },
+    { letter: 'M', t: 3000, c: '#ffa070' },
+  ];
+  const active = hovered || selected;
+
+  return (
+    <PageShell onBack={onBack} eyebrow="01 — Stellar Properties"
+               title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>H–R</em> Diagram</>}>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8">
+        <div>
+          {/* Controls */}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            {[
+              ['regions', showRegions, setShowRegions],
+              ['labels', showLabels, setShowLabels],
+              ['radius lines', showRadius, setShowRadius],
+              ['evol. tracks', showTracks, setShowTracks],
+            ].map(([label, on, set]) => (
+              <button key={label} onClick={() => set(!on)}
+                className="font-mono text-xs uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded transition"
+                style={{ color: on ? ACCENT : DIM, border: `1px solid ${on ? ACCENT + '60' : BORDER}` }}>
+                {on ? <Eye size={12} /> : <EyeOff size={12} />} {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+              {showRegions && (
+                <g opacity="0.5">
+                  <path d={mainSeq}     fill="#ffd591" opacity="0.06" />
+                  <path d={giants}      fill="#ff8a70" opacity="0.07" />
+                  <path d={supergiants} fill="#cad7ff" opacity="0.05" />
+                  <path d={whiteDwarfs} fill="#aabfff" opacity="0.07" />
+                </g>
+              )}
+              {showRegions && (
+                <g fontFamily="JetBrains Mono, monospace" fontSize="11" fill={DIM} letterSpacing="0.15em">
+                  <text x={xT(8000)} y={yL(0.3)} textAnchor="middle">MAIN SEQUENCE</text>
+                  <text x={xT(3800)} y={yL(150)} textAnchor="middle">GIANTS</text>
+                  <text x={xT(7000)} y={yL(300000)} textAnchor="middle">SUPERGIANTS</text>
+                  <text x={xT(15000)} y={yL(0.008)} textAnchor="middle">WHITE DWARFS</text>
+                </g>
+              )}
+              {/* Radius lines (constant R) */}
+              {showRadius && (
+                <g stroke={ACCENT2} strokeWidth="0.6" opacity="0.4" strokeDasharray="2 3" fill="none">
+                  {radiusLines.map(R => {
+                    const pts = [];
+                    for (let logT = logT_min; logT <= logT_max; logT += 0.05) {
+                      const t = Math.pow(10, logT);
+                      const l = constR(R, t);
+                      if (l >= Math.pow(10, logL_min) && l <= Math.pow(10, logL_max)) {
+                        pts.push(`${xT(t)},${yL(l)}`);
+                      }
+                    }
+                    return (
+                      <g key={R}>
+                        <polyline points={pts.join(' ')} />
+                        {pts.length > 0 && (() => {
+                          const [x, y] = pts[Math.floor(pts.length * 0.15)].split(',').map(Number);
+                          return (
+                            <text x={x} y={y - 4} fill={ACCENT2} fontSize="9" opacity="0.7">
+                              R = {R < 1 ? R : R}R☉
+                            </text>
+                          );
+                        })()}
+                      </g>
+                    );
+                  })}
+                </g>
+              )}
+              {/* Evolutionary tracks */}
+              {showTracks && tracks.map(tr => (
+                <g key={tr.mass}>
+                  <polyline points={tr.points.map(([t, l]) => `${xT(t)},${yL(l)}`).join(' ')}
+                            fill="none" stroke={tr.color} strokeWidth="1.5" opacity="0.7" strokeDasharray="3 2" />
+                  {(() => {
+                    const [t, l] = tr.points[tr.points.length - 1];
+                    return (
+                      <text x={xT(t) + 8} y={yL(l)} fill={tr.color} fontSize="10" fontFamily="JetBrains Mono, monospace">
+                        {tr.mass} M☉ track
+                      </text>
+                    );
+                  })()}
+                </g>
+              ))}
+              {/* Grid */}
+              <g stroke={BORDER} strokeWidth="0.5">
+                {tempTicks.map(t => <line key={`v${t}`} x1={xT(t)} x2={xT(t)} y1={PT} y2={PB} />)}
+                {lumTicks.map(l => <line key={`h${l}`} x1={PL} x2={PR} y1={yL(l)} y2={yL(l)} />)}
+              </g>
+              <line x1={PL} x2={PR} y1={PB} y2={PB} stroke={INK} />
+              <line x1={PL} x2={PL} y1={PT} y2={PB} stroke={INK} />
+              {/* Axis labels */}
+              <g fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>
+                {tempTicks.map(t => (
+                  <g key={`xt${t}`}>
+                    <line x1={xT(t)} x2={xT(t)} y1={PB} y2={PB + 5} stroke={DIM} />
+                    <text x={xT(t)} y={PB + 18} textAnchor="middle">{t >= 1000 ? `${t/1000}k` : t}</text>
+                  </g>
+                ))}
+                <text x={(PL + PR) / 2} y={PB + 40} textAnchor="middle" fill={INK} letterSpacing="0.15em">SURFACE TEMPERATURE (K)</text>
+                {specBands.map(b => (
+                  <text key={b.letter} x={xT(b.t)} y={PT - 10} textAnchor="middle" fontSize="12" fontWeight="600" fill={b.c}>{b.letter}</text>
+                ))}
+                {lumTicks.map(l => {
+                  const exp = Math.log10(l);
+                  return (
+                    <g key={`yl${l}`}>
+                      <line x1={PL - 5} x2={PL} y1={yL(l)} y2={yL(l)} stroke={DIM} />
+                      <text x={PL - 10} y={yL(l) + 4} textAnchor="end">10{exp >= 0 ? '⁺' : '⁻'}{Math.abs(exp)}</text>
+                    </g>
+                  );
+                })}
+                <text x={PL - 60} y={(PT + PB) / 2} textAnchor="middle" fill={INK}
+                      transform={`rotate(-90, ${PL - 60}, ${(PT + PB) / 2})`} letterSpacing="0.15em">
+                  LUMINOSITY (L☉)
+                </text>
+              </g>
+              {/* Sun crosshair */}
+              <g opacity="0.4">
+                <line x1={xT(5778)} x2={xT(5778)} y1={PT} y2={PB} stroke={ACCENT} strokeWidth="0.5" strokeDasharray="2 4" />
+                <line x1={PL} x2={PR} y1={yL(1)} y2={yL(1)} stroke={ACCENT} strokeWidth="0.5" strokeDasharray="2 4" />
+              </g>
+              {/* Stars */}
+              {STARS.map(s => {
+                const cx = xT(s.temp), cy = yL(s.lum);
+                const r = s.cls === 'WD' ? 3.5 : s.cls === 'SG' ? 7 : s.cls === 'G' ? 5.5 : 4.5;
+                const isActive = active?.name === s.name;
+                const isSelected = selected?.name === s.name;
+                return (
+                  <g key={s.name} onMouseEnter={() => setHovered(s)} onMouseLeave={() => setHovered(null)}
+                     onClick={() => setSelected(s)} style={{ cursor: 'pointer' }}>
+                    {isActive && <circle cx={cx} cy={cy} r={r + 6} fill="none" stroke={ACCENT} strokeWidth="1" opacity="0.6" />}
+                    <circle cx={cx} cy={cy} r={r} fill={spectralColor(s.temp)} opacity={isActive ? 1 : 0.92}
+                            stroke={isSelected ? ACCENT : 'none'} strokeWidth="1.5" />
+                    {(showLabels || isActive) && (
+                      <text x={cx + r + 4} y={cy + 3} fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK} opacity="0.85">
+                        {s.name}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+
+          <p className="font-display text-sm leading-relaxed mt-5 max-w-3xl" style={{ color: '#c8c3b1' }}>
+            Each star plotted by surface temperature and intrinsic luminosity (both on log scales).
+            The dashed crosshair marks the Sun. Toggle <em>radius lines</em> to see lines of constant
+            stellar radius (a direct consequence of Stefan–Boltzmann), and <em>evolutionary tracks</em>
+            to see how stars of different masses migrate across the diagram during their lives.
+          </p>
+
+          {/* Below-diagram physics */}
+          <div className="mt-10 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+            <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>The physics behind the diagram</h3>
+
+            <Section title="Why the main sequence is a line, not a cloud">
+              <p>
+                A main-sequence star is in hydrostatic equilibrium: outward pressure from nuclear burning
+                in the core balances inward gravity. Both pressure and burning rate are set primarily by
+                <em> mass</em>. So once you fix the mass, you fix the luminosity, temperature, and radius —
+                hence the tight band.
+              </p>
+              <Eq>
+                Mass–luminosity relation (rough, MS only):  L / L☉ ≈ (M / M☉)<sup>3.5</sup>
+              </Eq>
+              <p>
+                A 10 M☉ star is about 10<sup>3.5</sup> ≈ 3,000 times more luminous than the Sun. It burns
+                its hydrogen budget so fast that its main-sequence lifetime collapses to a few million years.
+              </p>
+              <Eq>
+                Main-sequence lifetime:  t<sub>MS</sub> ≈ 10<sup>10</sup> (M / M☉)<sup>−2.5</sup> years
+              </Eq>
+            </Section>
+
+            <Section title="Stefan–Boltzmann ties temperature, radius, and luminosity">
+              <Eq>L = 4π R² σ T⁴</Eq>
+              <p>
+                Toggle the <em>radius lines</em> overlay. They run diagonally from upper-left to lower-right.
+                Two stars at the same temperature but different luminosities must have different radii —
+                that's why white dwarfs and supergiants sit far below and above the main sequence even
+                though they share temperature ranges with main-sequence stars.
+              </p>
+            </Section>
+
+            <Section title="How stars move across the diagram">
+              <p>
+                Stars do not slide along the main sequence as they age. Instead they spend ~90% of their
+                lives in one spot on the main sequence, then move <em>off</em> it once hydrogen in the
+                core is exhausted. Toggle evolutionary tracks to see the schematic paths for 1, 5, and 25 M☉.
+              </p>
+              <p>
+                The 1 M☉ track ends as a white dwarf (after a planetary nebula). The 25 M☉ star never
+                returns — it ends as a core-collapse supernova, leaving a neutron star or black hole.
+              </p>
+            </Section>
+
+            <Section title="A note on the MK classification system">
+              <p>
+                Spectral types O, B, A, F, G, K, M run hot to cool. Each is subdivided 0–9 (G2 is hotter than
+                G8). A Roman numeral indicates the luminosity class — V is main sequence (“dwarf”), III is a
+                giant, I is a supergiant. The Sun is G2V; Betelgeuse is M1-2Ia.
+              </p>
+            </Section>
+          </div>
+        </div>
+
+        {/* Side panel */}
+        <aside className="lg:sticky lg:top-6 self-start" style={{ borderLeft: `1px solid ${BORDER}` }}>
+          <div className="pl-6">
+            {selected ? (
+              <div className="fade-in">
+                <div className="flex items-start justify-between mb-4">
+                  <Pill>selected · {selected.type}</Pill>
+                  <button onClick={() => setSelected(null)} className="opacity-60 hover:opacity-100"><X size={14} /></button>
+                </div>
+                <h3 className="font-display text-3xl leading-tight mb-1" style={{ letterSpacing: '-0.01em' }}>{selected.name}</h3>
+                <div className="flex items-center gap-2 mb-6">
+                  <span className="inline-block w-3 h-3 rounded-full" style={{ background: spectralColor(selected.temp) }} />
+                  <span className="font-mono text-xs" style={{ color: DIM }}>
+                    Class {spectralLetter(selected.temp)} · {
+                      selected.cls === 'MS' ? 'Main Sequence' : selected.cls === 'G' ? 'Giant' :
+                      selected.cls === 'SG' ? 'Supergiant' : 'White Dwarf'
+                    }
+                  </span>
+                </div>
+                <dl className="space-y-3 mb-6">
+                  <KV label="Temperature" value={`${selected.temp.toLocaleString()} K`} />
+                  <KV label="Luminosity" value={`${fmtSci(selected.lum)} L☉`} />
+                  <KV label="Radius" value={`${selected.radius} R☉`} />
+                  <KV label="Mass" value={`${selected.mass} M☉`} />
+                  <KV label="Distance" value={selected.dist < 0.001 ? '~8 light-min' : `${selected.dist} ly`} />
+                  {selected.cls === 'MS' && (
+                    <KV label="Est. MS lifetime"
+                        value={`${fmtSci(1e10 * Math.pow(selected.mass, -2.5), 1)} yr`} />
+                  )}
+                </dl>
+                <div className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{selected.fact}</div>
+              </div>
+            ) : (
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: DIM }}>
+                  How to read this chart
+                </div>
+                <ul className="space-y-4 font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>
+                  <li><span style={{ color: ACCENT }}>Left → right:</span> stars get cooler. Historically built this way and never re-flipped.</li>
+                  <li><span style={{ color: ACCENT }}>Bottom → top:</span> luminosity rises by factors of ten per grid line.</li>
+                  <li><span style={{ color: ACCENT }}>The diagonal band</span> is the main sequence — ~90% of a star’s life.</li>
+                  <li><span style={{ color: ACCENT }}>Off the band:</span> young, dying, or already a remnant.</li>
+                </ul>
+                <div className="mt-6 pt-6 font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: DIM, borderTop: `1px solid ${BORDER}` }}>
+                  Click any star to inspect
+                </div>
+              </div>
+            )}
+          </div>
+        </aside>
+      </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  02 · STELLAR SIZE COMPARISON
+// ═══════════════════════════════════════════════════════════════════════════
+const SIZE_FRAMES = [
+  { title: 'Earth & the inner worlds', subtitle: 'Setting our scale. Earth is the unit.',
+    note: 'Earth has radius 6,371 km and mass 5.97×10²⁴ kg. Every quantity on this tour is referenced back to it.',
+    unit: 'Earth radii', bodies: [
+      { name: 'Mercury', r: 0.383, color: '#c8b8a0' }, { name: 'Mars', r: 0.532, color: '#cd5c3c' },
+      { name: 'Venus', r: 0.949, color: '#e6c889' }, { name: 'Earth', r: 1, color: '#4d8edc' },
+    ]},
+  { title: 'The gas giants', subtitle: 'Jupiter holds 11 Earths across its diameter.',
+    note: 'Jupiter is a “failed star” — mostly hydrogen and helium, but ~80× too light to ignite fusion. The minimum mass for hydrogen fusion is ~0.08 M☉ (~85 Jupiter masses).',
+    unit: 'Earth radii', bodies: [
+      { name: 'Earth', r: 1, color: '#4d8edc' }, { name: 'Neptune', r: 3.88, color: '#5b8cb0' },
+      { name: 'Saturn', r: 9.45, color: '#e4c794' }, { name: 'Jupiter', r: 11.21, color: '#d3a87a' },
+    ]},
+  { title: 'Enter the Sun', subtitle: '109 Earths across. Jupiter is a marble.',
+    note: 'The Sun is 1.989×10³⁰ kg, 99.8% of all the mass in our solar system. Its core fuses ~600 million tonnes of hydrogen into helium every second.',
+    unit: 'Earth radii', bodies: [
+      { name: 'Earth', r: 1, color: '#4d8edc' }, { name: 'Jupiter', r: 11.21, color: '#d3a87a' },
+      { name: 'Sun', r: 109, color: '#fff4ea' },
+    ]},
+  { title: 'The Sun among its neighbours', subtitle: 'Switching to solar radii. The Sun is now the unit.',
+    note: 'Main-sequence stars span a factor of ~15 in radius and ~10⁹ in luminosity. The Sun is comfortably mid-range — neither big nor bright by stellar standards.',
+    unit: 'Solar radii', bodies: [
+      { name: 'Proxima', r: 0.154, color: '#ffa070' }, { name: 'Sun', r: 1, color: '#fff4ea' },
+      { name: 'Sirius A', r: 1.71, color: '#cad7ff' }, { name: 'Vega', r: 2.36, color: '#cad7ff' },
+    ]},
+  { title: 'Red giants', subtitle: 'A glimpse of the Sun’s future.',
+    note: 'When a Sun-like star exhausts core hydrogen, it swells. The Sun will reach ~170 R☉ on the red giant branch, then briefly contract during helium core burning, then swell to ~1 AU on the asymptotic giant branch — engulfing Mercury and Venus.',
+    unit: 'Solar radii', bodies: [
+      { name: 'Sun', r: 1, color: '#fff4ea' }, { name: 'Arcturus', r: 25.4, color: '#ffd2a1' },
+      { name: 'Aldebaran', r: 45.1, color: '#ffa070' },
+    ]},
+  { title: 'Supergiants', subtitle: 'The end-of-life forms of massive stars.',
+    note: 'Betelgeuse at the Sun’s position would extend past Mars and into the asteroid belt. Despite their volume, supergiants are extraordinarily diffuse — average density of Betelgeuse is ~10⁻⁸ kg/m³, less than the best laboratory vacuum.',
+    unit: 'Solar radii', bodies: [
+      { name: 'Sun', r: 1, color: '#fff4ea' }, { name: 'Rigel', r: 78.9, color: '#cad7ff' },
+      { name: 'Antares', r: 680, color: '#ffa070' }, { name: 'Betelgeuse', r: 887, color: '#ffa070' },
+    ]},
+  { title: 'Hypergiants', subtitle: 'The largest known stars.',
+    note: 'VY Canis Majoris and UY Scuti push ~1400–1700 R☉. Stars this size are unstable — they shed enormous mass-loss winds and live perhaps a few million years before exploding. Place VY CMa at the Sun: light would take ~6 hours to cross from one side to the other.',
+    unit: 'Solar radii', bodies: [
+      { name: 'Sun', r: 1, color: '#fff4ea' }, { name: 'Betelgeuse', r: 887, color: '#ffa070' },
+      { name: 'VY CMa', r: 1420, color: '#ff8060' },
+    ]},
+];
+
+function SizeComparison({ onBack }) {
+  const [step, setStep] = useState(0);
+  const frame = SIZE_FRAMES[step];
+  const W = 900, H = 520;
+  const maxR = Math.max(...frame.bodies.map(b => b.r));
+  const totalUnits = frame.bodies.reduce((s, b) => s + b.r * 2, 0);
+  const gaps = (frame.bodies.length - 1) * (maxR * 0.18);
+  const scale = (W - 80) / (totalUnits + gaps);
+  let cursor = 40;
+  const positioned = frame.bodies.map(b => {
+    const diam = b.r * 2 * scale;
+    const cx = cursor + diam / 2;
+    cursor += diam + maxR * 0.18 * scale;
+    return { ...b, cx, cy: H / 2 + 40, rPx: b.r * scale };
+  });
+
+  return (
+    <PageShell onBack={onBack} eyebrow="02 — Stellar Size Comparison"
+               title={<>A walk up the <em style={{ color: ACCENT, fontStyle: 'italic' }}>ladder of scale</em></>}>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+        <div>
+          <div className="flex items-center gap-2 mb-6">
+            {SIZE_FRAMES.map((_, i) => (
+              <button key={i} onClick={() => setStep(i)} className="flex-1 h-0.5 transition-all"
+                style={{ background: i <= step ? ACCENT : BORDER, opacity: i === step ? 1 : 0.6 }} />
+            ))}
+          </div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="font-mono text-xs uppercase tracking-[0.25em]" style={{ color: ACCENT }}>
+              Step {step + 1} of {SIZE_FRAMES.length}
+            </div>
+            <div className="font-mono text-xs" style={{ color: DIM }}>
+              Unit: 1 {frame.unit.replace(/s$/, '')}
+            </div>
+          </div>
+
+          <h2 className="font-display text-3xl mb-2 leading-tight" style={{ letterSpacing: '-0.01em' }}>{frame.title}</h2>
+          <p className="font-display text-lg italic mb-6" style={{ color: '#c8c3b1' }}>{frame.subtitle}</p>
+
+          <div className="relative" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+              <defs>
+                {positioned.map((b, i) => (
+                  <radialGradient key={i} id={`g-${step}-${i}`} cx="35%" cy="35%">
+                    <stop offset="0%" stopColor={b.color} stopOpacity="1" />
+                    <stop offset="60%" stopColor={b.color} stopOpacity="0.85" />
+                    <stop offset="100%" stopColor={b.color} stopOpacity="0.55" />
+                  </radialGradient>
+                ))}
+              </defs>
+              <line x1="40" x2={W-40} y1={H/2 + 40} y2={H/2 + 40} stroke={BORDER} strokeDasharray="3 6" />
+              {positioned.map((b, i) => (
+                <g key={b.name} className="fade-in" style={{ animationDelay: `${i * 80}ms` }}>
+                  <circle cx={b.cx} cy={b.cy} r={b.rPx * 1.15} fill={b.color} opacity="0.08" />
+                  <circle cx={b.cx} cy={b.cy} r={b.rPx} fill={`url(#g-${step}-${i})`} />
+                  <line x1={b.cx} x2={b.cx} y1={b.cy + b.rPx + 4} y2={b.cy + b.rPx + 16} stroke={DIM} />
+                  <text x={b.cx} y={b.cy + b.rPx + 32} textAnchor="middle"
+                        fontFamily="JetBrains Mono, monospace" fontSize="11" fill={INK}>{b.name}</text>
+                  <text x={b.cx} y={b.cy + b.rPx + 46} textAnchor="middle"
+                        fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>
+                    {b.r < 0.01 ? b.r.toFixed(3) : b.r < 1 ? b.r.toFixed(2) : b.r.toFixed(b.r < 10 ? 1 : 0)} {frame.unit.includes('Earth') ? 'R⊕' : 'R☉'}
+                  </text>
+                </g>
+              ))}
+            </svg>
+          </div>
+
+          <div className="flex items-center justify-between mt-6">
+            <button onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0}
+                    className="font-mono text-xs uppercase tracking-widest flex items-center gap-2 px-4 py-3 rounded transition disabled:opacity-30"
+                    style={{ color: INK, border: `1px solid ${BORDER}` }}>
+              <ChevronLeft size={14} /> previous
+            </button>
+            <button onClick={() => setStep(Math.min(SIZE_FRAMES.length - 1, step + 1))}
+                    disabled={step === SIZE_FRAMES.length - 1}
+                    className="font-mono text-xs uppercase tracking-widest flex items-center gap-2 px-4 py-3 rounded transition disabled:opacity-30"
+                    style={{ color: BG, background: ACCENT }}>
+              next <ChevronRight size={14} />
+            </button>
+          </div>
+
+          <div className="mt-10 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+            <Section title="A useful intuition about density">
+              <p>
+                Bigger does not mean denser. A red giant like Betelgeuse has average density ~10⁻⁸ kg/m³ —
+                near vacuum. A white dwarf is ~10⁹ kg/m³ (a million times water). A neutron star is
+                ~10¹⁷ kg/m³ — roughly the density of an atomic nucleus.
+              </p>
+              <Eq>ρ̄ = M / (⁴⁄₃ π R³)</Eq>
+              <p>
+                The four most important stellar end-states span 25 orders of magnitude in density:
+                main-sequence Sun (~10³), red giant (~10⁻⁸), white dwarf (~10⁹), neutron star (~10¹⁷), black hole singularity (formally infinite).
+              </p>
+            </Section>
+          </div>
+        </div>
+
+        <aside className="lg:sticky lg:top-6 self-start" style={{ borderLeft: `1px solid ${BORDER}` }}>
+          <div className="pl-6 fade-in" key={step}>
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: ACCENT }}>Why this matters</div>
+            <p className="font-display text-base leading-relaxed mb-6" style={{ color: '#c8c3b1' }}>{frame.note}</p>
+            <div className="pt-6 font-mono text-[10px] uppercase tracking-[0.2em] leading-relaxed" style={{ color: DIM, borderTop: `1px solid ${BORDER}` }}>
+              Diameters are scaled within each step. Between steps the scale changes — that’s the only way to fit Earth and a hypergiant on one screen.
+            </div>
+          </div>
+        </aside>
+      </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  03 · STELLAR LIFECYCLE
+// ═══════════════════════════════════════════════════════════════════════════
+function lifeForMass(M) {
+  // Returns array of phases with name, duration, description, color
+  const tMS = 1e10 * Math.pow(M, -2.5); // years
+  if (M < 0.08) return {
+    fate: 'Brown dwarf', endColor: '#a06848',
+    summary: `Below ~0.08 M☉ the core never gets hot enough (~3×10⁶ K) to sustain hydrogen fusion. Object slowly contracts and cools forever.`,
+    phases: [
+      { name: 'Collapsing cloud', dur: 'Myr', col: '#3a4a6a', desc: 'Gravitational contraction.' },
+      { name: 'Brown dwarf', dur: 'Eternal cooling', col: '#a06848', desc: 'Deuterium burning briefly (~10–50 Myr), then pure cooling forever.' },
+    ]
+  };
+  if (M < 0.5) return {
+    fate: 'Helium white dwarf (eventually)', endColor: '#cad7ff',
+    summary: `Below ~0.5 M☉ the star is fully convective. It burns hydrogen extraordinarily slowly via the pp chain and never develops a helium-burning core. Its MS lifetime exceeds the current age of the universe — no red dwarf has ever died of natural causes.`,
+    phases: [
+      { name: 'Protostar', dur: '~100 Myr', col: '#3a4a6a', desc: 'Kelvin–Helmholtz contraction; ignites pp-chain.' },
+      { name: 'Red dwarf MS', dur: `~${fmtSci(tMS, 1)} yr`, col: '#ffa070', desc: 'Hydrogen fusion via pp chain. Fully convective interior keeps mixing fresh fuel into the core.' },
+      { name: 'Eventual He WD', dur: '—', col: '#cad7ff', desc: 'Will eventually contract to a helium white dwarf — but no such star has existed long enough to do so.' },
+    ]
+  };
+  if (M < 8) return {
+    fate: 'C/O white dwarf', endColor: '#cad7ff',
+    summary: `Sun-like and intermediate-mass stars. Burn hydrogen on the MS, then ascend the red giant branch, burn helium in the core, climb the asymptotic giant branch, expel a planetary nebula, and leave behind a carbon-oxygen white dwarf supported by electron degeneracy pressure.`,
+    phases: [
+      { name: 'Protostar', dur: '~1–30 Myr', col: '#3a4a6a', desc: 'Pre-MS contraction along the Hayashi track.' },
+      { name: 'Main sequence', dur: `~${fmtSci(tMS, 1)} yr`, col: '#fff4ea', desc: 'Hydrogen → helium in the core via pp chain (Sun-like) or CNO cycle (heavier).' },
+      { name: 'Red giant branch', dur: '~1 Gyr × (M/M☉)⁻²', col: '#ffa070', desc: 'H-shell burning around a contracting He core. Envelope swells dramatically.' },
+      { name: 'Helium flash → HB', dur: '~100 Myr', col: '#ffd2a1', desc: 'Helium ignites in degenerate core (flash), then settles to stable helium burning on the horizontal branch.' },
+      { name: 'AGB / planetary nebula', dur: '~10 Myr', col: '#ffa070', desc: 'Thermal pulses, heavy mass loss, dust formation. Outer envelope expelled.' },
+      { name: 'C/O white dwarf', dur: 'Cools forever', col: '#cad7ff', desc: 'Earth-sized; ~0.6 M☉; supported by electron degeneracy pressure. Cools over ~10¹³ yr.' },
+    ]
+  };
+  if (M < 25) return {
+    fate: 'Neutron star', endColor: '#aabfff',
+    summary: `Massive stars burn through hydrogen, helium, carbon, neon, oxygen, and silicon in nested shells. The iron core that builds up cannot release fusion energy. When it exceeds the Chandrasekhar limit (~1.4 M☉) it collapses in <1 second — triggering a Type II supernova and leaving a neutron star.`,
+    phases: [
+      { name: 'Protostar', dur: '~10⁵ yr', col: '#3a4a6a', desc: 'Rapid pre-MS contraction.' },
+      { name: 'O/B main sequence', dur: `~${fmtSci(tMS, 1)} yr`, col: '#aabfff', desc: 'Hot, blue, luminous. Hydrogen burning via CNO cycle.' },
+      { name: 'Blue/red supergiant', dur: '~Myr', col: '#ffa070', desc: 'Helium, carbon, neon, oxygen, silicon burning — each stage shorter than the last.' },
+      { name: 'Core collapse / Type II SN', dur: 'Seconds', col: '#ffc97a', desc: 'Iron core implodes; ~99% of energy escapes as neutrinos; ~1% drives a shockwave.' },
+      { name: 'Neutron star', dur: 'Slow cooling', col: '#aabfff', desc: '~1.4 M☉ packed into ~20 km. Density ~10¹⁷ kg/m³. Supported by neutron degeneracy pressure.' },
+    ]
+  };
+  return {
+    fate: 'Black hole', endColor: '#2a2a3a',
+    summary: `For initial masses above ~25 M☉ the iron core exceeds the Tolman–Oppenheimer–Volkoff limit (~2–3 M☉ at collapse). Neutron degeneracy cannot stop the implosion. Result: a black hole, sometimes with a “failed supernova” (no visible explosion). Above ~40 M☉ direct collapse becomes likely.`,
+    phases: [
+      { name: 'Protostar', dur: '~10⁴ yr', col: '#3a4a6a', desc: 'Extremely rapid contraction.' },
+      { name: 'O-type main sequence', dur: `~${fmtSci(tMS, 1)} yr`, col: '#9bb0ff', desc: 'Hot UV-luminous star. Strong stellar winds shed ~10⁻⁵ M☉/yr.' },
+      { name: 'Wolf–Rayet phase', dur: '~10⁵ yr', col: '#fff4ea', desc: 'Hydrogen envelope stripped by winds; helium core exposed.' },
+      { name: 'Core collapse', dur: 'Seconds', col: '#ffc97a', desc: 'May produce a luminous supernova or “fail” (collapse silently to BH).' },
+      { name: 'Black hole', dur: 'Effectively eternal', col: '#2a2a3a', desc: 'Stellar-mass BH, typically 5–80 M☉ depending on metallicity and rotation. Hawking lifetime ~10⁶⁷ yr.' },
+    ]
+  };
+}
+
+function StellarLifecycle({ onBack }) {
+  const [logM, setLogM] = useState(0); // log10(M/M☉), so 0 = solar
+  const M = Math.pow(10, logM);
+  const life = lifeForMass(M);
+  const tMS = 1e10 * Math.pow(M, -2.5);
+
+  // Mass markers for slider
+  const markers = [
+    { m: 0.05, label: '0.05' }, { m: 0.5, label: '0.5' }, { m: 1, label: '1' },
+    { m: 8, label: '8' }, { m: 25, label: '25' }, { m: 100, label: '100' },
+  ];
+
+  return (
+    <PageShell onBack={onBack} eyebrow="03 — Stellar Evolution"
+               title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>Lifecycle</em> of a Star</>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        Set the initial mass and watch the entire arc of the star’s life rewrite itself. Mass is the
+        single most important parameter — it determines luminosity, temperature, lifetime, and ultimate fate.
+      </p>
+
+      {/* Mass slider */}
+      <div className="mb-10 p-6 rounded" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+        <div className="flex justify-between items-baseline mb-3">
+          <div className="font-mono text-xs uppercase tracking-[0.25em]" style={{ color: ACCENT }}>Initial mass</div>
+          <div className="font-display text-3xl" style={{ letterSpacing: '-0.01em' }}>
+            {M < 0.1 ? M.toFixed(3) : M < 1 ? M.toFixed(2) : M < 10 ? M.toFixed(1) : Math.round(M)} <span className="font-mono text-base" style={{ color: DIM }}>M☉</span>
+          </div>
+        </div>
+        <input type="range" min={-1.3} max={2.1} step={0.01} value={logM}
+               onChange={e => setLogM(parseFloat(e.target.value))} className="w-full" />
+        <div className="flex justify-between mt-2 relative h-6">
+          {markers.map(m => {
+            const pct = (Math.log10(m.m) - (-1.3)) / (2.1 - (-1.3)) * 100;
+            return (
+              <button key={m.label} onClick={() => setLogM(Math.log10(m.m))}
+                      className="absolute font-mono text-[10px] hover:text-white transition"
+                      style={{ left: `${pct}%`, transform: 'translateX(-50%)', color: DIM }}>
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+        <div>
+          {/* Key facts */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px mb-8" style={{ background: BORDER }}>
+            {[
+              ['Initial mass', `${fmt(M)} M☉`],
+              ['MS lifetime', `${fmtSci(tMS, 1)} yr`],
+              ['MS luminosity', `${fmtSci(Math.pow(M, 3.5), 1)} L☉`],
+              ['End state', life.fate],
+            ].map(([label, val]) => (
+              <div key={label} className="p-4" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>{label}</div>
+                <div className="font-display text-lg" style={{ color: INK, letterSpacing: '-0.01em' }}>{val}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Phases as a horizontal timeline */}
+          <div className="mb-8">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: ACCENT }}>The path</div>
+            <div className="space-y-2">
+              {life.phases.map((p, i) => (
+                <div key={i} className="flex items-start gap-4 p-4 rounded fade-in"
+                     style={{ background: PANEL, border: `1px solid ${BORDER}`, animationDelay: `${i * 60}ms` }}>
+                  <div className="flex flex-col items-center pt-1" style={{ minWidth: 30 }}>
+                    <div className="w-3 h-3 rounded-full" style={{ background: p.col }} />
+                    {i < life.phases.length - 1 && <div className="w-px flex-1 mt-1" style={{ background: BORDER, minHeight: 30 }} />}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-baseline justify-between mb-1">
+                      <div className="font-display text-lg" style={{ color: INK, letterSpacing: '-0.01em' }}>{p.name}</div>
+                      <div className="font-mono text-xs" style={{ color: DIM }}>{p.dur}</div>
+                    </div>
+                    <div className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{p.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Physics */}
+          <div className="mt-10 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+            <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>The physics that sets a star’s fate</h3>
+
+            <Section title="Mass alone (almost) decides everything">
+              <p>
+                Two stars of the same initial mass and composition will follow nearly identical paths.
+                Composition matters at the ~10–20% level; rotation and binarity matter for a fraction of
+                stars; but for a first approximation, mass is destiny.
+              </p>
+            </Section>
+
+            <Section title="Two critical mass thresholds">
+              <p>
+                <strong style={{ color: ACCENT }}>~0.08 M☉</strong> — the hydrogen-burning limit. Below this
+                the core never reaches ~3×10⁶ K and no sustained fusion ignites. Object is a brown dwarf.
+              </p>
+              <p>
+                <strong style={{ color: ACCENT }}>~8 M☉</strong> — the supernova threshold. Below this the
+                core never reaches temperatures needed to burn carbon (~6×10⁸ K). Star dies as a white dwarf.
+                Above this it climbs the ladder of nuclear burning all the way to iron and dies in a supernova.
+              </p>
+              <p>
+                <strong style={{ color: ACCENT }}>~25 M☉</strong> — the black hole threshold. Above this the
+                collapsing core is too massive for neutron degeneracy pressure to halt it.
+              </p>
+            </Section>
+
+            <Section title="The Chandrasekhar limit — a beautiful piece of physics">
+              <Eq>M<sub>Ch</sub> ≈ 1.4 M☉</Eq>
+              <p>
+                Electron degeneracy pressure can support a stellar remnant only up to ~1.4 M☉. Above this,
+                electrons would need to move faster than light. The limit was derived by Subrahmanyan Chandrasekhar
+                in 1930 — at age 19, on a ship from India to Cambridge — by combining quantum mechanics and special
+                relativity. It is the reason white dwarfs are never more massive than ~1.4 M☉.
+              </p>
+              <p>
+                For neutron stars, the analogous (less precisely known) Tolman–Oppenheimer–Volkoff limit sits
+                around 2–3 M☉. Above that, even neutron degeneracy fails — and you get a black hole.
+              </p>
+            </Section>
+
+            <Section title="Why massive stars live shorter lives">
+              <p>
+                It seems counterintuitive: a star with 25 times the fuel should last longer than the Sun, not
+                shorter. But a 25 M☉ star is ~10⁵ times more luminous than the Sun. It burns through its fuel
+                ~4,000 times faster than it has more of it. Massive stars are profligate.
+              </p>
+              <Eq>t<sub>MS</sub> ∝ M / L ∝ M / M<sup>3.5</sup> = M<sup>−2.5</sup></Eq>
+            </Section>
+          </div>
+        </div>
+
+        <aside className="lg:sticky lg:top-6 self-start" style={{ borderLeft: `1px solid ${BORDER}` }}>
+          <div className="pl-6 fade-in" key={Math.round(logM * 10)}>
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: ACCENT }}>
+              Summary
+            </div>
+            <p className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>
+              {life.summary}
+            </p>
+            <div className="mt-6 pt-6 font-mono text-[10px] uppercase tracking-[0.2em] leading-relaxed" style={{ color: DIM, borderTop: `1px solid ${BORDER}` }}>
+              Try the markers: 0.5 (red dwarf · eternal), 1 (Sun · WD), 8 (boundary), 25 (NS/BH boundary).
+            </div>
+          </div>
+        </aside>
+      </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  04 · NUCLEAR FUSION
+// ═══════════════════════════════════════════════════════════════════════════
+// Binding energy per nucleon for common isotopes (MeV)
+const BE_DATA = [
+  { A: 1, name: '¹H', be: 0 },        { A: 2, name: '²H', be: 1.11 },
+  { A: 3, name: '³He', be: 2.57 },    { A: 4, name: '⁴He', be: 7.07 },
+  { A: 6, name: '⁶Li', be: 5.33 },    { A: 7, name: '⁷Li', be: 5.61 },
+  { A: 9, name: '⁹Be', be: 6.46 },    { A: 12, name: '¹²C', be: 7.68 },
+  { A: 14, name: '¹⁴N', be: 7.48 },   { A: 16, name: '¹⁶O', be: 7.98 },
+  { A: 20, name: '²⁰Ne', be: 8.03 },  { A: 24, name: '²⁴Mg', be: 8.26 },
+  { A: 28, name: '²⁸Si', be: 8.45 },  { A: 32, name: '³²S', be: 8.49 },
+  { A: 40, name: '⁴⁰Ca', be: 8.55 },  { A: 56, name: '⁵⁶Fe', be: 8.79 },
+  { A: 84, name: '⁸⁴Kr', be: 8.72 },  { A: 119, name: '¹¹⁹Sn', be: 8.50 },
+  { A: 168, name: '¹⁶⁸Er', be: 8.10 }, { A: 197, name: '¹⁹⁷Au', be: 7.91 },
+  { A: 238, name: '²³⁸U', be: 7.57 },
+];
+
+const FUSION_CHAINS = [
+  { id: 'pp', label: 'pp chain', minT: '~4×10⁶ K', stars: 'Sun-like and lower-mass stars',
+    eqs: [
+      '¹H + ¹H → ²H + e⁺ + ν   (Q = 1.44 MeV, includes positron annihilation)',
+      '²H + ¹H → ³He + γ          (Q = 5.49 MeV)',
+      '³He + ³He → ⁴He + 2¹H     (Q = 12.86 MeV)',
+    ],
+    net: '4 ¹H → ⁴He + 2 e⁺ + 2 ν + 2 γ      (Q ≈ 26.73 MeV per ⁴He)',
+    note: 'The slowest step is the very first: two protons converting one of themselves into a neutron via the weak interaction. That step is so rare it sets the Sun’s 10-billion-year MS lifetime. There are three pp-chain branches (pp-I, II, III) that differ in how ³He fuses.' },
+  { id: 'cno', label: 'CNO cycle', minT: '~15×10⁶ K', stars: 'Stars more massive than ~1.3 M☉',
+    eqs: [
+      '¹²C + ¹H → ¹³N + γ',
+      '¹³N → ¹³C + e⁺ + ν',
+      '¹³C + ¹H → ¹⁴N + γ',
+      '¹⁴N + ¹H → ¹⁵O + γ',
+      '¹⁵O → ¹⁵N + e⁺ + ν',
+      '¹⁵N + ¹H → ¹²C + ⁴He',
+    ],
+    net: '4 ¹H → ⁴He         (Q ≈ 26.73 MeV; ¹²C acts as a catalyst)',
+    note: 'Carbon, nitrogen, and oxygen catalyse the conversion of four protons to one alpha particle. CNO is extremely temperature-sensitive (rate ∝ T¹⁷ near 15 MK). It dominates in stars above ~1.3 M☉ and powers the radiative cores of massive stars.' },
+  { id: 'tri', label: 'Triple-alpha', minT: '~10⁸ K', stars: 'Helium-burning red giants',
+    eqs: [
+      '⁴He + ⁴He ⇌ ⁸Be   (⁸Be is unstable, lifetime ~10⁻¹⁶ s)',
+      '⁸Be + ⁴He → ¹²C* → ¹²C + 2γ',
+    ],
+    net: '3 ⁴He → ¹²C       (Q ≈ 7.27 MeV)',
+    note: 'Requires a fortunate resonance in ¹²C (predicted by Hoyle in 1953 before being measured). Without it, no carbon — and no carbon-based life. This is the “Hoyle state.” Rate scales like T⁴⁰ near 10⁸ K; tiny temperature changes drive enormous rate changes.' },
+  { id: 'adv', label: 'Advanced burning', minT: '0.5–4 × 10⁹ K', stars: 'Massive stars only (>8 M☉)',
+    eqs: [
+      'Carbon burning:  ¹²C + ¹²C → various (²⁰Ne, ²³Na, ²³Mg, ²⁴Mg…)   T ≈ 6×10⁸ K',
+      'Neon burning:    ²⁰Ne + γ → ¹⁶O + ⁴He;  ²⁰Ne + ⁴He → ²⁴Mg + γ      T ≈ 1.2×10⁹ K',
+      'Oxygen burning:  ¹⁶O + ¹⁶O → ²⁸Si + ⁴He (and other channels)        T ≈ 2×10⁹ K',
+      'Silicon burning: photodisintegration + α-capture → ⁵⁶Ni → ⁵⁶Fe       T ≈ 3.5×10⁹ K',
+    ],
+    net: 'End point: ⁵⁶Fe — no further fusion releases energy.',
+    note: 'Each stage produces less energy and proceeds faster than the last. A 25 M☉ star burns hydrogen for ~7 Myr, helium for ~700 kyr, carbon for ~600 yr, neon for ~1 yr, oxygen for ~6 months, silicon for ~1 day. Then iron piles up — and the core collapses.' },
+];
+
+function NuclearFusion({ onBack }) {
+  const [chain, setChain] = useState('pp');
+  const current = FUSION_CHAINS.find(c => c.id === chain);
+
+  // Binding energy curve
+  const W = 900, H = 380;
+  const PL = 70, PR = 870, PT = 30, PB = 320;
+  const xA = a => PL + (PR - PL) * Math.log(a) / Math.log(260);
+  const yBE = be => PB - (be / 10) * (PB - PT);
+
+  return (
+    <PageShell onBack={onBack} eyebrow="04 — Nuclear Astrophysics"
+               title={<>Nuclear Fusion <em style={{ color: ACCENT, fontStyle: 'italic' }}>in stars</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        Stars shine by binding lighter nuclei into heavier ones. The energy released comes from the
+        difference in nuclear binding energy — a difference traced by a single curve, the most important
+        plot in nuclear astrophysics.
+      </p>
+
+      {/* Binding energy curve */}
+      <div className="mb-12">
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT }}>
+          The binding energy curve
+        </div>
+        <div className="relative" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+            {/* Fusion / fission regions */}
+            <rect x={PL} y={PT} width={xA(56) - PL} height={PB - PT} fill={ACCENT} opacity="0.04" />
+            <rect x={xA(56)} y={PT} width={PR - xA(56)} height={PB - PT} fill={ACCENT2} opacity="0.04" />
+            <text x={(PL + xA(56)) / 2} y={PT + 18} textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                  fontSize="11" fill={ACCENT} letterSpacing="0.15em">FUSION RELEASES ENERGY →</text>
+            <text x={(xA(56) + PR) / 2} y={PT + 18} textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                  fontSize="11" fill={ACCENT2} letterSpacing="0.15em">← FISSION RELEASES ENERGY</text>
+
+            {/* Grid */}
+            {[2, 4, 6, 8].map(y => (
+              <g key={y}>
+                <line x1={PL} x2={PR} y1={yBE(y)} y2={yBE(y)} stroke={BORDER} strokeWidth="0.5" />
+                <text x={PL - 8} y={yBE(y) + 4} textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>{y}</text>
+              </g>
+            ))}
+            {[1, 4, 12, 56, 238].map(a => (
+              <g key={a}>
+                <line x1={xA(a)} x2={xA(a)} y1={PT} y2={PB} stroke={BORDER} strokeWidth="0.5" />
+                <text x={xA(a)} y={PB + 16} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>{a}</text>
+              </g>
+            ))}
+
+            {/* Curve */}
+            <polyline fill="none" stroke={ACCENT} strokeWidth="1.5"
+                      points={BE_DATA.map(d => `${xA(d.A)},${yBE(d.be)}`).join(' ')} />
+
+            {/* Highlight Fe-56 */}
+            <g>
+              <line x1={xA(56)} x2={xA(56)} y1={PT} y2={PB} stroke={ACCENT} strokeDasharray="3 3" opacity="0.6" />
+              <circle cx={xA(56)} cy={yBE(8.79)} r="5" fill={ACCENT} />
+              <text x={xA(56) + 10} y={yBE(8.79) - 6} fontFamily="JetBrains Mono, monospace" fontSize="11" fill={ACCENT}>
+                ⁵⁶Fe — 8.79 MeV/nucleon
+              </text>
+              <text x={xA(56) + 10} y={yBE(8.79) + 8} fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>
+                most tightly bound nucleus
+              </text>
+            </g>
+
+            {/* Key data points */}
+            {BE_DATA.filter(d => ['¹H','²H','⁴He','¹²C','¹⁶O','²³⁸U'].includes(d.name)).map(d => (
+              <g key={d.name}>
+                <circle cx={xA(d.A)} cy={yBE(d.be)} r="3" fill={INK} />
+                <text x={xA(d.A)} y={yBE(d.be) - 8} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={INK}>
+                  {d.name}
+                </text>
+              </g>
+            ))}
+
+            {/* Axes labels */}
+            <text x={(PL + PR) / 2} y={H - 8} textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                  fontSize="10" fill={INK} letterSpacing="0.15em">MASS NUMBER A (log scale)</text>
+            <text x={PL - 50} y={(PT + PB) / 2} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK}
+                  transform={`rotate(-90, ${PL - 50}, ${(PT + PB) / 2})`} letterSpacing="0.15em">
+              BINDING ENERGY (MeV/nucleon)
+            </text>
+          </svg>
+        </div>
+        <p className="font-display text-sm leading-relaxed mt-4 max-w-3xl" style={{ color: '#c8c3b1' }}>
+          Binding energy per nucleon for stable isotopes. The peak at ⁵⁶Fe is why iron is the end of the
+          fusion road. Fusing lighter elements together (left of the peak) releases energy. Splitting
+          heavier ones (right of the peak) also releases energy — that’s fission. Iron does neither.
+        </p>
+      </div>
+
+      {/* Fusion chains */}
+      <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: ACCENT }}>
+        The fusion processes
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-px mb-6" style={{ background: BORDER }}>
+        {FUSION_CHAINS.map(c => (
+          <button key={c.id} onClick={() => setChain(c.id)}
+                  className="p-4 text-left transition"
+                  style={{ background: chain === c.id ? `${ACCENT}15` : BG,
+                           borderTop: chain === c.id ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+            <div className="font-display text-lg mb-1" style={{ color: chain === c.id ? ACCENT : INK, letterSpacing: '-0.01em' }}>
+              {c.label}
+            </div>
+            <div className="font-mono text-[10px]" style={{ color: DIM }}>{c.minT}</div>
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 fade-in" key={chain}>
+        <div>
+          <h3 className="font-display text-2xl mb-3" style={{ letterSpacing: '-0.01em' }}>
+            {current.label}
+          </h3>
+          <p className="font-display text-base mb-6" style={{ color: '#c8c3b1' }}>
+            Operates in: <em>{current.stars}</em>. Ignition temperature: <em>{current.minT}</em>.
+          </p>
+
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT }}>Reactions</div>
+          <div className="space-y-2 mb-6">
+            {current.eqs.map((e, i) => (
+              <div key={i} className="font-mono text-sm py-3 px-4 rounded"
+                   style={{ background: PANEL, border: `1px solid ${BORDER}` }}>
+                {e}
+              </div>
+            ))}
+          </div>
+
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT }}>Net result</div>
+          <Eq>{current.net}</Eq>
+
+          <div className="mt-10 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+            <Section title="Where the Sun’s energy actually comes from">
+              <p>
+                Each pp-chain conversion of 4 hydrogen nuclei into one helium nucleus releases ~26.73 MeV,
+                of which ~2% is carried away by neutrinos. The remaining ~26 MeV becomes thermal kinetic
+                energy and, eventually, photons.
+              </p>
+              <p>
+                For every kilogram of hydrogen the Sun fuses, ~7 grams are converted to pure energy via
+                E = mc². The Sun fuses ~600 million tonnes of hydrogen per second, converting ~4.3 million
+                tonnes of that into energy.
+              </p>
+              <Eq>L<sub>☉</sub> = ṁ c² ≈ (4.3 × 10⁹ kg/s) × (3 × 10⁸ m/s)² ≈ 3.8 × 10²⁶ W</Eq>
+            </Section>
+
+            <Section title="Why some stars use pp and others use CNO">
+              <p>
+                The CNO cycle is extraordinarily temperature-sensitive — its rate scales as roughly T¹⁷
+                near 15 million K. Below that temperature pp wins easily; above it, CNO dominates. The
+                crossover happens in stars of about 1.3 M☉.
+              </p>
+              <p>
+                This sensitivity has structural consequences. Massive stars have radiative envelopes and
+                convective cores (because CNO concentrates burning into a narrow temperature window). Low-mass
+                stars are the opposite: convective envelopes, radiative cores.
+              </p>
+            </Section>
+
+            <Section title="Where elements come from">
+              <p>
+                Big Bang nucleosynthesis (first ~20 minutes) made hydrogen, helium, and traces of lithium —
+                nothing heavier. Everything else in the periodic table is synthesised somewhere by stars:
+              </p>
+              <p>
+                <strong style={{ color: ACCENT }}>Stellar burning</strong> (hydrostatic): C, N, O, Ne, Mg, Si, S, Ar, Ca, Fe.<br />
+                <strong style={{ color: ACCENT }}>Asymptotic giant branch / s-process</strong>: Sr, Y, Zr, Ba, Pb (slow neutron capture).<br />
+                <strong style={{ color: ACCENT }}>Supernovae</strong>: more of the iron-peak elements and beyond.<br />
+                <strong style={{ color: ACCENT }}>Neutron-star mergers / r-process</strong>: Au, Pt, U, the heaviest elements.<br />
+                <strong style={{ color: ACCENT }}>Cosmic-ray spallation</strong>: Li, Be, B (skipped over by stars).
+              </p>
+              <p>
+                Carl Sagan’s “we are made of star-stuff” is literally true: every carbon atom in your body
+                was synthesised in the triple-alpha reaction inside some now-dead star.
+              </p>
+            </Section>
+          </div>
+        </div>
+
+        <aside className="lg:sticky lg:top-6 self-start" style={{ borderLeft: `1px solid ${BORDER}` }}>
+          <div className="pl-6">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: ACCENT }}>Why it matters</div>
+            <p className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{current.note}</p>
+          </div>
+        </aside>
+      </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  05 · SPECTRAL CLASSIFICATION
+// ═══════════════════════════════════════════════════════════════════════════
+const SPEC_CLASSES = [
+  { letter: 'O', tempRange: '> 30,000 K', massRange: '> 16 M☉', color: '#9bb0ff',
+    lines: [ { x: 0.18, depth: 0.5, label: 'He II' }, { x: 0.32, depth: 0.4, label: 'He I' }, { x: 0.55, depth: 0.25, label: 'Hβ' } ],
+    examples: 'ζ Puppis, λ Cep, Mintaka (O9.5)',
+    desc: 'Hot blue stars dominated by ionised helium absorption (He II). Hydrogen lines are weak because at these temperatures most H is fully ionised. Extremely short-lived — only a few million years on the main sequence — and rare. Their UV output drives the ionisation of HII regions around them.' },
+  { letter: 'B', tempRange: '10,000 – 30,000 K', massRange: '2.1 – 16 M☉', color: '#aabfff',
+    lines: [ { x: 0.35, depth: 0.6, label: 'He I' }, { x: 0.55, depth: 0.5, label: 'Hβ' }, { x: 0.72, depth: 0.55, label: 'Hα' } ],
+    examples: 'Rigel, Spica, Regulus',
+    desc: 'Hot blue-white stars. Neutral helium lines peak around B2. Hydrogen Balmer lines strengthen toward later B types as the surface cools and more electrons sit in the n=2 state needed to absorb Balmer photons.' },
+  { letter: 'A', tempRange: '7,500 – 10,000 K', massRange: '1.4 – 2.1 M☉', color: '#cad7ff',
+    lines: [ { x: 0.32, depth: 0.7, label: 'Hδ' }, { x: 0.45, depth: 0.85, label: 'Hγ' }, { x: 0.6, depth: 0.9, label: 'Hβ' }, { x: 0.78, depth: 0.85, label: 'Hα' } ],
+    examples: 'Vega, Sirius A, Altair',
+    desc: 'Strong hydrogen Balmer absorption — the strongest of any spectral class. The temperature is just right: enough electrons in the n=2 state to absorb, but not so hot that H is largely ionised. Vega is the prototype for the photometric magnitude system.' },
+  { letter: 'F', tempRange: '6,000 – 7,500 K', massRange: '1.04 – 1.4 M☉', color: '#f8f7ff',
+    lines: [ { x: 0.28, depth: 0.65, label: 'Ca II K' }, { x: 0.3, depth: 0.5, label: 'Ca II H' }, { x: 0.45, depth: 0.55, label: 'Hγ' }, { x: 0.6, depth: 0.6, label: 'Hβ' }, { x: 0.7, depth: 0.4, label: 'metals' } ],
+    examples: 'Procyon, Polaris, Canopus',
+    desc: 'Hydrogen lines weakening; metal lines (Fe, Ca, Mg) strengthening. Ca II H and K lines (singly-ionised calcium) become prominent. F-type stars include many Cepheid variable supergiants used as distance indicators.' },
+  { letter: 'G', tempRange: '5,200 – 6,000 K', massRange: '0.8 – 1.04 M☉', color: '#fff4ea',
+    lines: [ { x: 0.28, depth: 0.85, label: 'Ca II K' }, { x: 0.3, depth: 0.7, label: 'Ca II H' }, { x: 0.6, depth: 0.45, label: 'Hβ' }, { x: 0.7, depth: 0.65, label: 'Fe, Mg' }, { x: 0.85, depth: 0.55, label: 'G band' } ],
+    examples: 'Sun, Alpha Centauri A, Capella',
+    desc: 'Sun-like yellow stars. Ca II H and K dominate the blue. The "G band" (CH molecular absorption near 430 nm) becomes visible — the first hint of molecules surviving in the photosphere. Hydrogen lines now weak but still present.' },
+  { letter: 'K', tempRange: '3,700 – 5,200 K', massRange: '0.45 – 0.8 M☉', color: '#ffd2a1',
+    lines: [ { x: 0.28, depth: 0.9, label: 'Ca II' }, { x: 0.5, depth: 0.7, label: 'Fe, Ti' }, { x: 0.7, depth: 0.7, label: 'metals' }, { x: 0.88, depth: 0.4, label: 'TiO (weak)' } ],
+    examples: 'Arcturus, Aldebaran, Alpha Centauri B',
+    desc: 'Orange stars. Metal lines dominate. The first molecular bands appear in the red end of the spectrum — TiO (titanium oxide) starts to be visible in cooler K stars. The Sun’s spectrum, redshifted in temperature, would look like this in a few billion years.' },
+  { letter: 'M', tempRange: '< 3,700 K', massRange: '0.08 – 0.45 M☉', color: '#ffa070',
+    lines: [ { x: 0.35, depth: 0.4, label: 'metals' }, { x: 0.55, depth: 0.85, label: 'TiO' }, { x: 0.7, depth: 0.95, label: 'TiO' }, { x: 0.85, depth: 0.9, label: 'TiO, VO' } ],
+    examples: 'Proxima Centauri, Barnard’s Star, Betelgeuse (cool supergiant)',
+    desc: 'Cool red stars. Photosphere is cool enough that molecules survive — TiO bands carve massive absorption troughs across the spectrum. ~75% of all stars are M dwarfs. The galaxy is overwhelmingly red dwarfs; we just don’t see them because they are dim.' },
+];
+
+function SpectralClass({ onBack }) {
+  const [sel, setSel] = useState('G');
+  const c = SPEC_CLASSES.find(c => c.letter === sel);
+
+  const W = 900, H = 200;
+  // Spectrum gradient by temperature - the wavelength range goes 400-700 nm
+  const tempColor = c.color;
+
+  return (
+    <PageShell onBack={onBack} eyebrow="05 — Observational Stellar Spectroscopy"
+               title={<><em style={{ color: ACCENT, fontStyle: 'italic' }}>Spectral</em> Classification</>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        A star’s spectrum is a bar code. Absorption lines are produced by atoms and ions in the cooler
+        outer layers eating photons from the hot continuum below. Which lines show up — and how strong they are —
+        depends almost entirely on surface temperature, which is why a single letter (OBAFGKM) plus a digit captures
+        most of stellar physics.
+      </p>
+
+      {/* Spectrum picker */}
+      <div className="grid grid-cols-7 gap-px mb-6" style={{ background: BORDER }}>
+        {SPEC_CLASSES.map(sc => (
+          <button key={sc.letter} onClick={() => setSel(sc.letter)}
+                  className="p-4 text-center transition"
+                  style={{ background: sel === sc.letter ? `${sc.color}15` : BG,
+                           borderTop: sel === sc.letter ? `2px solid ${sc.color}` : `2px solid transparent` }}>
+            <div className="font-display text-3xl mb-1" style={{ color: sc.color, letterSpacing: '-0.01em' }}>{sc.letter}</div>
+            <div className="font-mono text-[10px]" style={{ color: DIM }}>{sc.tempRange.split('–')[0].replace('> ','>').replace('< ','<').replace(/,/g,'').replace(' K','K')}</div>
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 fade-in" key={sel}>
+        <div>
+          {/* Spectrum */}
+          <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em]" style={{ color: ACCENT }}>
+            Schematic spectrum · class {c.letter}
+          </div>
+          <div className="relative" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+              <defs>
+                <linearGradient id="spec-gradient" x1="0" x2="1">
+                  <stop offset="0%" stopColor="#5a3399" />
+                  <stop offset="15%" stopColor="#3361cc" />
+                  <stop offset="35%" stopColor="#2eb8b8" />
+                  <stop offset="55%" stopColor="#7cc44a" />
+                  <stop offset="70%" stopColor="#e6c84d" />
+                  <stop offset="85%" stopColor="#e67c4d" />
+                  <stop offset="100%" stopColor="#b03030" />
+                </linearGradient>
+              </defs>
+              {/* Continuum spectrum */}
+              <rect x="40" y="40" width={W - 80} height={H - 80} fill="url(#spec-gradient)" opacity="0.85" />
+              {/* Absorption lines */}
+              {c.lines.map((line, i) => {
+                const x = 40 + (W - 80) * line.x;
+                const w = 6 + line.depth * 14;
+                return (
+                  <g key={i}>
+                    <rect x={x - w/2} y="40" width={w} height={H - 80} fill="#000" opacity={line.depth} />
+                    <line x1={x} x2={x} y1={H - 40} y2={H - 30} stroke={INK} />
+                    <text x={x} y={H - 18} textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                          fontSize="10" fill={INK}>{line.label}</text>
+                  </g>
+                );
+              })}
+              {/* Wavelength labels */}
+              <text x="40" y="30" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>400 nm</text>
+              <text x={W - 40} y="30" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>700 nm</text>
+              <text x={W / 2} y="30" textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>visible spectrum</text>
+            </svg>
+          </div>
+
+          {/* Class info */}
+          <div className="mt-6 grid grid-cols-3 gap-px" style={{ background: BORDER }}>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Temperature</div>
+              <div className="font-display text-base" style={{ color: INK }}>{c.tempRange}</div>
+            </div>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>MS mass range</div>
+              <div className="font-display text-base" style={{ color: INK }}>{c.massRange}</div>
+            </div>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Examples</div>
+              <div className="font-display text-base" style={{ color: INK }}>{c.examples}</div>
+            </div>
+          </div>
+
+          <div className="mt-10 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+            <Section title="Why the OBAFGKM sequence is in this order">
+              <p>
+                It’s a temperature sequence — and reading from O to M is reading from hot to cool. The
+                ordering was empirical for decades before anyone understood why. Annie Jump Cannon arranged
+                the classes by hydrogen-line strength at Harvard around 1900; Cecilia Payne-Gaposchkin
+                explained the underlying physics in her 1925 PhD thesis: stars are mostly hydrogen, and the
+                visible spectrum is set primarily by temperature, not composition.
+              </p>
+              <p>
+                Payne-Gaposchkin’s thesis was called by Otto Struve “the most brilliant PhD thesis ever
+                written in astronomy.” Worth knowing about.
+              </p>
+            </Section>
+
+            <Section title="The Saha equation — why hydrogen is strongest in A stars">
+              <Eq>n<sub>i+1</sub> n<sub>e</sub> / n<sub>i</sub> ∝ T<sup>3/2</sup> e<sup>−χ/kT</sup></Eq>
+              <p>
+                The Saha equation governs ionisation balance. For hydrogen, the Balmer absorption lines
+                require electrons in the n=2 state. In cool stars there aren’t enough thermally excited
+                atoms; in hot stars the hydrogen is fully ionised so there’s nothing to absorb. The peak
+                occurs around 9,000–10,000 K — squarely in spectral class A. That’s why Vega and Sirius
+                have those razor-sharp Balmer lines.
+              </p>
+            </Section>
+
+            <Section title="The MK luminosity classes">
+              <p>
+                Spectral type alone fixes a star’s position on the H–R diagram along the temperature axis.
+                The luminosity class fixes it along the luminosity axis:
+              </p>
+              <p>
+                <strong style={{ color: ACCENT }}>Ia, Iab, Ib</strong> — supergiants (Ia is brightest)<br />
+                <strong style={{ color: ACCENT }}>II</strong> — bright giants<br />
+                <strong style={{ color: ACCENT }}>III</strong> — giants<br />
+                <strong style={{ color: ACCENT }}>IV</strong> — subgiants<br />
+                <strong style={{ color: ACCENT }}>V</strong> — main-sequence (“dwarfs”)<br />
+                <strong style={{ color: ACCENT }}>VI</strong> — subdwarfs (metal-poor)<br />
+                <strong style={{ color: ACCENT }}>VII / D</strong> — white dwarfs
+              </p>
+              <p>
+                The Sun is G2V; Betelgeuse is M1-2Ia; Sirius B is DA2. Together with a temperature
+                subclass and a luminosity class, this notation pins down most of a star’s physical
+                properties from spectroscopy alone — without ever measuring its distance.
+              </p>
+            </Section>
+          </div>
+        </div>
+
+        <aside className="lg:sticky lg:top-6 self-start" style={{ borderLeft: `1px solid ${BORDER}` }}>
+          <div className="pl-6">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: ACCENT }}>Class {c.letter}</div>
+            <p className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{c.desc}</p>
+          </div>
+        </aside>
+      </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  06 · COSMIC DISTANCE LADDER
+// ═══════════════════════════════════════════════════════════════════════════
+const LADDER = [
+  { id: 'radar', name: 'Radar & laser ranging', range: '< 50 AU', accuracy: 'metres',
+    desc: 'Bounce a radar pulse off Venus or a laser off the lunar retroreflectors. Time of flight × c = distance. This is how the astronomical unit (AU) is now defined directly — to ~mm accuracy for the Moon.',
+    note: 'Anchors the entire ladder. Every higher rung is calibrated by reference, eventually, back to this one.' },
+  { id: 'paral', name: 'Trigonometric parallax', range: '< 10 kpc', accuracy: 'μas–mas',
+    desc: 'Earth’s orbit gives a 2-AU baseline. Nearby stars appear to shift against the background as we move. The parallax angle p is half the apparent annual shift.',
+    eq: 'd (pc) = 1 / p (arcsec)',
+    note: 'Defines the parsec: the distance at which 1 AU subtends 1 arcsecond. Gaia (2014–) measures parallaxes to μas precision, reaching distances of ~10 kpc for bright stars — across most of the Milky Way.' },
+  { id: 'spec',  name: 'Spectroscopic parallax', range: '< 1 Mpc', accuracy: '20%',
+    desc: 'Classify a star’s spectrum (which fixes its luminosity from the H–R diagram), measure its apparent brightness, and use the inverse-square law to get distance. No actual parallax involved — the name is a historical misnomer.',
+    eq: 'm − M = 5 log₁₀(d/pc) − 5',
+    note: 'm is apparent magnitude, M is absolute magnitude. Works for any star whose spectrum you can take. Less precise than parallax but reaches much further.' },
+  { id: 'cep',   name: 'Cepheid period–luminosity', range: '< 50 Mpc', accuracy: '5%',
+    desc: 'Cepheid variable stars pulsate with periods that correlate tightly with their intrinsic luminosity. Discovered by Henrietta Swan Leavitt in 1908 from photographic plates of the Small Magellanic Cloud.',
+    eq: 'M_V ≈ −2.78 log₁₀(P / days) − 1.35',
+    note: 'Hubble used Cepheids in the Andromeda “nebula” to prove in 1924 that it lay far outside the Milky Way, settling the Great Debate and establishing the existence of other galaxies.' },
+  { id: 'sn',    name: 'Type Ia supernovae', range: '< 10⁴ Mpc',  accuracy: '5–10%',
+    desc: 'A white dwarf accreting mass from a companion exceeds the Chandrasekhar limit and detonates as a thermonuclear runaway. The peak luminosity is remarkably uniform because the explosion mechanism is set by fundamental physics. After light-curve standardisation, Type Ia SNe are excellent standard candles.',
+    eq: 'M_V ≈ −19.3 (at peak, after light-curve correction)',
+    note: 'Used in 1998 by two independent teams (Perlmutter; Riess & Schmidt) to discover the accelerating expansion of the universe → 2011 Nobel Prize. Reaches z ~ 2.' },
+  { id: 'hub',   name: 'Hubble flow / redshift', range: 'z > 0.01 → cosmic scales', accuracy: '~1% in H₀',
+    desc: 'Beyond local-galaxy motions, the cosmological redshift of spectral lines gives recession velocity. Distance follows from Hubble’s law, calibrated by the lower rungs.',
+    eq: 'v = H₀ d   (with H₀ ≈ 67–73 km/s/Mpc)',
+    note: 'The current ~5σ tension between local H₀ measurements (~73 km/s/Mpc, from SNe + Cepheids) and CMB-inferred H₀ (~67 km/s/Mpc, from Planck) is one of the most important open problems in cosmology.' },
+];
+
+function DistanceLadder({ onBack }) {
+  const [open, setOpen] = useState('paral');
+
+  return (
+    <PageShell onBack={onBack} eyebrow="06 — Cosmography"
+               title={<>The Cosmic <em style={{ color: ACCENT, fontStyle: 'italic' }}>Distance Ladder</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        Astronomy faces a deep problem: we cannot move. Every distance — from the Moon to the most distant
+        galaxies — must be inferred from things we can measure here, now, with light. The ladder is a
+        chain of overlapping methods, each calibrated by the rung below.
+      </p>
+
+      <div className="space-y-px mb-10" style={{ background: BORDER }}>
+        {LADDER.map((rung, i) => {
+          const isOpen = open === rung.id;
+          return (
+            <div key={rung.id} style={{ background: BG }}>
+              <button onClick={() => setOpen(isOpen ? null : rung.id)}
+                      className="w-full text-left p-6 transition hover:bg-white/[0.02]">
+                <div className="flex items-start gap-6">
+                  <div className="font-mono text-2xl" style={{ color: DIM, minWidth: 40 }}>0{i+1}</div>
+                  <div className="flex-1">
+                    <div className="font-display text-2xl mb-1" style={{ letterSpacing: '-0.01em', color: isOpen ? ACCENT : INK }}>
+                      {rung.name}
+                    </div>
+                    <div className="flex flex-wrap gap-4 font-mono text-xs" style={{ color: DIM }}>
+                      <span>range: {rung.range}</span>
+                      <span>·</span>
+                      <span>accuracy: {rung.accuracy}</span>
+                    </div>
+                  </div>
+                  <div className="font-mono text-xs" style={{ color: DIM }}>
+                    {isOpen ? '−' : '+'}
+                  </div>
+                </div>
+              </button>
+              {isOpen && (
+                <div className="px-6 pb-6 pl-[88px] fade-in">
+                  <p className="font-display text-base leading-relaxed mb-3 max-w-3xl" style={{ color: '#c8c3b1' }}>{rung.desc}</p>
+                  {rung.eq && <Eq>{rung.eq}</Eq>}
+                  <p className="font-display text-sm leading-relaxed italic mt-3 max-w-3xl" style={{ color: DIM }}>{rung.note}</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-10 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+        <Section title="Why a “ladder”?">
+          <p>
+            Each method only works in a limited distance range. Parallax fails beyond ~10 kpc because angles
+            become unmeasurably small. Cepheids run out beyond ~50 Mpc because individual stars become too
+            faint. Type Ia supernovae are rare. So we use each method to calibrate the next: parallax
+            measures distances to nearby Cepheids (anchoring the P-L relation); Cepheids in nearby galaxies
+            anchor Type Ia supernovae found in the same galaxies; Type Ia SNe at moderate redshift anchor
+            the Hubble flow at high redshift.
+          </p>
+          <p>
+            Every rung is one calibration step away from a higher-precision method. Errors propagate. The
+            biggest residual systematic in the ladder is at the Cepheid–SN Ia step — and this is the
+            heart of the “Hubble tension.”
+          </p>
+        </Section>
+
+        <Section title="The Hubble tension in one paragraph">
+          <p>
+            If you build the ladder from local data — parallax → Cepheids → Type Ia SNe — you get H₀ ≈
+            73 km/s/Mpc (the “late universe” value, SH0ES collaboration). If you derive H₀ from the angular
+            scale of the cosmic microwave background under standard cosmology — “early universe” — you get
+            H₀ ≈ 67 km/s/Mpc (Planck). The disagreement is now ~5σ and stubbornly resists every explanation
+            tried so far. Either there’s a subtle systematic in one of the measurements, or our cosmological
+            model is missing something.
+          </p>
+        </Section>
+
+        <Section title="A worked example: distance to Andromeda">
+          <p>
+            Hubble (1924): identified Cepheids in M31. Period ≈ 31 days. Period–luminosity relation gives
+            absolute magnitude M ≈ −5. Apparent magnitude m ≈ 19. Distance modulus m − M ≈ 24, so distance
+            ≈ 10⁽²⁴⁺⁵⁾/⁵ pc = 10⁵·⁸ pc ≈ 640 kpc. Andromeda lay far outside the Milky Way.
+          </p>
+          <p>
+            Modern value (Gaia + revised Cepheid calibration): 765 ± 25 kpc, or ~2.5 million light-years.
+            Hubble was within 20%. Considering he was the first to do it, that’s remarkable.
+          </p>
+        </Section>
+      </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  07 · BLACK HOLE ANATOMY
+// ═══════════════════════════════════════════════════════════════════════════
+function BlackHole({ onBack }) {
+  const [logM, setLogM] = useState(1); // log10(M / M☉), so 1 = 10 M☉
+  const [spin, setSpin] = useState(0); // 0 = Schwarzschild, 0.998 = max Kerr
+  const M = Math.pow(10, logM); // M / M☉
+
+  // Constants
+  const G = 6.674e-11;
+  const c = 2.998e8;
+  const Msun = 1.989e30;
+  const hbar = 1.055e-34;
+  const kB = 1.381e-23;
+
+  // Schwarzschild radius (km)
+  const rs_km = 2 * G * (M * Msun) / (c * c) / 1000;
+  // Photon sphere for Schwarzschild: 1.5 r_s
+  const photonRadius = 1.5;
+  // ISCO for Schwarzschild: 3 r_s, drops to 0.5 r_s for max prograde spin
+  const isco_rs = 3 - 2.5 * spin; // very rough interp
+  // Hawking temperature (Schwarzschild)
+  const T_H = (hbar * Math.pow(c, 3)) / (8 * Math.PI * G * (M * Msun) * kB);
+  // Evaporation time (Schwarzschild, in years, very approximate)
+  const t_evap = 2.1e67 * Math.pow(M, 3); // years for M solar masses
+
+  // Visualization
+  const W = 900, H = 520;
+  const cx = W / 2, cy = H / 2;
+  const rUnit = 70; // pixels per r_s
+
+  const markers = [
+    { m: 3, label: '3 M☉', sub: 'stellar BH min' },
+    { m: 10, label: '10 M☉', sub: 'typical X-ray binary' },
+    { m: 100, label: '100 M☉', sub: 'intermediate' },
+    { m: 4.3e6, label: '4.3M M☉', sub: 'Sgr A* (MW centre)' },
+    { m: 6.5e9, label: '6.5G M☉', sub: 'M87* (EHT image)' },
+  ];
+
+  return (
+    <PageShell onBack={onBack} eyebrow="07 — Compact Objects & Relativity"
+               title={<>Anatomy of a <em style={{ color: ACCENT, fontStyle: 'italic' }}>Black Hole</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        A black hole is the simplest macroscopic object in physics: from far away, only three numbers
+        describe it (mass, spin, charge). Everything else — every detail of the star that collapsed
+        to form it — is lost. This is the “no-hair theorem.”
+      </p>
+
+      {/* Mass slider */}
+      <div className="mb-6 p-6 rounded" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+        <div className="flex justify-between items-baseline mb-3">
+          <div className="font-mono text-xs uppercase tracking-[0.25em]" style={{ color: ACCENT }}>Mass</div>
+          <div className="font-display text-3xl" style={{ letterSpacing: '-0.01em' }}>
+            {fmtSci(M, M < 100 ? 1 : 2)} <span className="font-mono text-base" style={{ color: DIM }}>M☉</span>
+          </div>
+        </div>
+        <input type="range" min={0.5} max={10} step={0.01} value={logM}
+               onChange={e => setLogM(parseFloat(e.target.value))} className="w-full" />
+        <div className="flex justify-between mt-2 relative h-6">
+          {markers.map(m => {
+            const pct = (Math.log10(m.m) - 0.5) / 9.5 * 100;
+            return (
+              <button key={m.label} onClick={() => setLogM(Math.log10(m.m))}
+                      className="absolute font-mono text-[10px] hover:text-white transition"
+                      style={{ left: `${pct}%`, transform: 'translateX(-50%)', color: DIM, whiteSpace: 'nowrap' }}>
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+        <div>
+          {/* Anatomy diagram */}
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT }}>
+            Anatomy (Schwarzschild geometry · top-down view)
+          </div>
+          <div className="relative" style={{ border: `1px solid ${BORDER}`, background: '#020208' }}>
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+              {/* Accretion disk (decorative) */}
+              <defs>
+                <radialGradient id="disk" cx="50%" cy="50%">
+                  <stop offset="40%" stopColor="#ffc97a" stopOpacity="0" />
+                  <stop offset="55%" stopColor="#ffc97a" stopOpacity="0.15" />
+                  <stop offset="75%" stopColor="#ff8a70" stopOpacity="0.08" />
+                  <stop offset="100%" stopColor="#7ac4ff" stopOpacity="0" />
+                </radialGradient>
+              </defs>
+              <ellipse cx={cx} cy={cy} rx={rUnit * 7} ry={rUnit * 1.5} fill="url(#disk)" />
+
+              {/* ISCO */}
+              <circle cx={cx} cy={cy} r={rUnit * isco_rs} fill="none" stroke={ACCENT2} strokeWidth="1" strokeDasharray="4 3" opacity="0.7" />
+              <text x={cx + rUnit * isco_rs + 8} y={cy - rUnit * isco_rs - 4} fontFamily="JetBrains Mono, monospace" fontSize="10" fill={ACCENT2}>
+                ISCO · {isco_rs.toFixed(2)} r_s
+              </text>
+
+              {/* Photon sphere */}
+              <circle cx={cx} cy={cy} r={rUnit * photonRadius} fill="none" stroke={ACCENT} strokeWidth="1" strokeDasharray="4 3" opacity="0.7" />
+              <text x={cx + rUnit * photonRadius + 8} y={cy - rUnit * photonRadius + 16} fontFamily="JetBrains Mono, monospace" fontSize="10" fill={ACCENT}>
+                photon sphere · 1.5 r_s
+              </text>
+
+              {/* Event horizon */}
+              <circle cx={cx} cy={cy} r={rUnit} fill="#000" stroke={ACCENT} strokeWidth="2" />
+              <text x={cx + rUnit + 8} y={cy + 32} fontFamily="JetBrains Mono, monospace" fontSize="10" fill={ACCENT}>
+                event horizon · r_s
+              </text>
+
+              {/* Singularity */}
+              <circle cx={cx} cy={cy} r="2" fill={ACCENT} />
+              <line x1={cx} x2={cx + 60} y1={cy} y2={cy - 40} stroke={DIM} strokeWidth="0.5" />
+              <text x={cx + 65} y={cy - 42} fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>
+                singularity
+              </text>
+
+              {/* Scale bar */}
+              <g transform={`translate(40, ${H - 50})`}>
+                <line x1="0" x2={rUnit} y1="0" y2="0" stroke={INK} strokeWidth="1" />
+                <line x1="0" x2="0" y1="-4" y2="4" stroke={INK} />
+                <line x1={rUnit} x2={rUnit} y1="-4" y2="4" stroke={INK} />
+                <text x={rUnit / 2} y="-8" textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK}>
+                  1 r_s = {fmtSci(rs_km, 2)} km
+                </text>
+                <text x={rUnit / 2} y="18" textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>
+                  ≈ {rs_km < 1.5e6 ? `${(rs_km / 1.5e6).toFixed(3)} R☉` : `${(rs_km / 1.496e8).toFixed(2)} AU`}
+                </text>
+              </g>
+            </svg>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px mt-6" style={{ background: BORDER }}>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Schwarzschild radius</div>
+              <div className="font-display text-base" style={{ color: INK }}>{fmtSci(rs_km, 2)} km</div>
+            </div>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Hawking temperature</div>
+              <div className="font-display text-base" style={{ color: INK }}>{fmtSci(T_H, 2)} K</div>
+            </div>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Density (avg)</div>
+              <div className="font-display text-base" style={{ color: INK }}>
+                {fmtSci((M * Msun) / (4/3 * Math.PI * Math.pow(rs_km * 1000, 3)), 1)} kg/m³
+              </div>
+            </div>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Evaporation time</div>
+              <div className="font-display text-base" style={{ color: INK }}>{fmtSci(t_evap, 1)} yr</div>
+            </div>
+          </div>
+
+          <div className="mt-10 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+            <Section title="The Schwarzschild radius">
+              <Eq>r<sub>s</sub> = 2GM / c²</Eq>
+              <p>
+                Derived in 1916 by Karl Schwarzschild from Einstein’s field equations, just weeks after
+                general relativity was published. The Schwarzschild radius for a mass M is the radius at
+                which gravitational time dilation becomes infinite for a distant observer — and inside
+                which no signal can escape to infinity.
+              </p>
+              <p>
+                Numerically: r<sub>s</sub> ≈ 2.95 km × (M / M☉). The Sun’s would be ~3 km. Earth’s would be
+                ~9 mm. A 10 M☉ stellar-mass BH has an event horizon ~30 km across. Sagittarius A* (4.3 million M☉)
+                has r<sub>s</sub> ≈ 12 million km — just a fraction of Mercury’s orbit. M87* (6.5 billion M☉)
+                has r<sub>s</sub> ≈ 100 AU — larger than our solar system.
+              </p>
+            </Section>
+
+            <Section title="Three radii to know">
+              <p>
+                <strong style={{ color: ACCENT }}>Event horizon (r = r_s)</strong> — point of no return. Crossing
+                inward is irreversible. Locally there’s nothing dramatic at the horizon — tidal forces are mild
+                for large BHs. The drama is geometric: future light cones tilt entirely inward.
+              </p>
+              <p>
+                <strong style={{ color: ACCENT }}>Photon sphere (r = 1.5 r_s)</strong> — the radius at which light
+                can theoretically orbit the BH. Unstable orbit. The bright ring in the Event Horizon Telescope
+                images of M87* and Sgr A* is the photon sphere, lensed.
+              </p>
+              <p>
+                <strong style={{ color: ACCENT }}>ISCO — innermost stable circular orbit (r = 3 r_s for non-spinning)</strong>
+                — the closest a particle can stably orbit. Inside the ISCO, orbits are unstable; matter
+                spirals inward. This is the inner edge of an accretion disk. For maximally spinning Kerr
+                black holes the ISCO drops to 0.5 r_s — meaning much more efficient energy extraction
+                from accreting matter (~42% rest-mass-energy efficiency vs. ~6% non-spinning).
+              </p>
+            </Section>
+
+            <Section title="Hawking radiation">
+              <Eq>T<sub>H</sub> = ℏc³ / (8πGMk<sub>B</sub>)</Eq>
+              <p>
+                In 1974 Stephen Hawking applied quantum field theory in curved spacetime and found that
+                black holes are not truly black: they radiate thermal photons at a temperature inversely
+                proportional to their mass.
+              </p>
+              <p>
+                For a stellar-mass BH the temperature is ~6 × 10⁻⁸ K — utterly cold, the radiation is
+                absurdly weak, and the cosmic microwave background pours more energy into the hole than
+                Hawking radiation removes. Evaporation lifetime for a 10 M☉ BH: ~10⁶⁹ years. Far longer
+                than the current age of the universe (~10¹⁰).
+              </p>
+              <p>
+                Hawking radiation has never been observed and probably never will be — except potentially
+                from primordial black holes lighter than ~10¹² kg, which would be ending their lives now
+                in bright flashes. None have been detected.
+              </p>
+            </Section>
+
+            <Section title="The “no-hair theorem”">
+              <p>
+                A classical black hole at equilibrium is fully described by three parameters: mass M, angular
+                momentum J, and electric charge Q. Whatever fell in — books, stars, antimatter, an entire
+                galactic civilisation — leaves no observable trace on the exterior. This is the no-hair
+                theorem of Israel, Carter, and Hawking.
+              </p>
+              <p>
+                The information-paradox question — what really happens to the information that fell in — is
+                one of the deepest open problems in theoretical physics. Reconciling Hawking’s prediction
+                (information lost) with quantum mechanics (information conserved) is widely believed to require
+                a quantum theory of gravity.
+              </p>
+            </Section>
+          </div>
+        </div>
+
+        <aside className="lg:sticky lg:top-6 self-start" style={{ borderLeft: `1px solid ${BORDER}` }}>
+          <div className="pl-6">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: ACCENT }}>Categories of black hole</div>
+            <ul className="space-y-4 font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>
+              <li><strong style={{ color: ACCENT }}>Stellar-mass</strong> (3–80 M☉) — endpoints of massive-star collapse. Discovered as X-ray binaries (Cygnus X-1, 1971) and now in their hundreds via LIGO/Virgo gravitational-wave detections of mergers.</li>
+              <li><strong style={{ color: ACCENT }}>Intermediate-mass</strong> (10² – 10⁵ M☉) — long predicted, rarely confirmed. Formation channel unclear: runaway collisions in dense star clusters? Direct collapse?</li>
+              <li><strong style={{ color: ACCENT }}>Supermassive</strong> (10⁶ – 10¹⁰ M☉) — at the centre of essentially every massive galaxy. Origin still debated. Powers AGN and quasars when actively accreting.</li>
+              <li><strong style={{ color: ACCENT }}>Primordial</strong> (hypothetical) — formed in the early universe from density fluctuations. Could span many orders of magnitude. None confirmed.</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  08 · GALAXY MORPHOLOGY
+// ═══════════════════════════════════════════════════════════════════════════
+const GALAXY_TYPES = [
+  { id: 'E0', kind: 'elliptical', ba: 1.0, label: 'E0',
+    name: 'E0 — round elliptical',
+    mass: '10¹⁰ – 10¹³ M☉', col: 'red', sfr: 'negligible (~0)', gas: '< 1%',
+    examples: 'M87, M89, NGC 1399',
+    desc: 'Featureless, dominated by old red stars. Little gas or dust. Stars on randomly oriented orbits — the galaxy is pressure-supported, not rotation-supported. Common in cluster cores.' },
+  { id: 'E5', kind: 'elliptical', ba: 0.5, label: 'E5',
+    name: 'E5 — elongated elliptical',
+    mass: '10⁹ – 10¹² M☉', col: 'red', sfr: 'negligible', gas: '< 1%',
+    examples: 'M59, NGC 4365',
+    desc: 'Same physics as E0 but flatter. The integer after E is 10×(1 − b/a). Most ellipticals are intrinsically triaxial; the apparent shape depends on viewing angle.' },
+  { id: 'S0', kind: 'lenticular', ba: 0.35, label: 'S0',
+    name: 'S0 — lenticular',
+    mass: '10¹⁰ – 10¹² M☉', col: 'red', sfr: 'low (~0.1 M☉/yr)', gas: '< 5%',
+    examples: 'NGC 1316, NGC 5102',
+    desc: 'Disk + bulge but no spiral arms. Transitional between ellipticals and spirals. Common in clusters where ram-pressure stripping has removed the gas needed to form arms.' },
+  { id: 'Sa', kind: 'spiral', bulge: 0.45, pitch: 8, arms: 2, label: 'Sa',
+    name: 'Sa — tightly wound spiral',
+    mass: '10¹⁰ – 10¹² M☉', col: 'red-ish', sfr: '~1 M☉/yr', gas: '~5%',
+    examples: 'M104 (Sombrero), NGC 4274',
+    desc: 'Prominent bulge + tightly wound arms. The bulge is essentially a small elliptical embedded in a disk — and behaves like one (old red stars, low SFR).' },
+  { id: 'Sb', kind: 'spiral', bulge: 0.25, pitch: 15, arms: 2, label: 'Sb',
+    name: 'Sb — intermediate spiral',
+    mass: '10¹⁰ – 10¹² M☉', col: 'blue-ish', sfr: '~3 M☉/yr', gas: '~10%',
+    examples: 'M31 (Andromeda), Milky Way (~Sbc)',
+    desc: 'Moderate bulge, well-defined two-armed structure. Spiral arms are density waves — pile-ups of gas and young stars moving more slowly than disk material orbits.' },
+  { id: 'Sc', kind: 'spiral', bulge: 0.12, pitch: 25, arms: 4, label: 'Sc',
+    name: 'Sc — loosely wound spiral',
+    mass: '10⁹ – 10¹¹ M☉', col: 'blue', sfr: '~5–10 M☉/yr', gas: '~20%',
+    examples: 'M101 (Pinwheel), M51 (Whirlpool)',
+    desc: 'Small bulge, loose multi-arm structure, vigorous star formation. The blue colour comes from massive O/B stars (lifetime ~10⁷ yr) — seeing them means the galaxy is making them now.' },
+  { id: 'SBa', kind: 'barred', bulge: 0.4, pitch: 8, arms: 2, label: 'SBa',
+    name: 'SBa — barred, tight',
+    mass: '10¹⁰ – 10¹² M☉', col: 'red-ish', sfr: '~1 M☉/yr', gas: '~5%',
+    examples: 'NGC 1300, NGC 2217',
+    desc: 'A bar across the centre + tightly wound arms. ~half of all disk galaxies have bars, including the Milky Way. Bars funnel gas inward, fuelling central star formation and AGN.' },
+  { id: 'SBb', kind: 'barred', bulge: 0.22, pitch: 16, arms: 2, label: 'SBb',
+    name: 'SBb — barred, intermediate',
+    mass: '10¹⁰ – 10¹² M☉', col: 'mixed', sfr: '~3 M☉/yr', gas: '~10%',
+    examples: 'NGC 1365, NGC 1530',
+    desc: 'Strong bar + moderate arms. The Milky Way is somewhere between SBb and SBc. Bars are not permanent — they can form and dissolve over Gyr.' },
+  { id: 'SBc', kind: 'barred', bulge: 0.1, pitch: 26, arms: 4, label: 'SBc',
+    name: 'SBc — barred, loose',
+    mass: '10⁹ – 10¹¹ M☉', col: 'blue', sfr: '~5 M☉/yr', gas: '~20%',
+    examples: 'NGC 1073, NGC 1313',
+    desc: 'Strong bar, loosely wound arms, high SFR. Bars set up dynamical resonances that organise star-forming regions in characteristic patterns.' },
+  { id: 'Irr', kind: 'irregular', label: 'Irr',
+    name: 'Irr — irregular',
+    mass: '10⁷ – 10¹⁰ M☉', col: 'blue', sfr: '~0.1–1 M☉/yr', gas: '~30–50%',
+    examples: 'LMC, SMC, NGC 4449',
+    desc: 'No clear morphology. Often dwarfs, sometimes tidally disrupted larger systems. Very gas-rich and star-forming. The Magellanic Clouds are the prototypes — and on close inspection show structure earlier classifications missed.' },
+];
+
+function GalaxySVG({ type, size = 80 }) {
+  const cx = size / 2, cy = size / 2;
+  const r = size * 0.4;
+  const gradId = `gg-${type.id}-${size}`;
+
+  if (type.kind === 'elliptical') return (
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+      <defs>
+        <radialGradient id={gradId}>
+          <stop offset="0%" stopColor="#fff8e0" />
+          <stop offset="50%" stopColor="#ffd2a1" stopOpacity="0.7" />
+          <stop offset="100%" stopColor="#a0604a" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <ellipse cx={cx} cy={cy} rx={r} ry={r * type.ba} fill={`url(#${gradId})`} />
+    </svg>
+  );
+
+  if (type.kind === 'lenticular') return (
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+      <defs>
+        <radialGradient id={gradId}>
+          <stop offset="0%" stopColor="#fff8e0" />
+          <stop offset="100%" stopColor="#ffd2a1" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <ellipse cx={cx} cy={cy} rx={r * 1.1} ry={r * type.ba * 0.5} fill="#ffd2a1" opacity="0.3" />
+      <ellipse cx={cx} cy={cy} rx={r * 0.45} ry={r * 0.45} fill={`url(#${gradId})`} />
+    </svg>
+  );
+
+  if (type.kind === 'spiral' || type.kind === 'barred') {
+    const pitch_rad = type.pitch * Math.PI / 180;
+    const b = Math.tan(pitch_rad);
+    const arms = [];
+    for (let i = 0; i < type.arms; i++) {
+      const startAngle = (i * 2 * Math.PI / type.arms);
+      const startR = type.kind === 'barred' ? r * 0.4 : r * type.bulge * 1.1;
+      const points = [];
+      for (let theta = 0; theta < Math.PI * 2.5; theta += 0.08) {
+        const armR = startR * Math.exp(b * theta);
+        if (armR > r) break;
+        const angle = theta + startAngle;
+        const x = cx + armR * Math.cos(angle);
+        const y = cy + armR * Math.sin(angle);
+        points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+      arms.push(points.join(' '));
+    }
+    return (
+      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+        <defs>
+          <radialGradient id={gradId}>
+            <stop offset="0%" stopColor="#fff8e0" />
+            <stop offset="100%" stopColor="#ffd2a1" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <circle cx={cx} cy={cy} r={r * 0.95} fill="#3a4a6a" opacity="0.12" />
+        {arms.map((p, i) => (
+          <polyline key={i} points={p} fill="none" stroke="#7ac4ff" strokeWidth={size > 80 ? 1.6 : 1.2} opacity="0.75" strokeLinecap="round" />
+        ))}
+        {type.kind === 'barred' && (
+          <rect x={cx - r * 0.42} y={cy - r * 0.08} width={r * 0.84} height={r * 0.16}
+                fill={`url(#${gradId})`} rx={r * 0.08}
+                transform={`rotate(0 ${cx} ${cy})`} />
+        )}
+        <ellipse cx={cx} cy={cy} rx={r * type.bulge} ry={r * type.bulge * 0.95} fill={`url(#${gradId})`} />
+      </svg>
+    );
+  }
+
+  // irregular
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+      <path d={`M ${cx-r*0.6} ${cy-r*0.3}
+               Q ${cx-r*0.3} ${cy-r*0.7}, ${cx} ${cy-r*0.5}
+               Q ${cx+r*0.5} ${cy-r*0.4}, ${cx+r*0.6} ${cy}
+               Q ${cx+r*0.4} ${cy+r*0.55}, ${cx+r*0.1} ${cy+r*0.6}
+               Q ${cx-r*0.4} ${cy+r*0.5}, ${cx-r*0.6} ${cy+r*0.2}
+               Q ${cx-r*0.8} ${cy-r*0.1}, ${cx-r*0.6} ${cy-r*0.3} Z`}
+            fill="#7ac4ff" opacity="0.4" />
+      {[[-0.3, -0.2], [0.2, -0.3], [0.3, 0.2], [-0.2, 0.3], [0.05, 0.05]].map(([dx, dy], i) => (
+        <circle key={i} cx={cx + r * dx} cy={cy + r * dy} r="2" fill="#aabfff" opacity="0.9" />
+      ))}
+    </svg>
+  );
+}
+
+function GalaxyMorph({ onBack }) {
+  const [sel, setSel] = useState('Sb');
+  const g = GALAXY_TYPES.find(t => t.id === sel);
+
+  // Tuning fork layout positions
+  const FORK = {
+    E0: { x: 60, y: 200 }, E5: { x: 150, y: 200 }, S0: { x: 280, y: 200 },
+    Sa: { x: 400, y: 110 }, Sb: { x: 550, y: 110 }, Sc: { x: 700, y: 110 },
+    SBa: { x: 400, y: 290 }, SBb: { x: 550, y: 290 }, SBc: { x: 700, y: 290 },
+    Irr: { x: 830, y: 200 },
+  };
+  const W = 900, H = 400;
+
+  return (
+    <PageShell onBack={onBack} eyebrow="08 — Extragalactic Astronomy"
+               title={<>Galaxy <em style={{ color: ACCENT, fontStyle: 'italic' }}>Morphology</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        Edwin Hubble’s 1936 classification of galaxies into ellipticals, lenticulars, spirals, barred
+        spirals, and irregulars was the first attempt to bring order to an unfamiliar zoo. The diagram
+        is called a “tuning fork.” It is not an evolutionary sequence — but morphology still encodes
+        an enormous amount of physics.
+      </p>
+
+      {/* Tuning fork */}
+      <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.25em]" style={{ color: ACCENT }}>
+        The Hubble tuning fork
+      </div>
+      <div className="relative" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+          {/* Connecting lines */}
+          <g stroke={BORDER_STRONG} strokeWidth="1" fill="none">
+            <line x1="60" x2="280" y1="200" y2="200" />
+            <line x1="280" x2="400" y1="200" y2="110" />
+            <line x1="280" x2="400" y1="200" y2="290" />
+            <line x1="400" x2="700" y1="110" y2="110" />
+            <line x1="400" x2="700" y1="290" y2="290" />
+            <line x1="700" x2="830" y1="110" y2="200" strokeDasharray="3 4" />
+            <line x1="700" x2="830" y1="290" y2="200" strokeDasharray="3 4" />
+          </g>
+          {/* Branch labels */}
+          <text x="220" y="180" textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                fontSize="9" fill={DIM} letterSpacing="0.18em">ELLIPTICALS → LENTICULAR</text>
+          <text x="550" y="60" textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                fontSize="9" fill={DIM} letterSpacing="0.18em">SPIRALS</text>
+          <text x="550" y="350" textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                fontSize="9" fill={DIM} letterSpacing="0.18em">BARRED SPIRALS</text>
+          {/* Galaxies */}
+          {GALAXY_TYPES.map(t => {
+            const p = FORK[t.id];
+            const isSel = sel === t.id;
+            return (
+              <g key={t.id} onClick={() => setSel(t.id)} style={{ cursor: 'pointer' }}>
+                {isSel && <circle cx={p.x} cy={p.y} r="45" fill="none" stroke={ACCENT} strokeWidth="1" opacity="0.5" />}
+                <g transform={`translate(${p.x - 40}, ${p.y - 40})`}>
+                  <GalaxySVG type={t} size={80} />
+                </g>
+                <text x={p.x} y={p.y + 60} textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                      fontSize="11" fill={isSel ? ACCENT : INK}>{t.label}</text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+      <p className="font-mono text-[10px] uppercase tracking-[0.2em] mt-3" style={{ color: DIM }}>
+        Click any galaxy type
+      </p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 mt-10 fade-in" key={sel}>
+        <div>
+          <div className="flex items-start gap-6 mb-8">
+            <div style={{ minWidth: 140 }}>
+              <GalaxySVG type={g} size={140} />
+            </div>
+            <div>
+              <h2 className="font-display text-3xl mb-2 leading-tight" style={{ letterSpacing: '-0.01em' }}>{g.name}</h2>
+              <div className="font-mono text-xs" style={{ color: DIM }}>Examples: {g.examples}</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px mb-10" style={{ background: BORDER }}>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Typical mass</div>
+              <div className="font-display text-sm" style={{ color: INK }}>{g.mass}</div>
+            </div>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Colour</div>
+              <div className="font-display text-sm" style={{ color: INK }}>{g.col}</div>
+            </div>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Star formation</div>
+              <div className="font-display text-sm" style={{ color: INK }}>{g.sfr}</div>
+            </div>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Gas fraction</div>
+              <div className="font-display text-sm" style={{ color: INK }}>{g.gas}</div>
+            </div>
+          </div>
+
+          <div className="pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+            <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>The physics behind morphology</h3>
+
+            <Section title="The tuning fork is not evolutionary">
+              <p>
+                Hubble called ellipticals “early type” and spirals “late type,” and the labels stuck — but
+                his hunch that galaxies evolve from one to the other was wrong. We now know it’s closer to
+                the opposite: gas-rich star-forming disks (spirals) can be transformed into red-and-dead
+                ellipticals by mergers, gas stripping, and quenching of star formation. The arrow of time
+                runs from <em>blue cloud</em> to <em>red sequence</em>, not from E0 to Sc.
+              </p>
+            </Section>
+
+            <Section title="The colour–magnitude diagram: red sequence, blue cloud, green valley">
+              <p>
+                Plot galaxies by their integrated colour vs absolute magnitude and they fall into two
+                concentrations: a tight <strong style={{ color: '#ff8a70' }}>red sequence</strong> of passive
+                galaxies (mostly ellipticals and S0s) and a more diffuse <strong style={{ color: '#7ac4ff' }}>blue cloud</strong>
+                of star-forming galaxies (mostly spirals). The sparsely populated region between them is the
+                <em> green valley</em> — galaxies in the act of quenching, transitioning from one population
+                to the other in ~1 Gyr.
+              </p>
+              <p>
+                Galaxies leave the blue cloud when they stop making new stars. Their old populations fade and
+                redden, and they settle onto the red sequence. The mechanisms that quench star formation are
+                still actively debated: AGN feedback, ram-pressure stripping in clusters, “strangulation” of
+                the gas supply, major mergers, halo quenching above a critical halo mass (~10¹² M☉).
+              </p>
+            </Section>
+
+            <Section title="The morphology–density relation">
+              <p>
+                Galaxy morphology depends strongly on environment. In rich clusters, the population is
+                dominated by ellipticals and S0s. In low-density fields, spirals dominate. Spelled out by
+                Alan Dressler in 1980 from data on 55 clusters.
+              </p>
+              <p>
+                Three physical effects probably drive this: (1) cluster galaxies are continually stripped of
+                their gas reservoirs by hot intracluster medium, halting star formation; (2) frequent
+                gravitational encounters disrupt cold disks; (3) at the very centre of a cluster, the
+                <em> brightest cluster galaxy</em> grows by cannibalising smaller galaxies — a “cD” elliptical
+                with extended diffuse envelope is the endpoint of many mergers.
+              </p>
+            </Section>
+
+            <Section title="Spiral arms are density waves, not material objects">
+              <p>
+                A naive picture: stars in a spiral arm orbit the galaxy with the arm. This is wrong, and
+                leads to a problem: differential rotation would wind the arms up into a tight pinwheel in
+                only ~10⁸ years. We see well-defined arms in galaxies billions of years old.
+              </p>
+              <p>
+                The resolution (Lin–Shu density wave theory, 1964): spiral arms are <em>patterns</em>, not
+                objects. They are regions of slightly enhanced density that move through the disk at the
+                pattern speed Ω<sub>p</sub>. Gas and stars move through them — speeding up as they enter,
+                slowing as they leave — like cars driving through a slow-moving traffic jam. The jam
+                persists even though no individual car stays in it.
+              </p>
+              <Eq>
+                Co-rotation radius:  R<sub>CR</sub> where Ω(R) = Ω<sub>p</sub>
+              </Eq>
+              <p>
+                Inside co-rotation, stars overtake the pattern; outside, the pattern overtakes them. At the
+                co-rotation radius, the gas sits stationary in the arms — and that’s where you see the most
+                prominent star formation. The shock of gas piling up as it crosses the arm compresses
+                molecular clouds and triggers collapse — hence the strings of blue H II regions along arms.
+              </p>
+            </Section>
+
+            <Section title="Active galactic nuclei">
+              <p>
+                Essentially every massive galaxy hosts a supermassive black hole at its centre. When that
+                BH is actively accreting, it powers an AGN — a quasar or Seyfert nucleus that can outshine
+                the entire stellar content of its host galaxy. The Milky Way’s central BH (Sgr A*, 4.3 × 10⁶
+                M☉) is currently very faint; it is not actively accreting.
+              </p>
+              <p>
+                The mass of the central BH correlates tightly with the velocity dispersion σ of the bulge —
+                the <em>M–σ relation</em> — implying co-evolution of BHs and their host galaxies, despite
+                BHs being ~10⁻³ of the bulge mass and gravitationally dominant only over a tiny region:
+              </p>
+              <Eq>M<sub>BH</sub> ≈ 10⁸ M☉ × (σ / 200 km/s)<sup>4.4</sup></Eq>
+              <p>
+                AGN feedback — energy and momentum injected into the host galaxy by the accreting BH — is
+                probably one of the main ways star formation is quenched in massive galaxies.
+              </p>
+            </Section>
+
+            <Section title="Beyond the tuning fork">
+              <p>
+                The original Hubble classification was based on photographic plates of nearby galaxies. Modern
+                surveys have revealed structure Hubble couldn’t see: rings, lopsided disks, dwarf
+                spheroidals, ultra-diffuse galaxies, galaxies in tidal tails, post-merger remnants. Citizen-science
+                projects (Galaxy Zoo) and machine learning have produced morphological classifications for
+                millions of galaxies. The picture that emerges is one of gradients — concentration, asymmetry,
+                Sérsic index — rather than discrete bins.
+              </p>
+            </Section>
+          </div>
+        </div>
+
+        <aside className="lg:sticky lg:top-6 self-start" style={{ borderLeft: `1px solid ${BORDER}` }}>
+          <div className="pl-6">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: ACCENT }}>What this type is</div>
+            <p className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{g.desc}</p>
+            <div className="mt-6 pt-6 font-mono text-[10px] uppercase tracking-[0.2em] leading-relaxed" style={{ color: DIM, borderTop: `1px solid ${BORDER}` }}>
+              Schematic only. Real galaxies look dramatically different in colour and detail; survey images
+              are essential to develop intuition (try Galaxy Zoo, SDSS Navigator).
+            </div>
+          </div>
+        </aside>
+      </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  09 · BIG BANG TIMELINE
+// ═══════════════════════════════════════════════════════════════════════════
+// Each epoch: logT in seconds (start), name, T in K, brief
+const EPOCHS = [
+  { id: 'planck', logT: -43, name: 'Planck era', temp: '> 10³² K',
+    short: 'All four forces unified; quantum gravity dominates. No known physics applies.',
+    detail: `The earliest moment we can meaningfully discuss. Below ~10⁻⁴³ s the Schwarzschild radius corresponding to the energy density becomes comparable to the Compton wavelength — meaning gravity becomes a quantum theory we do not yet have. Whatever happened here requires a theory beyond general relativity and quantum field theory. Strings, loop quantum gravity, asymptotic safety, causal sets — all candidates, none confirmed.` },
+  { id: 'gut', logT: -36, name: 'GUT epoch ends', temp: '~10²⁸ K',
+    short: 'Gravity already decoupled; strong force separates from electroweak.',
+    detail: `Above ~10¹⁶ GeV the strong and electroweak interactions are predicted (by various Grand Unified Theories) to merge into one. Below it they separate. The transition could have produced topological defects: cosmic strings, monopoles, domain walls. We don’t see them — which inflation later explains.` },
+  { id: 'infl', logT: -34, name: 'Inflation', temp: 'variable',
+    short: 'Universe expands by a factor of ~10²⁶ in ~10⁻³³ seconds. Sets flatness and homogeneity.',
+    detail: `Proposed by Alan Guth (1980) to solve three puzzles: flatness, horizon, monopole. A scalar field (the inflaton) drives a brief epoch of exponential expansion, blowing up sub-horizon quantum fluctuations to cosmic scales. Those fluctuations are the seeds of every galaxy, cluster, and CMB anisotropy we observe today. The slight tilt of the primordial power spectrum (n_s ≈ 0.965) is consistent with single-field slow-roll inflation. The mechanism that ended inflation (“reheating”) converted the inflaton energy into a hot bath of standard-model particles.` },
+  { id: 'ew', logT: -12, name: 'Electroweak symmetry breaking', temp: '~10¹⁵ K',
+    short: 'The Higgs field acquires its vacuum expectation value. Particles get mass.',
+    detail: `Above this temperature the W, Z, and photon are all massless gauge bosons of an unbroken SU(2)×U(1) symmetry. Below it, the Higgs field condenses, the W and Z become massive (~80 and ~91 GeV), and the photon stays massless. Fundamental fermions also acquire mass through their Higgs couplings. This is well-tested physics — it’s what the LHC does.` },
+  { id: 'qh', logT: -5, name: 'Quark–hadron transition', temp: '~10¹² K',
+    short: 'Free quarks confine into protons, neutrons, mesons.',
+    detail: `Above this temperature, quarks and gluons exist as a deconfined plasma — the same state of matter recreated briefly in RHIC and LHC heavy-ion collisions. As the universe cools, QCD confines them into hadrons. The matter–antimatter asymmetry that survives this phase (~one part in 10⁹) determines all the baryonic matter we see today.` },
+  { id: 'nu', logT: 0, name: 'Neutrino decoupling', temp: '~10¹⁰ K',
+    short: 'Neutrinos stop interacting and begin free-streaming.',
+    detail: `Weak interactions become too slow to keep neutrinos in equilibrium with the rest of the plasma. They decouple at t ≈ 1 s and stream freely ever since. This cosmic neutrino background (CNB) still exists today, redshifted to ~1.95 K. It has never been directly detected — but its energy density and equation of state are visible in the CMB, providing one of the cleanest tests of standard cosmology.` },
+  { id: 'bbn', logT: 2, name: 'Big Bang nucleosynthesis', temp: '~10⁹ K',
+    short: 'In a ~20-minute window, light nuclei form: D, ³He, ⁴He, ⁷Li.',
+    detail: `Once the temperature drops below ~10⁹ K, deuterium can survive (no longer instantly photodissociated). The rapid reaction network produces ~24–25% ⁴He by mass, ~10⁻⁵ D, ~10⁻⁵ ³He, ~10⁻¹⁰ ⁷Li. The predicted abundances depend on a single parameter — the baryon-to-photon ratio η — and the observed values agree spectacularly with the η inferred independently from CMB anisotropies. BBN is one of the three great pillars of Big Bang cosmology (with CMB and Hubble expansion). A persistent “lithium problem” — observed ⁷Li ~3× lower than predicted — remains unresolved.` },
+  { id: 'mre', logT: 11.2, name: 'Matter–radiation equality', temp: '~10,000 K',
+    short: 'Matter density catches up to radiation density. Structure can begin to grow.',
+    detail: `Earlier, the universe is radiation-dominated and the rapid expansion suppresses growth of density perturbations. After equality (z ≈ 3400, t ≈ 50,000 yr), the universe is matter-dominated; dark-matter perturbations grow linearly with the scale factor and can collapse into halos. The angular scale of the largest CMB acoustic peak is sensitive to the redshift of equality, providing a direct measurement.` },
+  { id: 'rec', logT: 13.1, name: 'Recombination · CMB released', temp: '~3,000 K',
+    short: 'Electrons combine with nuclei into neutral atoms. Photons stream freely.',
+    detail: `Hydrogen and helium become neutral when the universe cools to ~3000 K (380,000 yr after the Big Bang, z ≈ 1090). Before this, the universe was an opaque plasma — photons scattered off free electrons every ~1 cm. After it, photons free-stream — and what they encountered last (the “surface of last scattering”) we now observe as the cosmic microwave background, redshifted from 3000 K to 2.725 K. Tiny temperature anisotropies in the CMB (~10⁻⁵) imprint the density fluctuations that became all subsequent structure.` },
+  { id: 'dark', logT: 14, name: 'The Dark Ages', temp: 'cooling',
+    short: 'Universe is neutral, transparent, and starless. Cold and dark.',
+    detail: `For ~150 Myr after recombination, the only light source is the redshifting CMB itself. Hydrogen atoms float in the dark. Dark matter perturbations continue to collapse into halos, and within those halos baryons begin to cool and pool. The first stars are forming, but have not yet ignited. This era is essentially unobservable in light — but the 21 cm radio line of neutral hydrogen carries information, and dedicated experiments (EDGES, SARAS, future LuSEE-Lite on the lunar far side) are working to detect it.` },
+  { id: 'firststars', logT: 15.7, name: 'First stars · Cosmic Dawn', temp: '~30 K',
+    short: 'Population III stars ignite. Reionization begins.',
+    detail: `The first stars — “Population III” — form from pristine H/He gas (no metals, no dust, no molecular coolants except H₂). With no efficient cooling, they were probably very massive (~30–300 M☉), short-lived, and intensely ionising. JWST is now observing galaxies at z ≈ 10–14 that probably contain the first stellar populations, and may soon catch genuine Pop III stars in lensed fields.` },
+  { id: 'reion', logT: 16.5, name: 'Reionization complete', temp: '~10 K (CMB)',
+    short: 'UV from first stars/galaxies fully reionises the intergalactic medium.',
+    detail: `Starting around z ≈ 15 and completing by z ≈ 6 (~1 Gyr after the Big Bang), the UV output of the first stars, galaxies, and quasars reionises the cosmic neutral hydrogen. The universe becomes transparent to UV photons. Quasar absorption spectra (the “Gunn–Peterson trough”) show the tail end of this transition. The exact contribution of galaxies vs AGN to reionization is still being measured.` },
+  { id: 'mwgalassemble', logT: 17.0, name: 'Galaxy & structure assembly', temp: '~3 K',
+    short: 'Major galaxy mergers; cosmic noon at z ≈ 2 (~10 Gyr ago).',
+    detail: `Most of the universe’s stellar mass was assembled between z ≈ 3 and z ≈ 1. The cosmic star-formation rate density peaked around z ≈ 2 at ~10× today’s rate — “cosmic noon.” The Milky Way’s thick disk was forming around then. By z ≈ 1 (8 Gyr ago) galaxy morphologies looked recognisably like today’s.` },
+  { id: 'sun', logT: 17.27, name: 'Solar system forms', temp: '2.74 K (CMB)',
+    short: 'Sun, Earth, and planets coalesce from a collapsing molecular cloud.',
+    detail: `9.2 billion years after the Big Bang, ~4.6 billion years ago, a region of a giant molecular cloud in the Milky Way collapsed and formed the Sun and a circumstellar disk. The disk’s heavier elements — by mass mostly oxygen, carbon, and iron — had been synthesised in stars that lived and died over the previous 9 Gyr. Earth condensed at ~1 AU, just inside the snow line.` },
+  { id: 'now', logT: 17.64, name: 'Today', temp: '2.725 K (CMB)',
+    short: '13.8 Gyr after the Big Bang. Dark energy dominates the expansion.',
+    detail: `The expansion has been accelerating for ~5 Gyr (since z ≈ 0.7), driven by what we call dark energy — observationally consistent with a cosmological constant Λ. Total energy budget (ΛCDM): ~68% dark energy, ~27% dark matter, ~5% ordinary matter. Of that 5%, only ~10% is in stars; the rest is in diffuse gas in galaxies and the intergalactic medium. The universe is roughly halfway through its star-forming life.` },
+];
+
+function BigBangTimeline({ onBack }) {
+  const [sel, setSel] = useState('rec');
+  const epoch = EPOCHS.find(e => e.id === sel);
+
+  const W = 900, H = 110;
+  const PL = 40, PR = 860;
+  const logMin = -45, logMax = 18.5;
+  const xLog = lt => PL + (PR - PL) * (lt - logMin) / (logMax - logMin);
+
+  function fmtTime(logT) {
+    const t = Math.pow(10, logT);
+    if (t < 1e-30) return `10${supExp(logT)} s`;
+    if (t < 1) return `10${supExp(logT)} s`;
+    if (t < 60) return `${t.toFixed(0)} s`;
+    if (t < 3600) return `${(t / 60).toFixed(0)} min`;
+    if (t < 86400) return `${(t / 3600).toFixed(0)} h`;
+    if (t < 86400 * 365.25) return `${(t / 86400).toFixed(0)} d`;
+    const yr = t / (86400 * 365.25);
+    if (yr < 1e6) return `${fmt(yr, 0)} yr`;
+    if (yr < 1e9) return `${(yr / 1e6).toFixed(0)} Myr`;
+    return `${(yr / 1e9).toFixed(2)} Gyr`;
+  }
+  function supExp(logT) {
+    const e = Math.round(logT);
+    const sign = e < 0 ? '⁻' : '';
+    return sign + String(Math.abs(e)).split('').map(c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[+c]).join('');
+  }
+
+  return (
+    <PageShell onBack={onBack} eyebrow="09 — Cosmology"
+               title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>Big Bang</em> Timeline</>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        The history of the universe spans 62 orders of magnitude in time — from the Planck era at
+        10⁻⁴³ seconds to the present day at 4.4 × 10¹⁷ seconds. The only honest way to show that is
+        on a logarithmic axis. Most of the dramatic physics happens in the first few seconds.
+      </p>
+
+      {/* Log timeline */}
+      <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.25em]" style={{ color: ACCENT }}>
+        Log-time axis · click any epoch
+      </div>
+      <div className="relative" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+          {/* Axis */}
+          <line x1={PL} x2={PR} y1={H/2} y2={H/2} stroke={DIM} strokeWidth="1" />
+          {/* Decade marks */}
+          {[-40, -30, -20, -10, 0, 10, 17].map(e => (
+            <g key={e}>
+              <line x1={xLog(e)} x2={xLog(e)} y1={H/2 - 4} y2={H/2 + 4} stroke={DIM} />
+              <text x={xLog(e)} y={H/2 + 22} textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                    fontSize="9" fill={DIM}>10{supExp(e)}s</text>
+            </g>
+          ))}
+          {/* Epochs */}
+          {EPOCHS.map(e => {
+            const x = xLog(e.logT);
+            const isSel = sel === e.id;
+            return (
+              <g key={e.id} onClick={() => setSel(e.id)} style={{ cursor: 'pointer' }}>
+                <line x1={x} x2={x} y1={H/2 - 18} y2={H/2 + 4} stroke={isSel ? ACCENT : INK} strokeWidth={isSel ? 2 : 1} opacity={isSel ? 1 : 0.6} />
+                <circle cx={x} cy={H/2 - 18} r={isSel ? 4 : 2.5} fill={isSel ? ACCENT : INK} opacity={isSel ? 1 : 0.6} />
+              </g>
+            );
+          })}
+          {/* Labels for key epochs */}
+          <text x={xLog(-43)} y={20} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="8" fill={DIM}>Planck</text>
+          <text x={xLog(-34)} y={20} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="8" fill={DIM}>inflation</text>
+          <text x={xLog(2)} y={20} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="8" fill={DIM}>BBN</text>
+          <text x={xLog(13.1)} y={20} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="8" fill={DIM}>CMB</text>
+          <text x={xLog(17.0)} y={20} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="8" fill={DIM}>galaxies</text>
+          <text x={xLog(17.64)} y={20} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="8" fill={ACCENT}>now</text>
+        </svg>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8 mt-10">
+        {/* Epoch list */}
+        <div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: ACCENT }}>Epochs</div>
+          <div className="space-y-px" style={{ background: BORDER }}>
+            {EPOCHS.map(e => (
+              <button key={e.id} onClick={() => setSel(e.id)}
+                      className="w-full text-left p-3 transition"
+                      style={{ background: sel === e.id ? `${ACCENT}10` : BG,
+                               borderLeft: sel === e.id ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+                <div className="font-display text-sm leading-tight" style={{ color: sel === e.id ? ACCENT : INK }}>{e.name}</div>
+                <div className="font-mono text-[10px] mt-1" style={{ color: DIM }}>{fmtTime(e.logT)} · {e.temp}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Epoch detail */}
+        <div className="fade-in" key={sel}>
+          <div className="flex items-baseline gap-3 mb-2">
+            <Pill>{fmtTime(epoch.logT)}</Pill>
+            <span className="font-mono text-xs" style={{ color: DIM }}>T = {epoch.temp}</span>
+          </div>
+          <h2 className="font-display text-4xl mb-4 leading-tight" style={{ letterSpacing: '-0.01em' }}>{epoch.name}</h2>
+          <p className="font-display text-lg italic mb-6" style={{ color: '#c8c3b1' }}>{epoch.short}</p>
+          <p className="font-display text-base leading-relaxed" style={{ color: '#c8c3b1' }}>{epoch.detail}</p>
+        </div>
+      </div>
+
+      <div className="mt-12 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+        <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>The framework: ΛCDM cosmology</h3>
+
+        <Section title="The Friedmann equations">
+          <p>
+            General relativity applied to a homogeneous, isotropic universe gives two key equations.
+            The first relates the expansion rate H = ȧ/a to the energy density:
+          </p>
+          <Eq>H² = (8πG/3) ρ − k c²/a² + Λc²/3</Eq>
+          <p>
+            Here ρ is total energy density, k is the spatial curvature (we measure k ≈ 0 — the universe
+            is flat to high precision), and Λ is the cosmological constant. The second equation gives
+            the acceleration:
+          </p>
+          <Eq>ä/a = −(4πG/3)(ρ + 3p/c²) + Λc²/3</Eq>
+          <p>
+            Note the curious term <em>3p</em>. Pressure gravitates. For ordinary matter pressure is
+            negligible. For radiation, p = ρc²/3 and the deceleration term is enhanced. For dark energy
+            modelled as Λ, the effective pressure is <em>negative</em> (p = −ρc²) — and the universe accelerates.
+          </p>
+        </Section>
+
+        <Section title="The three eras of cosmic expansion">
+          <p>
+            Different components of the energy budget dilute differently as the universe expands:
+            radiation density ∝ a⁻⁴ (one factor from photon density, one from redshift), matter density
+            ∝ a⁻³ (just dilution), dark energy density is constant if it’s a cosmological constant.
+          </p>
+          <p>
+            <strong style={{ color: ACCENT }}>Radiation-dominated</strong> (t &lt; 50,000 yr): a ∝ t<sup>1/2</sup>.<br />
+            <strong style={{ color: ACCENT }}>Matter-dominated</strong> (50,000 yr &lt; t &lt; ~9 Gyr): a ∝ t<sup>2/3</sup>.<br />
+            <strong style={{ color: ACCENT }}>Dark-energy-dominated</strong> (t &gt; ~9 Gyr): a ∝ e<sup>Ht</sup> asymptotically.
+          </p>
+        </Section>
+
+        <Section title="What we know, and what we don’t">
+          <p>
+            <strong style={{ color: ACCENT }}>Solid:</strong> the universe is expanding; the expansion was
+            decelerating, now accelerating; structure grew from tiny inflationary seeds; element abundances
+            match BBN; the CMB matches a 2.725 K blackbody to extraordinary precision; cosmic microwave,
+            optical, and large-scale-structure data are mutually consistent within ΛCDM.
+          </p>
+          <p>
+            <strong style={{ color: ACCENT }}>Open:</strong> what dark matter is (no laboratory detection
+            despite 40 years of trying); what dark energy is (a cosmological constant works empirically but
+            its predicted value from quantum field theory is wrong by ~120 orders of magnitude); what drove
+            inflation; why there is more matter than antimatter; the source of the ~5σ Hubble tension between
+            local and CMB measurements of H₀.
+          </p>
+        </Section>
+      </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  10 · EXOPLANET DETECTION
+// ═══════════════════════════════════════════════════════════════════════════
+const METHODS = [
+  { id: 'rv', name: 'Radial velocity', tag: 'Doppler wobble',
+    sensitive: 'Massive planets close to their star',
+    first: '51 Pegasi b · Mayor & Queloz 1995 · 2019 Nobel',
+    count: '~1,100 confirmed' },
+  { id: 'tr', name: 'Transit', tag: 'Photometric dip',
+    sensitive: 'Edge-on orbits; favours short periods',
+    first: 'HD 209458 b · 1999',
+    count: '~4,400 confirmed (Kepler + TESS)' },
+  { id: 'di', name: 'Direct imaging', tag: 'Photon by photon',
+    sensitive: 'Young, hot, wide-orbit giant planets',
+    first: '2M1207 b · 2004',
+    count: '~80 confirmed' },
+  { id: 'ml', name: 'Microlensing', tag: 'GR light-bending',
+    sensitive: 'All distances, even free-floating planets',
+    first: 'OGLE-2003-BLG-235L b · 2004',
+    count: '~250 confirmed' },
+];
+
+function ExoplanetDetection({ onBack }) {
+  const [m, setM] = useState('rv');
+  const [phase, setPhase] = useState(0); // for animation (0-1)
+
+  // Simple animation loop
+  useEffect(() => {
+    const id = setInterval(() => setPhase(p => (p + 0.02) % 1), 50);
+    return () => clearInterval(id);
+  }, []);
+
+  // ── Method-specific diagrams ──
+  const W = 900, H = 360;
+
+  const RVDiagram = () => {
+    const cx = W / 2, cy = H / 2;
+    const a = 80; // orbit radius
+    const ang = phase * 2 * Math.PI;
+    const px = cx + a * Math.cos(ang);
+    const py = cy + a * Math.sin(ang) * 0.35;
+    // Star wobbles opposite, smaller amplitude (mass ratio ~10⁻³)
+    const swx = cx - 25 * Math.cos(ang);
+    const swy = cy - 25 * Math.sin(ang) * 0.35;
+    // RV signal: line-of-sight is x-axis; vy gives signal
+    const vy = -Math.sin(ang); // -1 to 1 normalised
+    // Mini light-curve sample positions
+    const lc = Array.from({ length: 60 }, (_, i) => {
+      const t = i / 60;
+      return -Math.sin(t * 2 * Math.PI);
+    });
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+        {/* Orbit */}
+        <ellipse cx={cx} cy={cy} rx={a} ry={a * 0.35} fill="none" stroke={BORDER_STRONG} strokeDasharray="3 4" />
+        {/* Star (with wobble) */}
+        <circle cx={swx} cy={swy} r="22" fill="#fff4ea" />
+        <circle cx={swx} cy={swy} r="28" fill="#fff4ea" opacity="0.15" />
+        {/* Star wobble path */}
+        <ellipse cx={cx} cy={cy} rx="25" ry="9" fill="none" stroke={ACCENT} strokeDasharray="2 3" opacity="0.5" />
+        {/* Planet */}
+        <circle cx={px} cy={py} r="7" fill="#4d8edc" />
+        {/* Doppler/spectrum indicator */}
+        <g transform={`translate(${W - 240}, 30)`}>
+          <text x="0" y="0" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>Spectrum shift</text>
+          <rect x="0" y="10" width="200" height="20" fill="url(#spec-grad)" opacity="0.6" />
+          <defs>
+            <linearGradient id="spec-grad">
+              <stop offset="0%" stopColor="#3361cc" />
+              <stop offset="50%" stopColor="#fff" />
+              <stop offset="100%" stopColor="#b03030" />
+            </linearGradient>
+          </defs>
+          <line x1={100 + vy * 80} x2={100 + vy * 80} y1="6" y2="34" stroke={INK} strokeWidth="2" />
+          <text x="0" y="48" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>blueshift</text>
+          <text x="200" y="48" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>redshift</text>
+        </g>
+        {/* Mini RV curve */}
+        <g transform={`translate(40, ${H - 80})`}>
+          <text x="0" y="-6" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>Radial velocity (m/s)</text>
+          <line x1="0" x2="180" y1="25" y2="25" stroke={BORDER} />
+          <polyline fill="none" stroke={ACCENT} strokeWidth="1.5"
+                    points={lc.map((v, i) => `${i * 3},${25 - v * 20}`).join(' ')} />
+          <circle cx={(phase * 60) * 3} cy={25 - vy * 20} r="3" fill={ACCENT} />
+        </g>
+        <text x={cx} y={H - 16} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>
+          Star wobbles around system barycentre; spectral lines Doppler-shift periodically
+        </text>
+      </svg>
+    );
+  };
+
+  const TransitDiagram = () => {
+    const cx = W / 2, cy = H / 2 - 20;
+    const starR = 50;
+    // Planet moves left to right
+    const px = 200 + phase * 500;
+    const inTransit = px > cx - starR && px < cx + starR && Math.abs(0) < starR;
+    // Flux: 1 if not in transit, 1 - (Rp/R*)^2 if in transit (with limb darkening edges)
+    // Simulate flux curve over the cycle
+    function flux(p) {
+      const x = 200 + p * 500;
+      const d = Math.abs(x - cx);
+      if (d > starR + 10) return 1;
+      if (d < starR - 10) return 0.985;
+      // ingress/egress
+      return 1 - 0.015 * (1 - (d - (starR - 10)) / 20);
+    }
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+        {/* Star */}
+        <defs>
+          <radialGradient id="star-trans">
+            <stop offset="0%" stopColor="#fff8e0" />
+            <stop offset="70%" stopColor="#ffd2a1" />
+            <stop offset="100%" stopColor="#ff8a70" stopOpacity="0.3" />
+          </radialGradient>
+        </defs>
+        <circle cx={cx} cy={cy} r={starR} fill="url(#star-trans)" />
+        <circle cx={cx} cy={cy} r={starR + 8} fill="none" stroke="#ffd2a1" opacity="0.2" />
+        {/* Planet (passes in front) */}
+        <circle cx={px} cy={cy} r="8" fill="#0b0e17" stroke="#4d8edc" strokeWidth="1" />
+        {/* Light curve */}
+        <g transform={`translate(60, ${H - 110})`}>
+          <text x="0" y="-6" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>Normalised flux (relative brightness)</text>
+          <line x1="0" x2="780" y1="60" y2="60" stroke={BORDER} />
+          <line x1="0" x2="0" y1="0" y2="60" stroke={BORDER} />
+          <polyline fill="none" stroke={ACCENT} strokeWidth="1.5"
+                    points={Array.from({ length: 80 }, (_, i) => `${i * 10},${20 + (1 - flux(i / 80)) * 1500}`).join(' ')} />
+          <circle cx={phase * 800} cy={20 + (1 - flux(phase)) * 1500} r="3" fill={ACCENT} />
+          <text x="-4" y="20" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>1.000</text>
+          <text x="-4" y="44" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>0.985</text>
+        </g>
+        <text x={cx} y={H - 16} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>
+          Planet crosses the star's disk; brightness dips by (R_p / R_*)²
+        </text>
+      </svg>
+    );
+  };
+
+  const DirectImagingDiagram = () => {
+    const cx = W / 2, cy = H / 2;
+    // Show a coronagraph blocking the star, with planets visible around it
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+        <defs>
+          <radialGradient id="star-glow">
+            <stop offset="0%" stopColor="#fff8e0" stopOpacity="0.4" />
+            <stop offset="60%" stopColor="#ffd2a1" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#ff8a70" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        {/* Faint stellar halo */}
+        <circle cx={cx} cy={cy} r="150" fill="url(#star-glow)" />
+        {/* Coronagraph mask */}
+        <circle cx={cx} cy={cy} r="40" fill="#0b0e17" />
+        <circle cx={cx} cy={cy} r="40" fill="none" stroke={DIM} strokeDasharray="2 3" />
+        <text x={cx} y={cy + 4} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>
+          coronagraph
+        </text>
+        {/* Planets (offsetting around) */}
+        {[
+          { a: 100, ph: 0, sz: 4, col: '#4d8edc', label: 'planet b' },
+          { a: 140, ph: 0.3, sz: 3, col: '#7ac4ff', label: 'planet c' },
+          { a: 180, ph: 0.7, sz: 3.5, col: '#aabfff', label: 'planet d' },
+        ].map((pl, i) => {
+          const ang = pl.ph * 2 * Math.PI + phase * 0.5;
+          const x = cx + pl.a * Math.cos(ang);
+          const y = cy + pl.a * Math.sin(ang) * 0.5;
+          return (
+            <g key={i}>
+              <ellipse cx={cx} cy={cy} rx={pl.a} ry={pl.a * 0.5} fill="none" stroke={BORDER} strokeDasharray="2 4" />
+              <circle cx={x} cy={y} r={pl.sz} fill={pl.col} />
+              <text x={x + 8} y={y + 3} fontFamily="JetBrains Mono, monospace" fontSize="9" fill={INK}>{pl.label}</text>
+            </g>
+          );
+        })}
+        <text x={cx} y={H - 16} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>
+          Block the star, image the planets. Like spotting a firefly next to a lighthouse.
+        </text>
+      </svg>
+    );
+  };
+
+  const MicrolensingDiagram = () => {
+    const cx = W / 2, cy = H / 2 - 20;
+    // Foreground lens moves across, magnifying the source
+    const lensX = 200 + phase * 500;
+    // Magnification: simple peak shape with planet spike
+    function mag(p) {
+      const u = Math.abs(p - 0.5) * 4; // separation from peak
+      const base = 1 + 1 / Math.sqrt(u * u + 0.1);
+      // planetary spike
+      const spike = Math.exp(-Math.pow((p - 0.42) * 50, 2)) * 1.5;
+      return base + spike;
+    }
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+        {/* Background source star */}
+        <text x={50} y={50} fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>background star</text>
+        <circle cx={80} cy={cy} r="6" fill="#fff4ea" />
+        <circle cx={80} cy={cy} r="14" fill="#fff4ea" opacity="0.15" />
+
+        {/* Lens (foreground star + planet) */}
+        <circle cx={lensX} cy={cy} r="5" fill="#ffd2a1" />
+        <circle cx={lensX + 15} cy={cy - 5} r="2" fill="#4d8edc" />
+        <line x1={lensX} x2={lensX + 15} y1={cy} y2={cy - 5} stroke={DIM} strokeWidth="0.5" />
+
+        {/* Bent light rays (schematic) */}
+        <g opacity="0.5">
+          <path d={`M 80 ${cy} Q ${lensX} ${cy - 30}, ${W - 60} ${cy}`} stroke={ACCENT} strokeWidth="0.5" fill="none" />
+          <path d={`M 80 ${cy} Q ${lensX} ${cy + 30}, ${W - 60} ${cy}`} stroke={ACCENT} strokeWidth="0.5" fill="none" />
+        </g>
+        <text x={W - 80} y={50} fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM} textAnchor="end">observer →</text>
+
+        {/* Magnification curve */}
+        <g transform={`translate(60, ${H - 130})`}>
+          <text x="0" y="-6" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>Apparent magnification</text>
+          <line x1="0" x2="780" y1="80" y2="80" stroke={BORDER} />
+          <polyline fill="none" stroke={ACCENT} strokeWidth="1.5"
+                    points={Array.from({ length: 80 }, (_, i) => `${i * 10},${80 - (mag(i / 80) - 1) * 18}`).join(' ')} />
+          <circle cx={phase * 800} cy={80 - (mag(phase) - 1) * 18} r="3" fill={ACCENT} />
+          <text x="780" y="40" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={ACCENT}>planet spike →</text>
+        </g>
+        <text x={cx} y={H - 16} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>
+          Foreground star + planet bend light from a more distant star; a brief sharp spike betrays the planet
+        </text>
+      </svg>
+    );
+  };
+
+  const diagrams = { rv: <RVDiagram />, tr: <TransitDiagram />, di: <DirectImagingDiagram />, ml: <MicrolensingDiagram /> };
+  const cur = METHODS.find(x => x.id === m);
+
+  // Mass–distance plot positions for sensitivity overlay
+  const SW = 600, SH = 380;
+  const SPL = 60, SPR = 580, SPT = 30, SPB = 340;
+  const logA_min = -2, logA_max = 3; // AU
+  const logM_min = -1, logM_max = 4; // Earth masses
+  const xA = la => SPL + (SPR - SPL) * (la - logA_min) / (logA_max - logA_min);
+  const yM = lm => SPB - (SPB - SPT) * (lm - logM_min) / (logM_max - logM_min);
+
+  return (
+    <PageShell onBack={onBack} eyebrow="10 — Exoplanetary Science"
+               title={<>Detecting <em style={{ color: ACCENT, fontStyle: 'italic' }}>Other Worlds</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        Until 1992, the only known planets orbited the Sun. We now know of more than 5,800 exoplanets in
+        ~4,300 systems, found through five very different physical techniques. Each method works in a
+        different region of mass–distance space — together they sketch the diversity of planetary systems.
+      </p>
+
+      {/* Method picker */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-px mb-6" style={{ background: BORDER }}>
+        {METHODS.map(method => (
+          <button key={method.id} onClick={() => setM(method.id)}
+                  className="p-4 text-left transition"
+                  style={{ background: m === method.id ? `${ACCENT}15` : BG,
+                           borderTop: m === method.id ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+            <div className="font-display text-lg mb-1" style={{ color: m === method.id ? ACCENT : INK, letterSpacing: '-0.01em' }}>{method.name}</div>
+            <div className="font-mono text-[10px]" style={{ color: DIM }}>{method.tag}</div>
+          </button>
+        ))}
+      </div>
+
+      <div className="fade-in" key={m}>
+        <div className="relative mb-6" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+          {diagrams[m]}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-px mb-10" style={{ background: BORDER }}>
+          <div className="p-4" style={{ background: BG }}>
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Sensitive to</div>
+            <div className="font-display text-base" style={{ color: INK }}>{cur.sensitive}</div>
+          </div>
+          <div className="p-4" style={{ background: BG }}>
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>First detection</div>
+            <div className="font-display text-base" style={{ color: INK }}>{cur.first}</div>
+          </div>
+          <div className="p-4" style={{ background: BG }}>
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Planets found</div>
+            <div className="font-display text-base" style={{ color: INK }}>{cur.count}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mass-distance sensitivity plot */}
+      <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.25em]" style={{ color: ACCENT }}>
+        Where each method works (mass × semi-major axis)
+      </div>
+      <div className="relative" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+        <svg viewBox={`0 0 ${SW} ${SH}`} className="w-full h-auto">
+          {/* Grid */}
+          {[-2, -1, 0, 1, 2, 3].map(la => (
+            <g key={la}>
+              <line x1={xA(la)} x2={xA(la)} y1={SPT} y2={SPB} stroke={BORDER} strokeWidth="0.5" />
+              <text x={xA(la)} y={SPB + 16} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>
+                10{la === 0 ? '⁰' : la < 0 ? '⁻' + Math.abs(la) : la}
+              </text>
+            </g>
+          ))}
+          {[-1, 0, 1, 2, 3, 4].map(lm => (
+            <g key={lm}>
+              <line x1={SPL} x2={SPR} y1={yM(lm)} y2={yM(lm)} stroke={BORDER} strokeWidth="0.5" />
+              <text x={SPL - 8} y={yM(lm) + 4} textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={DIM}>
+                10{lm === 0 ? '⁰' : lm < 0 ? '⁻' + Math.abs(lm) : lm}
+              </text>
+            </g>
+          ))}
+          <text x={(SPL + SPR) / 2} y={SH - 5} textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                fontSize="10" fill={INK} letterSpacing="0.15em">SEMI-MAJOR AXIS (AU)</text>
+          <text x={SPL - 45} y={(SPT + SPB) / 2} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK}
+                transform={`rotate(-90, ${SPL - 45}, ${(SPT + SPB) / 2})`} letterSpacing="0.15em">
+            MASS (M⊕)
+          </text>
+          {/* Method regions */}
+          {/* RV: massive planets, broad range of distances */}
+          <ellipse cx={xA(0)} cy={yM(2.7)} rx={(xA(2)-xA(-1.5))/2} ry={(yM(0.5)-yM(3.8))/2} fill={ACCENT} opacity={m==='rv' ? 0.18 : 0.05} stroke={ACCENT} strokeWidth="1" />
+          <text x={xA(0)} y={yM(3.5)} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={ACCENT}>radial velocity</text>
+          {/* Transit: close-in (geometric prob), wide mass range */}
+          <ellipse cx={xA(-0.7)} cy={yM(1.5)} rx={(xA(0.5)-xA(-1.8))/2} ry={(yM(-0.2)-yM(3.3))/2} fill={ACCENT2} opacity={m==='tr' ? 0.18 : 0.05} stroke={ACCENT2} strokeWidth="1" />
+          <text x={xA(-0.7)} y={yM(2.3)} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={ACCENT2}>transits</text>
+          {/* Direct imaging: wide, massive */}
+          <ellipse cx={xA(2)} cy={yM(3.3)} rx={(xA(2.8)-xA(1.2))/2} ry={(yM(2.5)-yM(4))/2} fill="#ff8a70" opacity={m==='di' ? 0.18 : 0.05} stroke="#ff8a70" strokeWidth="1" />
+          <text x={xA(2)} y={yM(3.8)} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill="#ff8a70">direct imaging</text>
+          {/* Microlensing: mid distances, broad mass */}
+          <ellipse cx={xA(0.6)} cy={yM(1.8)} rx={(xA(1.5)-xA(-0.3))/2} ry={(yM(0)-yM(3.5))/2} fill="#aabfff" opacity={m==='ml' ? 0.18 : 0.05} stroke="#aabfff" strokeWidth="1" />
+          <text x={xA(0.6)} y={yM(0.5)} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill="#aabfff">microlensing</text>
+          {/* Solar system planets for reference */}
+          {[
+            { name: 'Mercury', a: 0.39, m: 0.055 }, { name: 'Venus', a: 0.72, m: 0.815 },
+            { name: 'Earth', a: 1, m: 1 }, { name: 'Mars', a: 1.52, m: 0.107 },
+            { name: 'Jupiter', a: 5.2, m: 317.8 }, { name: 'Saturn', a: 9.5, m: 95.2 },
+            { name: 'Uranus', a: 19.2, m: 14.5 }, { name: 'Neptune', a: 30, m: 17.1 },
+          ].map(p => (
+            <g key={p.name}>
+              <circle cx={xA(Math.log10(p.a))} cy={yM(Math.log10(p.m))} r="3" fill={INK} />
+              <text x={xA(Math.log10(p.a)) + 5} y={yM(Math.log10(p.m)) + 3} fontFamily="JetBrains Mono, monospace" fontSize="8" fill={INK}>{p.name[0]}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+      <p className="font-mono text-[10px] uppercase tracking-[0.2em] mt-3" style={{ color: DIM }}>
+        Dots = our solar system. Each shaded region shows roughly where one method is most productive.
+      </p>
+
+      <div className="mt-12 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+        <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>The physics, method by method</h3>
+
+        <Section title="Radial velocity: hearing the wobble">
+          <p>
+            A star and planet orbit their common centre of mass. The star’s line-of-sight velocity oscillates
+            periodically. We measure that velocity from the Doppler shift of spectral lines: redshift when
+            the star recedes, blueshift when it approaches.
+          </p>
+          <Eq>
+            K = (2πG / P)<sup>1/3</sup> × M<sub>p</sub> sin i / (M<sub>★</sub> + M<sub>p</sub>)<sup>2/3</sup> × (1 − e²)<sup>−1/2</sup>
+          </Eq>
+          <p>
+            K is the radial-velocity semi-amplitude; P the orbital period; i the orbital inclination; e the
+            eccentricity. Jupiter induces a 12.5 m/s wobble in the Sun over 12 years. Earth induces just
+            9 cm/s. State-of-the-art spectrographs (ESPRESSO, EXPRES) reach ~10 cm/s — Earth-mass detection
+            around Sun-like stars is now barely possible. The major obstacle is no longer instrumental: it’s
+            <em> stellar jitter</em> from starspots, granulation, and oscillations, which mimics or buries
+            planetary signals.
+          </p>
+          <p>
+            Critically, RV only gives M sin i — the projected mass. Without knowing inclination i, you only
+            have a lower mass limit. Transit detections of the same planet pin down i ≈ 90°, removing the
+            ambiguity.
+          </p>
+        </Section>
+
+        <Section title="Transits: shadowing the star">
+          <p>
+            When a planet’s orbit happens to be edge-on, it passes in front of its star and the brightness
+            dips. The fractional depth is:
+          </p>
+          <Eq>ΔF / F = (R<sub>p</sub> / R<sub>★</sub>)²</Eq>
+          <p>
+            For a Jupiter (R<sub>p</sub> = 0.10 R☉) transiting a Sun (R<sub>★</sub> = 1 R☉), the dip is ~1%.
+            For an Earth, it’s ~84 parts per million — a 0.008% dip. Detecting that requires extraordinary
+            photometric stability, which is why Kepler had to be a dedicated space telescope.
+          </p>
+          <p>
+            Transits give us R<sub>p</sub> directly. Combined with an RV mass, this gives the planet’s mean
+            density — and hence whether it’s rocky, gaseous, or icy. They also enable <em>transmission spectroscopy</em>:
+            during transit, ~10⁻⁴ of the starlight passes through the planet’s atmosphere, imprinting
+            molecular features that can be detected from above-atmosphere instruments. JWST has now detected
+            CO₂, H₂O, SO₂, CH₄, and even early hints of biosignatures in a few exoplanet atmospheres.
+          </p>
+          <p>
+            The geometric transit probability is just R<sub>★</sub>/a — about 0.5% for an Earth-like orbit
+            around a Sun. So for every detected transiting planet at 1 AU, ~200 systems have one we’d miss.
+            Statistical corrections of this kind are why <em>occurrence rate</em> calculations (e.g. how many
+            Earth-like planets per Sun-like star: ~0.1–0.5, with large uncertainties) are subtle.
+          </p>
+        </Section>
+
+        <Section title="Direct imaging: photons from the planet itself">
+          <p>
+            The conceptually simplest method — actually photograph the planet — is the technically hardest.
+            A star outshines its planet by factors of 10⁹ (visible light, reflected) to 10⁶ (infrared, thermal
+            from a young giant). Standing at ten metres, you’d be trying to see a candle next to a lighthouse.
+          </p>
+          <p>
+            Coronagraphs block the direct stellar light; adaptive optics correct atmospheric turbulence;
+            “angular differential imaging” uses the sky’s rotation to distinguish real planets from instrumental
+            artefacts. Only a few dozen planets have been directly imaged so far — almost all young (~10–100 Myr)
+            giant planets in wide orbits (10–1000 AU), still glowing from their initial heat of formation.
+          </p>
+          <p>
+            The future of direct imaging is high-contrast space coronagraphs (Roman, HWO) and starshade
+            missions, aiming for the 10¹⁰ contrast needed to image an Earth around a nearby Sun-like star.
+          </p>
+        </Section>
+
+        <Section title="Microlensing: general relativity as a detector">
+          <p>
+            When a foreground star passes nearly in front of a more distant background star, its gravity
+            acts as a lens, magnifying the background star’s light. A planet orbiting the lens star produces
+            a brief, sharp deviation in the magnification curve — a spike lasting hours to days.
+          </p>
+          <Eq>
+            Einstein radius:  θ<sub>E</sub> = √(4GM / c² × (D<sub>s</sub> − D<sub>l</sub>) / (D<sub>s</sub> D<sub>l</sub>))
+          </Eq>
+          <p>
+            Microlensing is sensitive to planets at distances of ~kpc — across the Milky Way — and can detect
+            even <em>free-floating planets</em> not bound to any star. The disadvantage: each event happens
+            once, with no follow-up. The planet is gone after the lensing geometry passes. Surveys like OGLE,
+            MOA, and KMTNet stream tens of millions of bulge stars every clear night. Roman will be the
+            game-changer.
+          </p>
+        </Section>
+
+        <Section title="The Kepler revolution and what it taught us">
+          <p>
+            NASA’s Kepler mission (2009–2018) stared at one patch of sky for four years, photometering
+            150,000 stars to ~10 ppm precision. It found ~2,700 confirmed planets and showed that planets
+            are <em>everywhere</em>: on average, every star in the galaxy has at least one planet, and
+            small planets (1–2 R⊕) are more common than big ones.
+          </p>
+          <p>
+            Other Kepler revelations: hot Jupiters are rare (~1% of stars); super-Earths / sub-Neptunes
+            (1–4 R⊕) are the most common type of planet in the galaxy, and they don’t exist in our solar
+            system; there’s a sharp “radius valley” at ~1.8 R⊕ caused by atmospheric mass loss from XUV
+            irradiation. TESS (2018–) is now doing the same kind of survey but for nearby bright stars
+            suitable for atmospheric follow-up.
+          </p>
+        </Section>
+
+        <Section title="The habitable zone">
+          <p>
+            The classical habitable zone is the orbital range in which liquid water could exist on a
+            rocky planet’s surface. Inner edge: where water vapour escapes (runaway greenhouse, Venus
+            today). Outer edge: where CO₂ condenses out and the carbonate–silicate cycle can’t maintain
+            warmth (Mars today).
+          </p>
+          <Eq>
+            Boundaries scale as a<sub>HZ</sub> ≈ √(L / L☉) AU
+          </Eq>
+          <p>
+            For the Sun, the conservative HZ is ~0.95 to ~1.67 AU. For an M dwarf with L = 10⁻³ L☉, the HZ
+            sits at 0.03–0.05 AU — very close in. Planets there are subject to intense stellar flaring,
+            extreme XUV, and tidal locking — open questions on habitability that are now driving JWST
+            atmospheric characterisation of M-dwarf rocky planets (TRAPPIST-1, LHS 1140 b, etc).
+          </p>
+          <p>
+            A liquid-water surface is also probably not the only path to habitability. Europa, Enceladus,
+            and Titan have subsurface oceans far outside any classical HZ. The same may apply to many
+            exoplanets — vastly expanding the potentially habitable population if true.
+          </p>
+        </Section>
+      </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  ROOT
+// ═══════════════════════════════════════════════════════════════════════════
+export default function App() {
+  const [view, setView] = useState('hub');
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }); }, [view]);
+
+  const views = {
+    hr:     <HRDiagram         onBack={() => setView('hub')} />,
+    sizes:  <SizeComparison    onBack={() => setView('hub')} />,
+    life:   <StellarLifecycle  onBack={() => setView('hub')} />,
+    fusion: <NuclearFusion     onBack={() => setView('hub')} />,
+    spec:   <SpectralClass     onBack={() => setView('hub')} />,
+    ladder: <DistanceLadder    onBack={() => setView('hub')} />,
+    bh:     <BlackHole         onBack={() => setView('hub')} />,
+    gal:    <GalaxyMorph       onBack={() => setView('hub')} />,
+    bb:     <BigBangTimeline   onBack={() => setView('hub')} />,
+    exo:    <ExoplanetDetection onBack={() => setView('hub')} />,
+  };
+  return views[view] || <Hub onSelect={setView} />;
+}
