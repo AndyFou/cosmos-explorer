@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, Eye, EyeOff, X, ChevronLeft, ChevronRight, Sparkles, Zap, BookOpen, Info } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   COSMOS EXPLORER v0.6
+   COSMOS EXPLORER v0.7
    An interactive astrophysics primer at first-year-course depth.
    ─────────────────────────────────────────────────────────────────────────── */
 
@@ -109,7 +109,7 @@ function PageShell({ children, onBack, title, eyebrow }) {
               ⎙ print
             </button>
             <div className="font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: DIM }}>
-              cosmos explorer · v0.6
+              cosmos explorer · v0.7
             </div>
           </div>
         </div>
@@ -219,6 +219,15 @@ const GLOSSARY = {
   'lambda cdm': 'The standard cosmological model: a universe dominated by a cosmological constant (Λ) and cold dark matter (CDM), with ordinary matter, radiation, and neutrinos.',
   'ergosphere': 'Region outside the event horizon of a rotating (Kerr) black hole where spacetime is dragged so strongly that no observer can remain stationary.',
   'planetary nebula': 'The expanding shell of gas expelled by a low- or intermediate-mass star at the end of its AGB phase, illuminated by the exposed hot core (a future white dwarf). Nothing to do with planets.',
+  'semi-major axis': 'Half the longest diameter of an ellipse, denoted a. For an orbit, it equals the average of the perihelion and aphelion distances. Determines orbital energy and period via Kepler\'s third law.',
+  'eccentricity': 'A number 0 ≤ e < 1 that measures how stretched an elliptical orbit is. e = 0 is circular; e = 0.5 is moderately elliptical; e → 1 approaches parabolic (escape). Earth\'s e is 0.0167; Halley\'s comet is 0.967.',
+  'escape velocity': 'The minimum speed needed to escape a gravitating body without further propulsion. v_esc = √(2GM/r). Earth\'s surface escape velocity is 11.2 km/s; the Sun\'s is 617 km/s.',
+  'lagrange point': 'One of five locations in a two-body system where a small third body can orbit synchronously with the larger two. L1, L2, L3 are unstable; L4 and L5 are stable. The JWST sits at the Sun-Earth L2.',
+  'roche limit': 'The orbital radius below which a celestial body, held together only by self-gravity, is torn apart by tidal forces from a larger primary. Saturn\'s rings lie inside its Roche limit.',
+  'hohmann transfer': 'The most fuel-efficient two-burn manoeuvre between two circular orbits around the same body. Travels along an ellipse tangent to both. Used by most interplanetary missions.',
+  'orbital resonance': 'When two orbiting bodies have orbital periods related by a small-integer ratio. Causes stable or unstable mutual gravitational interactions. Examples: Neptune and Pluto are in 3:2 resonance; Io, Europa, Ganymede are in 4:2:1 (Laplace resonance).',
+  'gravity assist': 'Using a planetary flyby to change a spacecraft\'s velocity by stealing a tiny amount of the planet\'s orbital energy. Allowed Voyager to reach all four giant planets; lets New Horizons reach Pluto in 9 years.',
+  'tidal force': 'The differential gravitational force a body experiences across its extent because gravity weakens with distance. Causes ocean tides, tidal heating (e.g. Io), and tidal disruption of stars by black holes.',
 };
 
 function Term({ k, children }) {
@@ -565,24 +574,24 @@ const PATHS = {
     title: 'Newcomer',
     sub: 'No mathematical background assumed',
     desc: 'Visual intuition first, equations as context. Start with what you can already observe yourself, then build outward from the familiar to the cosmic. Equations appear, but you can skip past them — the prose carries the story.',
-    order: ['moon', 'obs', 'sizes', 'spec', 'hr', 'life', 'gal', 'bb', 'exo', 'ladder', 'bh', 'fusion', 'cmb', 'sr'],
-    note: 'Start with topics you can verify with your own eyes (Moon, constellations), then move to what light tells us (Spectra, HR Diagram), and finally to the things that require trust in physics (Fusion, Black Holes, Relativity).',
+    order: ['moon', 'obs', 'orb', 'sizes', 'spec', 'hr', 'life', 'gal', 'bb', 'exo', 'ladder', 'bh', 'fusion', 'cmb', 'sr'],
+    note: 'Start with topics you can verify with your own eyes (Moon, constellations), then learn how gravity makes everything move (Orbits), then move to what light tells us (Spectra, HR Diagram), and finally to the things that require trust in physics (Fusion, Black Holes, Relativity).',
   },
   refresher: {
     icon: '🔄',
     title: 'Refresher',
     sub: "You've seen this before",
     desc: "Core spine of stellar physics and cosmology, in the order they're usually taught. Skip the gentle warmups and go straight for the central machinery.",
-    order: ['hr', 'life', 'fusion', 'spec', 'sr', 'ladder', 'bb', 'cmb', 'gal', 'bh', 'exo', 'moon', 'obs'],
-    note: 'Heavily weighted to stellar astrophysics in the first half, cosmology and exoplanets in the second.',
+    order: ['orb', 'hr', 'life', 'fusion', 'spec', 'sr', 'ladder', 'bb', 'cmb', 'gal', 'bh', 'exo', 'moon', 'obs'],
+    note: 'Heavily weighted to stellar astrophysics in the first half, cosmology and exoplanets in the second. Orbits opens the path as the foundational mechanics on which everything else rests.',
   },
   deepdiver: {
     icon: '🔬',
     title: 'Deep diver',
     sub: 'Career-transition preparation',
-    desc: 'Follow the physics. Start with the most fundamental processes (nuclear fusion, special relativity) and build outward. Pay close attention to derivations, scaling laws, and the worked examples in each topic.',
-    order: ['sr', 'fusion', 'hr', 'life', 'spec', 'bh', 'ladder', 'cmb', 'bb', 'gal', 'exo', 'moon', 'obs'],
-    note: 'This path treats astronomy as applied physics. Each topic builds on machinery from the previous ones.',
+    desc: 'Follow the physics. Start with the most fundamental processes (orbits, relativity, nuclear fusion) and build outward. Pay close attention to derivations, scaling laws, and the worked examples in each topic.',
+    order: ['orb', 'sr', 'fusion', 'hr', 'life', 'spec', 'bh', 'ladder', 'cmb', 'bb', 'gal', 'exo', 'moon', 'obs'],
+    note: 'This path treats astronomy as applied physics. Each topic builds on machinery from the previous ones. Orbits and Special Relativity are the two foundations everything else assumes.',
   },
 };
 
@@ -711,6 +720,7 @@ const TOPICS = [
   { id: 'obs',    n: '12', title: 'Observational Astronomy',       sub: 'Constellations, the sky tonight, and how to look up',  ready: true },
   { id: 'sr',     n: '13', title: 'Special Relativity Essentials', sub: 'The Lorentz factor and what it does to spacetime',    ready: true },
   { id: 'cmb',    n: '14', title: 'The Cosmic Microwave Background', sub: 'A baby photo of the universe at 380,000 years',     ready: true },
+  { id: 'orb',    n: '15', title: 'Orbits & Gravity',                sub: 'Falling sideways forever — Kepler, Newton, and weird loops', ready: true },
 ];
 
 function StarField() {
@@ -735,7 +745,7 @@ function Hub({ onSelect, onShowPaths }) {
       <StarField />
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-16 md:pt-24 pb-16">
         <div className="font-mono text-xs uppercase tracking-[0.3em] mb-4" style={{ color: ACCENT }}>
-          An interactive primer · v0.6
+          An interactive primer · v0.7
         </div>
         <h1 className="font-display font-light text-6xl md:text-7xl leading-[1.0] mb-6 max-w-4xl" style={{ letterSpacing: '-0.025em' }}>
           Cosmos<br />
@@ -6054,6 +6064,742 @@ function CMB({ onBack }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+//  15 · ORBITS & GRAVITY · Falling Sideways Forever
+// ═══════════════════════════════════════════════════════════════════════════
+
+// SVG component: an interactive orbit visualisation
+function OrbitDiagram({ e, a = 100, showFoci = true, showAxes = true, size = 360, animate = true }) {
+  const [t, setT] = useState(0);
+  useEffect(() => {
+    if (!animate) return;
+    const id = setInterval(() => setT(prev => (prev + 0.015) % (2 * Math.PI)), 30);
+    return () => clearInterval(id);
+  }, [animate]);
+
+  const cx = size / 2;
+  const cy = size / 2;
+  const b = a * Math.sqrt(1 - e * e);
+  const c = a * e; // focal distance from centre
+
+  // Solve Kepler's equation for current position (true anomaly)
+  // Mean anomaly M = t (we're parameterising by time directly here)
+  let E = t; // eccentric anomaly estimate
+  for (let i = 0; i < 5; i++) E = E - (E - e * Math.sin(E) - t) / (1 - e * Math.cos(E));
+  const x = a * (Math.cos(E) - e); // relative to focus
+  const y = b * Math.sin(E);
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-auto" style={{ background: '#06070d' }}>
+      {/* Background stars */}
+      {Array.from({ length: 40 }).map((_, i) => {
+        const sx = ((i * 37) % 100) / 100 * size;
+        const sy = ((i * 53) % 100) / 100 * size;
+        return <circle key={i} cx={sx} cy={sy} r={0.5} fill="#fff" opacity={0.3} />;
+      })}
+
+      {/* Orbit ellipse — centred at (cx-c, cy) so right focus is at (cx, cy) */}
+      <ellipse cx={cx - c} cy={cy} rx={a} ry={b}
+               stroke={ACCENT} strokeWidth="1" fill="none" opacity="0.6" />
+
+      {/* Axes */}
+      {showAxes && (
+        <>
+          <line x1={cx - c - a} y1={cy} x2={cx - c + a} y2={cy} stroke={BORDER_STRONG} strokeWidth="0.4" strokeDasharray="2,3" />
+          <line x1={cx - c} y1={cy - b} x2={cx - c} y2={cy + b} stroke={BORDER_STRONG} strokeWidth="0.4" strokeDasharray="2,3" />
+        </>
+      )}
+
+      {/* Primary (Sun) at right focus */}
+      <circle cx={cx} cy={cy} r={6} fill={ACCENT} />
+      <circle cx={cx} cy={cy} r={12} fill={ACCENT} opacity="0.15" />
+
+      {/* Second focus (empty) */}
+      {showFoci && e > 0.05 && (
+        <circle cx={cx - 2 * c} cy={cy} r={2} fill={DIM} opacity="0.6" />
+      )}
+
+      {/* Orbiting body */}
+      <circle cx={cx + x} cy={cy - y} r={4} fill={ACCENT2} />
+      <circle cx={cx + x} cy={cy - y} r={8} fill={ACCENT2} opacity="0.2" />
+
+      {/* Vector from primary to body */}
+      <line x1={cx} y1={cy} x2={cx + x} y2={cy - y} stroke={ACCENT2} strokeWidth="0.6" opacity="0.5" />
+
+      {/* Labels */}
+      <text x={cx + 10} y={cy - 8} fontFamily="JetBrains Mono, monospace" fontSize="9" fill={ACCENT}>primary</text>
+      {e > 0.1 && (
+        <>
+          <text x={cx - c + a + 4} y={cy + 3} fontFamily="JetBrains Mono, monospace" fontSize="8" fill={DIM}>aphelion</text>
+          <text x={cx - c - a - 48} y={cy + 3} fontFamily="JetBrains Mono, monospace" fontSize="8" fill={DIM}>perihelion</text>
+        </>
+      )}
+    </svg>
+  );
+}
+
+// SVG: Lagrange points layout
+function LagrangeDiagram({ size = 360 }) {
+  const cx = size / 2, cy = size / 2;
+  const R = size * 0.32;
+  const r_small = size * 0.04;
+
+  const earthX = cx + R, earthY = cy;
+  const L1x = earthX - r_small * 5, L1y = cy;
+  const L2x = earthX + r_small * 5, L2y = cy;
+  const L3x = cx - R, L3y = cy;
+  const L4x = cx + R * Math.cos(-Math.PI / 3), L4y = cy + R * Math.sin(-Math.PI / 3);
+  const L5x = cx + R * Math.cos(Math.PI / 3), L5y = cy + R * Math.sin(Math.PI / 3);
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-auto" style={{ background: '#06070d' }}>
+      {/* Background stars */}
+      {Array.from({ length: 30 }).map((_, i) => {
+        const sx = ((i * 37) % 100) / 100 * size;
+        const sy = ((i * 53) % 100) / 100 * size;
+        return <circle key={i} cx={sx} cy={sy} r={0.4} fill="#fff" opacity={0.3} />;
+      })}
+
+      {/* Earth's orbit around Sun */}
+      <circle cx={cx} cy={cy} r={R} stroke={BORDER_STRONG} strokeWidth="0.5" fill="none" opacity="0.5" />
+
+      {/* Sun at centre */}
+      <circle cx={cx} cy={cy} r={10} fill={ACCENT} />
+      <circle cx={cx} cy={cy} r={20} fill={ACCENT} opacity="0.15" />
+      <text x={cx - 6} y={cy + 28} fontFamily="JetBrains Mono, monospace" fontSize="9" fill={ACCENT}>Sun</text>
+
+      {/* Earth */}
+      <circle cx={earthX} cy={earthY} r={5} fill="#4d8edc" />
+      <text x={earthX - 12} y={earthY + 20} fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#4d8edc">Earth</text>
+
+      {/* Lagrange points */}
+      {[
+        { x: L1x, y: L1y, label: 'L1', tag: 'unstable', note: 'SOHO, DSCOVR' },
+        { x: L2x, y: L2y, label: 'L2', tag: 'unstable', note: 'JWST, Gaia' },
+        { x: L3x, y: L3y, label: 'L3', tag: 'unstable', note: 'opposite Earth' },
+        { x: L4x, y: L4y, label: 'L4', tag: 'stable', note: 'Trojans' },
+        { x: L5x, y: L5y, label: 'L5', tag: 'stable', note: 'Trojans' },
+      ].map((p, i) => (
+        <g key={i}>
+          <circle cx={p.x} cy={p.y} r={4} fill={p.tag === 'stable' ? '#7aff7a' : ACCENT3} />
+          <text x={p.x + 8} y={p.y + 3} fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK}>{p.label}</text>
+          <text x={p.x + 8} y={p.y + 14} fontFamily="JetBrains Mono, monospace" fontSize="7" fill={DIM}>{p.note}</text>
+        </g>
+      ))}
+
+      {/* L4/L5 dashed lines forming equilateral triangle */}
+      <line x1={cx} y1={cy} x2={L4x} y2={L4y} stroke={BORDER_STRONG} strokeWidth="0.3" strokeDasharray="2,3" opacity="0.5" />
+      <line x1={cx} y1={cy} x2={L5x} y2={L5y} stroke={BORDER_STRONG} strokeWidth="0.3" strokeDasharray="2,3" opacity="0.5" />
+      <line x1={earthX} y1={earthY} x2={L4x} y2={L4y} stroke={BORDER_STRONG} strokeWidth="0.3" strokeDasharray="2,3" opacity="0.5" />
+      <line x1={earthX} y1={earthY} x2={L5x} y2={L5y} stroke={BORDER_STRONG} strokeWidth="0.3" strokeDasharray="2,3" opacity="0.5" />
+    </svg>
+  );
+}
+
+function Orbits({ onBack }) {
+  const [tab, setTab] = useState('intro');
+  const [ecc, setEcc] = useState(0.3);
+
+  return (
+    <PageShell onBack={onBack} eyebrow="15 — Gravity & Motion"
+               title={<>Orbits & <em style={{ color: ACCENT, fontStyle: 'italic' }}>Gravity</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-3" style={{ color: '#c8c3b1' }}>
+        An orbit is what happens when you fall and miss the ground. Newton imagined firing a cannonball
+        from a tall mountain: shoot it slow, it lands. Shoot it faster, it lands further. Shoot it fast
+        enough and the curve of its fall matches the curve of the Earth — and it never lands. That's
+        an orbit.
+      </p>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        From this simple picture flow Kepler's laws, the shapes of comets' tails, why Hohmann transfers
+        exist, why Saturn has rings but no inner moons, why JWST sits at L2, and why spacecraft do
+        bizarre loops to reach the outer planets faster than straight lines could.
+      </p>
+
+      {/* Tabs */}
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-px mb-6" style={{ background: BORDER }}>
+        {[
+          ['intro', 'Foundations'],
+          ['kepler', "Kepler's Laws"],
+          ['energy', 'Orbital Energy'],
+          ['shapes', 'Shapes & Stability'],
+          ['hard', 'Lagrange & Roche'],
+          ['practical', 'Spacecraft'],
+        ].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)}
+                  className="p-3 md:p-4 text-center transition"
+                  style={{ background: tab === id ? `${ACCENT}15` : BG,
+                           borderTop: tab === id ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+            <div className="font-display text-xs md:text-sm" style={{ color: tab === id ? ACCENT : INK, letterSpacing: '-0.01em' }}>{label}</div>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'intro' && (
+        <div className="fade-in">
+          <Section title="Newton's universal law of gravitation">
+            <p>
+              Every mass attracts every other mass with a force proportional to the product of their masses
+              and inversely proportional to the square of the distance between them:
+            </p>
+            <Eq>F = G m₁m₂ / r²,    G ≈ 6.674 × 10⁻¹¹ N·m²/kg²</Eq>
+            <p>
+              Three things to notice. First, gravity is universal — the same equation governs the apple
+              falling from the tree, the Moon orbiting Earth, the Sun orbiting the galactic centre, and
+              galaxies clustering together on cosmic scales. Second, it's an inverse-<em>square</em> law —
+              double the distance and the force drops by four. Third, gravity is incredibly weak compared
+              to the other forces. Two protons repel electromagnetically about 10³⁶ times more strongly
+              than they attract gravitationally. Only mass piling up over cosmic scales makes gravity
+              dominant.
+            </p>
+          </Section>
+
+          <Section title="Why does gravity make orbits, not falls?">
+            <p>
+              When you drop a ball, it accelerates straight down and hits the ground. When the Moon
+              accelerates "straight down" toward Earth, it also falls — but its sideways velocity is so
+              large that as it falls, Earth's surface curves away beneath it just as fast. So it never
+              lands. The Moon is perpetually falling toward Earth and perpetually missing it.
+            </p>
+            <p>
+              Newton himself drew this picture: a cannon on a very tall mountain. Fire slowly, the
+              ball arcs and lands. Fire faster, it arcs more shallowly and lands further. Fire fast
+              enough — about 7.9 km/s near Earth's surface — and the arc matches Earth's curvature.
+              The ball "lands" perpetually on the other side of Earth. That's an orbit. Even faster
+              and you get an ellipse going out and back. Faster still — 11.2 km/s — and you reach
+              escape velocity and never come back.
+            </p>
+            <p>
+              The key insight: orbital motion is a continuous form of free-fall. An astronaut in orbit
+              isn't weightless because gravity has switched off — gravity at 400 km altitude is still ~90%
+              of its surface value. They're weightless because they and their spacecraft are falling
+              together, with no normal force between them and the floor.
+            </p>
+          </Section>
+
+          <Section title="The inverse-square miracle">
+            <p>
+              An inverse-square force has one remarkable property: orbits are closed ellipses (and only
+              ellipses, parabolas, or hyperbolas — the conic sections). This is not generic. If gravity
+              went as 1/r¹·⁹ or 1/r²·¹, orbits would precess rapidly and "ellipses" would slowly rotate,
+              tracing out flower-like rosettes that never close.
+            </p>
+            <p>
+              Bertrand's theorem (1873) proves that only two force laws give closed orbits for all bound
+              motion: the inverse-square law (gravity, Coulomb) and the linear restoring force F ∝ −r
+              (the harmonic oscillator). It's a deep and slightly suspicious fact that the fundamental
+              forces of nature gave us inverse-square gravity. Mercury's tiny orbital precession (43"
+              per century, beyond what Newtonian gravity predicts) is one of the early hints that
+              gravity isn't quite 1/r² — it was the first observational confirmation of general
+              relativity.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'kepler' && (
+        <div className="fade-in">
+          <Section title="Kepler's three laws (1609 – 1619)">
+            <p>
+              Kepler distilled three empirical laws from Tycho Brahe's pre-telescope observations of
+              Mars. They turn out to be exact consequences of Newton's gravity 60 years before Newton
+              published it. They remain the foundational vocabulary of all orbital mechanics:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>First law (1609).</strong> Planets orbit the Sun in ellipses,
+              with the Sun at one focus (not the centre). The other focus is empty.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Second law (1609).</strong> A line joining a planet to the Sun
+              sweeps equal areas in equal times. The planet moves faster at perihelion (close approach) and
+              slower at aphelion (far swing). This is conservation of angular momentum.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Third law (1619).</strong> The square of an orbital period
+              is proportional to the cube of the semi-major axis:
+            </p>
+            <Eq>P² = (4π²/GM) × a³,    or in solar units: P² (yr) = a³ (AU)</Eq>
+            <p>
+              Earth: a = 1 AU, P = 1 yr → 1 = 1. Mars: a = 1.52 AU, P = 1.88 yr → 1.88² = 3.53, 1.52³ = 3.51. ✓
+            </p>
+          </Section>
+
+          <div className="my-8 p-6 rounded" style={{ border: `1px solid ${ACCENT}30`, background: 'rgba(255, 201, 122, 0.04)' }}>
+            <div className="flex items-center gap-3 mb-4"><Pill>interactive</Pill></div>
+            <h4 className="font-display text-xl mb-2" style={{ letterSpacing: '-0.01em' }}>Watch an orbit, vary eccentricity</h4>
+            <p className="font-display text-sm leading-relaxed mb-6" style={{ color: DIM }}>
+              The dot moves under real gravity — slow at aphelion, fast at perihelion. That's Kepler's
+              second law in action. Push the eccentricity up to see it become comet-like.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_360px] gap-6 items-center">
+              <div>
+                <div className="mb-4">
+                  <div className="flex justify-between items-baseline mb-2">
+                    <span className="font-display text-sm" style={{ color: INK }}>Eccentricity e</span>
+                    <span className="font-mono text-sm" style={{ color: ACCENT }}>{ecc.toFixed(3)}</span>
+                  </div>
+                  <input type="range" min="0" max="0.95" step="0.01" value={ecc}
+                         onChange={e => setEcc(parseFloat(e.target.value))} className="w-full" />
+                </div>
+                <div className="grid grid-cols-2 gap-px mb-3" style={{ background: BORDER }}>
+                  <div className="p-3" style={{ background: BG }}>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Perihelion (a×(1−e))</div>
+                    <div className="font-mono text-sm" style={{ color: INK }}>{(1 - ecc).toFixed(3)} a</div>
+                  </div>
+                  <div className="p-3" style={{ background: BG }}>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Aphelion (a×(1+e))</div>
+                    <div className="font-mono text-sm" style={{ color: INK }}>{(1 + ecc).toFixed(3)} a</div>
+                  </div>
+                  <div className="p-3" style={{ background: BG }}>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Perihelion vel. / mean</div>
+                    <div className="font-mono text-sm" style={{ color: INK }}>{Math.sqrt((1 + ecc) / (1 - ecc)).toFixed(3)}×</div>
+                  </div>
+                  <div className="p-3" style={{ background: BG }}>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Aphelion vel. / mean</div>
+                    <div className="font-mono text-sm" style={{ color: INK }}>{Math.sqrt((1 - ecc) / (1 + ecc)).toFixed(3)}×</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-px" style={{ background: BORDER }}>
+                  {[
+                    { e: 0, label: 'Circle' },
+                    { e: 0.017, label: 'Earth' },
+                    { e: 0.21, label: 'Mercury' },
+                    { e: 0.967, label: 'Halley' },
+                  ].map(p => (
+                    <button key={p.label} onClick={() => setEcc(p.e)}
+                            className="p-2 text-center transition hover:bg-white/5"
+                            style={{ background: BG }}>
+                      <div className="font-mono text-xs" style={{ color: ACCENT }}>{p.label}</div>
+                      <div className="font-mono text-[10px] mt-1" style={{ color: DIM }}>e = {p.e}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <OrbitDiagram e={ecc} a={140} size={340} />
+              </div>
+            </div>
+          </div>
+
+          <Section title="Why ellipses, not circles?">
+            <p>
+              A circle requires very specific initial conditions (velocity exactly perpendicular to the
+              radius, at exactly the right magnitude). Any deviation gives an ellipse. Nature doesn't
+              generally produce exact circles; what we see in the solar system reflects 4.6 billion years
+              of dynamical evolution. Planets formed in roughly circular orbits because their parent
+              gas disk dampened deviations. Comets, which formed in the Oort cloud and were scattered
+              by planetary encounters, can have extreme eccentricities approaching 1.
+            </p>
+          </Section>
+
+          <Section title="Kepler's second law: angular momentum at work">
+            <p>
+              The areal velocity (dA/dt) is constant in any central-force orbit. This is just conservation
+              of angular momentum: L = m × r × v_⊥ stays constant. As r shrinks, v_⊥ must grow proportionally.
+              That's why Halley's comet whips past the Sun at 54 km/s at perihelion but barely moves at
+              0.9 km/s at aphelion — a 60× speed change over its 76-year orbit.
+            </p>
+            <Eq>dA/dt = L/(2m) = constant   ⇒   r₁v₁ = r₂v₂ at perihelion and aphelion</Eq>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'energy' && (
+        <div className="fade-in">
+          <Section title="The vis-viva equation: orbital energy and speed">
+            <p>
+              The single most useful equation in orbital mechanics relates speed v, distance r, and the
+              semi-major axis a of an orbit:
+            </p>
+            <Eq>v² = GM × (2/r − 1/a)</Eq>
+            <p>
+              From it you can extract just about anything. Circular orbit (r = a): v² = GM/r. Escape orbit
+              (a → ∞): v² = 2GM/r — that's escape velocity. Elliptical perihelion (r = a(1 − e)):
+              v² = GM/a × (1 + e)/(1 − e). It's all one equation.
+            </p>
+          </Section>
+
+          <Section title="Total orbital energy">
+            <p>
+              For a small body of mass m orbiting a much larger body of mass M, the total mechanical energy
+              (kinetic + potential) is:
+            </p>
+            <Eq>E = ½mv² − GMm/r = −GMm/(2a)</Eq>
+            <p>
+              Three remarkable things. <strong style={{ color: ACCENT }}>One</strong>, the energy depends only
+              on a, not on e. Two orbits with the same semi-major axis but very different shapes have the
+              same energy. <strong style={{ color: ACCENT }}>Two</strong>, bound orbits (ellipses) have
+              negative total energy: you must add energy to reach E = 0 and escape.
+              <strong style={{ color: ACCENT }}> Three</strong>, escape (E = 0) corresponds to a parabolic
+              trajectory; hyperbolas (E {'>'} 0) are unbound flybys.
+            </p>
+          </Section>
+
+          <Section title="Escape velocity">
+            <p>
+              The speed needed to escape a gravitating body from radius r — assuming no propulsion or
+              further forces — is:
+            </p>
+            <Eq>v_esc = √(2GM/r) = √2 × v_circular</Eq>
+            <p>
+              Earth's surface: 11.2 km/s. Moon's surface: 2.4 km/s. Sun's surface: 617 km/s. Surface of a
+              neutron star: ~150,000 km/s (half the speed of light — gravity is starting to be relativistic).
+              Black hole event horizon: v_esc = c, which is why nothing escapes.
+            </p>
+          </Section>
+
+          <Playground
+            title="Orbital parameter calculator"
+            description="Set a semi-major axis and primary mass — get period, circular speed, and escape velocity. Defaults give Earth around the Sun."
+            inputs={[
+              { key: 'M', label: 'Primary mass', default: 1.989e30, min: 22, max: 41, log: true, unit: 'kg' },
+              { key: 'a', label: 'Semi-major axis', default: 1.496e11, min: 6, max: 16, log: true, unit: 'm' },
+            ]}
+            compute={(v) => {
+              const G = 6.674e-11;
+              const P_s = 2 * Math.PI * Math.sqrt(Math.pow(v.a, 3) / (G * v.M));
+              const P_yr = P_s / (365.25 * 86400);
+              const P_day = P_s / 86400;
+              const v_circ = Math.sqrt(G * v.M / v.a);
+              const v_esc = Math.sqrt(2 * G * v.M / v.a);
+              const a_AU = v.a / 1.496e11;
+              const M_solar = v.M / 1.989e30;
+              return { P_s, P_yr, P_day, v_circ, v_esc, a_AU, M_solar };
+            }}
+            outputs={[
+              { key: 'M_solar', label: 'Primary mass', unit: 'M☉' },
+              { key: 'a_AU', label: 'Semi-major axis', unit: 'AU' },
+              { key: 'P_yr', label: 'Orbital period', unit: 'yr' },
+              { key: 'P_day', label: 'Orbital period', unit: 'd' },
+              { key: 'v_circ', label: 'Circular orbital speed', unit: 'm/s' },
+              { key: 'v_esc', label: 'Escape velocity', unit: 'm/s' },
+            ]}
+          />
+
+          <WorkedExample title="How fast must you launch to escape Earth?"
+                         steps={[
+                           { text: 'Earth\'s mass M = 5.97 × 10²⁴ kg; radius r = 6,371 km = 6.371 × 10⁶ m. Plug into the escape velocity formula:',
+                             eq: 'v_esc = √(2GM/r) = √(2 × 6.674e−11 × 5.97e24 / 6.371e6)' },
+                           { text: 'Calculate step by step:',
+                             eq: 'v_esc = √(2 × 6.674e−11 × 5.97e24 / 6.371e6) = √(1.25e8) ≈ 11,180 m/s' },
+                           { text: 'Note this is the speed required at Earth\'s surface. Rockets actually have it easier in two ways. First, they launch from a moving platform — Earth\'s surface near the equator is already moving at ~465 m/s due to rotation, so launching eastward gives a "free" ~465 m/s. Second, they don\'t need to instantly reach 11.2 km/s; they climb gradually, exchanging altitude (potential energy) for less speed. But the total energy budget needed to escape is exactly E = ½mv_esc².',
+                             answer: '11.2 km/s. Note this is just escape from Earth\'s gravity. To escape the Sun from Earth\'s orbit, you also need ~42 km/s — though Earth\'s orbital motion (~30 km/s) provides most of that. Voyager 1, the fastest human object, left Earth at ~16.6 km/s and used gravity assists to reach ~17 km/s, exceeding solar escape velocity from its position.' },
+                         ]} />
+        </div>
+      )}
+
+      {tab === 'shapes' && (
+        <div className="fade-in">
+          <Section title="The four types of trajectory">
+            <p>
+              All gravitational orbits are conic sections. Total energy determines which type:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Circle (e = 0).</strong> Special case requiring exact balance.
+              Vanishingly rare in nature. Negative energy.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Ellipse (0 {'<'} e {'<'} 1).</strong> All bound orbits.
+              Negative total energy. The two foci coincide for a circle and pull apart with increasing
+              eccentricity.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Parabola (e = 1).</strong> The boundary case — exactly escape
+              velocity, zero total energy at infinity. Vanishingly rare. Comets falling in from the Oort
+              cloud approach this limit.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Hyperbola (e {'>'} 1).</strong> Unbound flyby. Positive total
+              energy. Interstellar objects like 'Oumuamua and Borisov, which entered the solar system from
+              elsewhere, follow hyperbolic paths.
+            </p>
+          </Section>
+
+          <Section title="Orbital resonances">
+            <p>
+              When two orbiting bodies have periods related by a small-integer ratio (3:2, 2:1, 4:1, etc.),
+              they're in <Term k="orbital resonance">orbital resonance</Term>. Resonances repeatedly line
+              up the bodies' gravitational tugs in the same configuration, amplifying their effect.
+            </p>
+            <p>
+              Most planetary systems show resonances. The Jupiter-system Galilean moons (Io : Europa :
+              Ganymede = 1 : 2 : 4) are in a Laplace resonance — every fourth orbit of Io, Europa and
+              Ganymede return to the same configuration. The resonance keeps Io's orbit eccentric, which
+              causes tidal heating that makes it the most volcanically active body in the solar system.
+            </p>
+            <p>
+              Resonances can also be destabilising. The Kirkwood gaps in the asteroid belt at 3:1 and 2:1
+              resonances with Jupiter are empty — asteroids that drifted into those resonances were
+              perturbed onto chaotic orbits and removed. Saturn's main rings have similar resonance gaps
+              with its moons (the Cassini Division is a 2:1 resonance with Mimas).
+            </p>
+            <p>
+              Pluto and Neptune are in 3:2 resonance, which protects them from close encounters despite
+              their orbits crossing.
+            </p>
+          </Section>
+
+          <Section title="When orbits become unstable">
+            <p>
+              Newton's two-body problem is exactly solvable. The three-body problem is not — it's chaotic
+              in general. Tiny perturbations grow exponentially over time. The solar system is technically
+              chaotic on timescales of ~5 million years; we can't predict exact planetary positions beyond
+              that window even with perfect initial data.
+            </p>
+            <p>
+              On longer timescales, planetary systems can become catastrophically unstable. Simulations
+              suggest there's a ~1% chance Mercury's orbit will become wildly eccentric over the next
+              billion years, potentially colliding with Venus or being ejected from the solar system. The
+              outer solar system is much more stable but is still slowly migrating.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'hard' && (
+        <div className="fade-in">
+          <Section title="The Lagrange points: where gravity balances rotation">
+            <p>
+              In a two-body system (Sun-Earth, Earth-Moon, etc.) there are five special locations where a
+              small third body can orbit synchronously with the larger two — no propulsion needed. These
+              are the <Term k="lagrange point">Lagrange points</Term>, predicted in 1772 by Lagrange.
+            </p>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 my-6 items-center">
+              <div>
+                <p>
+                  <strong style={{ color: ACCENT3 }}>L1</strong> — between the two bodies, where the Sun's
+                  gravity is partially cancelled by Earth's. The SOHO and DSCOVR satellites sit here,
+                  always between Earth and Sun, monitoring solar wind.
+                </p>
+                <p>
+                  <strong style={{ color: ACCENT3 }}>L2</strong> — on the far side of Earth from the Sun.
+                  Earth blocks the Sun's direct radiation. James Webb, Gaia, and several other space
+                  telescopes orbit here.
+                </p>
+                <p>
+                  <strong style={{ color: ACCENT3 }}>L3</strong> — on Earth's orbit, opposite the Sun. Always
+                  hidden from us. (Historically beloved by science fiction as a place to hide a "counter-Earth.")
+                </p>
+                <p>
+                  <strong style={{ color: '#7aff7a' }}>L4 and L5</strong> — leading and trailing Earth by 60°
+                  in its orbit, forming equilateral triangles with Earth and Sun. These are the only stable
+                  Lagrange points. The asteroid families "Trojans" at Jupiter's L4 and L5 are the most famous
+                  examples — over 12,000 known.
+                </p>
+              </div>
+              <LagrangeDiagram size={340} />
+            </div>
+            <p>
+              L1, L2, and L3 are saddle points — stable in some directions, unstable in others. A satellite
+              there needs occasional station-keeping (about ~1 m/s of delta-v per year for JWST at L2). L4
+              and L5 are true potential wells, stable to small perturbations as long as the mass ratio of
+              the two main bodies is greater than ~25:1.
+            </p>
+          </Section>
+
+          <Section title="The Roche limit: tidal disruption">
+            <p>
+              Bring a self-gravitating body too close to a much more massive primary, and tidal forces
+              (the difference between the gravitational pull on the near and far sides of the smaller body)
+              exceed its own self-gravity. The body tears apart.
+            </p>
+            <p>
+              The critical distance is the <Term k="roche limit">Roche limit</Term>:
+            </p>
+            <Eq>d_Roche ≈ 2.44 × R_primary × (ρ_primary / ρ_body)^(1/3)   (rigid case ~1.26×)</Eq>
+            <p>
+              For Saturn, the Roche limit for an icy body sits at ~140,000 km from the planet's centre.
+              All of Saturn's main rings lie inside this limit — rings are debris that either never
+              accreted into a moon or was once a moon that got too close and was torn apart. Saturn's
+              moons proper all lie outside the limit. The pattern repeats at every giant planet: rings
+              inside Roche, moons outside.
+            </p>
+            <p>
+              Comet Shoemaker-Levy 9 famously crossed Jupiter's Roche limit in 1992, broke into 21
+              fragments, and impacted Jupiter in spectacular fashion in 1994.
+            </p>
+          </Section>
+
+          <Section title="Tidal forces beyond rings">
+            <p>
+              The same tidal forces that break apart comets do dramatic things across the universe. The
+              Moon raises tides on Earth (and Earth raises larger ones on the Moon, which is why the
+              Moon is tidally locked). Io is tidally heated by Jupiter, making it volcanically active.
+              Stars wandering too close to supermassive black holes get torn apart in "tidal disruption
+              events" that briefly outshine entire galaxies.
+            </p>
+            <p>
+              Tidal forces scale as 1/r³ — stronger than direct gravity (1/r²) at close range. This is why
+              they matter for nearby massive companions but not for distant ones.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'practical' && (
+        <div className="fade-in">
+          <Section title="Spacecraft don't travel in straight lines">
+            <p>
+              In space, "straight" is the most expensive way to go anywhere. Spacecraft instead exploit
+              orbital mechanics, riding ellipses and using planetary gravity to change course. Three core
+              techniques:
+            </p>
+          </Section>
+
+          <Section title="The Hohmann transfer">
+            <p>
+              The most fuel-efficient way to go from one circular orbit to another around the same primary.
+              You burn once to enter an elliptical "transfer orbit" whose perihelion is your starting
+              orbit and aphelion is your destination. You coast halfway around the ellipse, then burn
+              again to circularise.
+            </p>
+            <p>
+              Two impulsive burns, then you wait. Earth-to-Mars Hohmann transfer takes ~8.5 months. You
+              can't leave whenever you want — you have to wait until Earth and Mars are in the right
+              relative positions, which happens every ~26 months ("synodic period"). Every major Mars
+              mission has launched in one of these narrow windows.
+            </p>
+            <Eq>ΔV total = √(GM/r₁) × (√(2r₂/(r₁+r₂)) − 1) + √(GM/r₂) × (1 − √(2r₁/(r₁+r₂)))</Eq>
+            <p>
+              For Earth-to-Mars: ΔV ≈ 5.6 km/s on top of solar escape — moderate compared to direct flight
+              (which would require ~15 km/s or more).
+            </p>
+          </Section>
+
+          <Section title="Gravity assists ('slingshots')">
+            <p>
+              When a spacecraft flies close past a planet, the planet's gravity bends its trajectory.
+              In the planet's frame, the spacecraft enters and exits at the same speed (energy is
+              conserved). But in the Sun's frame, the encounter has rotated the spacecraft's velocity
+              vector relative to the planet's orbital motion — typically <em>adding</em> the planet's
+              orbital speed to the spacecraft's outgoing direction.
+            </p>
+            <p>
+              Voyager 2 reached Neptune in 12 years thanks to a 1979 Jupiter flyby that boosted it by
+              ~10 km/s, followed by Saturn (1981) and Uranus (1986) assists. Without gravity assists, the
+              same trajectory would have required tens of times more fuel and decades more transit time.
+            </p>
+            <p>
+              The total energy is conserved — the planet loses an infinitesimal amount of orbital energy
+              (slowing Jupiter's orbit by ~10⁻²⁵ m/s — utterly negligible) and the spacecraft gains
+              correspondingly.
+            </p>
+          </Section>
+
+          <Section title="Halo orbits">
+            <p>
+              Around L1 and L2 (which are saddle points, not minima) spacecraft fly in "halo orbits" —
+              gentle loops that don't sit precisely at the Lagrange point but precess around it. JWST
+              follows a halo orbit around Sun-Earth L2 with a period of ~6 months, allowing it to keep
+              its sunshield correctly oriented while never falling into Earth's shadow.
+            </p>
+          </Section>
+
+          <Playground
+            title="Hohmann transfer ΔV calculator"
+            description="Compute total delta-v for a Hohmann transfer between two circular orbits around the Sun. Try Earth (1 AU) to Mars (1.52), Jupiter (5.2), or further."
+            inputs={[
+              { key: 'r1', label: 'Starting orbit (from Sun)', default: 1.0, min: 0.3, max: 50, step: 0.01, unit: 'AU' },
+              { key: 'r2', label: 'Destination orbit (from Sun)', default: 1.52, min: 0.3, max: 50, step: 0.01, unit: 'AU' },
+            ]}
+            compute={(v) => {
+              const G = 6.674e-11, Msun = 1.989e30, AU = 1.496e11;
+              const r1 = v.r1 * AU, r2 = v.r2 * AU;
+              const v1 = Math.sqrt(G * Msun / r1);
+              const v2 = Math.sqrt(G * Msun / r2);
+              const vt1 = Math.sqrt(G * Msun * (2 / r1 - 2 / (r1 + r2)));
+              const vt2 = Math.sqrt(G * Msun * (2 / r2 - 2 / (r1 + r2)));
+              const dv1 = Math.abs(vt1 - v1);
+              const dv2 = Math.abs(v2 - vt2);
+              const dv_total = dv1 + dv2;
+              const a_transfer = (r1 + r2) / 2;
+              const P_transfer_s = 2 * Math.PI * Math.sqrt(Math.pow(a_transfer, 3) / (G * Msun));
+              const travel_days = P_transfer_s / 2 / 86400;
+              return { dv1, dv2, dv_total, travel_days, v1, v2 };
+            }}
+            outputs={[
+              { key: 'v1', label: 'Starting orbit speed', unit: 'm/s' },
+              { key: 'v2', label: 'Destination orbit speed', unit: 'm/s' },
+              { key: 'dv1', label: 'First burn ΔV', unit: 'm/s' },
+              { key: 'dv2', label: 'Second burn ΔV', unit: 'm/s' },
+              { key: 'dv_total', label: 'Total ΔV required', unit: 'm/s' },
+              { key: 'travel_days', label: 'Transit time (one-way)', unit: 'days' },
+            ]}
+          />
+
+          <Section title="The Oberth effect">
+            <p>
+              For chemical-rocket missions to the outer planets, burning at perihelion (closest approach
+              to the primary) gives much more bang for your fuel than burning at aphelion. The reason is
+              that kinetic energy goes as v² — at higher v, every ΔV you add changes your energy more.
+              Burning 1 m/s of ΔV at 50 km/s adds 50× more energy than burning the same 1 m/s at 1 km/s.
+            </p>
+            <p>
+              This is the Oberth effect. The Parker Solar Probe uses it to make ever-tighter passes around
+              the Sun: each gravity assist at Venus reshapes its orbit, and each perihelion burn is
+              maximally effective. The probe reaches ~190 km/s at closest approach — the fastest any
+              human object has ever moved.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      <WorkedExample title="Why does Jupiter's gravity assist help Voyager so much?"
+                     steps={[
+                       { text: 'Imagine Voyager approaching Jupiter at 10 km/s relative to Jupiter. Jupiter itself orbits the Sun at 13 km/s. In the Sun\'s frame, Voyager\'s speed depends on the geometry.',
+                         eq: 'v_approach (Sun frame) = depends on direction' },
+                       { text: 'A grazing flyby on Jupiter\'s leading edge: Voyager enters at 10 km/s relative to Jupiter, gets bent ~180° around it (a very close flyby could bend even more, but ~180° is the limit for a deep pass), and exits at 10 km/s in the OPPOSITE direction relative to Jupiter.',
+                         eq: 'In Sun frame: from (13 − 10) = 3 km/s before to (13 + 10) = 23 km/s after' },
+                       { text: 'Voyager gained 20 km/s of Sun-relative velocity from a Jupiter flyby that, in Jupiter\'s frame, conserved energy. Where did that energy come from?',
+                         eq: 'Jupiter\'s orbital velocity reduced by an utterly negligible amount: ~10⁻²⁵ m/s.',
+                         answer: 'The Sun frame change is real — Voyager really sped up by ~10 km/s through the encounter (in reality, less than 20 km/s because the deflection is less than 180°). Jupiter "lost" a corresponding amount of orbital momentum, but Jupiter is so much more massive that the velocity change is unmeasurable. It\'s as if Voyager bounced off a moving wall: in the wall\'s frame nothing changed, but in the ground frame it gained 2× the wall\'s velocity.' },
+                     ]} />
+
+      <Quiz questions={[
+        { q: 'Kepler\'s second law (equal areas in equal times) is equivalent to:',
+          options: ['Conservation of energy', 'Conservation of angular momentum', 'Conservation of linear momentum', 'Newton\'s third law'],
+          correct: 1,
+          explain: 'A line from the Sun to the planet sweeps area at rate dA/dt = ½ |r × v| = L / 2m. Since gravity is a central force (always points along r), torque is zero and angular momentum L is conserved. Equal areas in equal times = constant L.' },
+        { q: 'You double your distance from a planet. Gravity\'s force on you:',
+          options: ['Halves', 'Quarters', 'Stays the same', 'Doubles'],
+          correct: 1,
+          explain: 'Inverse-square law: F ∝ 1/r². Double the distance and force drops by 4×. This is why orbits are closed ellipses — only inverse-square forces (and harmonic forces) produce that property, by Bertrand\'s theorem.' },
+        { q: 'A satellite in low Earth orbit moves at ~7.7 km/s. To escape Earth from the same altitude, you need:',
+          options: ['7.7 km/s', '~10.9 km/s', '~13.7 km/s', '~25 km/s'],
+          correct: 1,
+          explain: 'v_escape = √2 × v_circular ≈ 1.414 × 7.7 ≈ 10.9 km/s. From Earth\'s surface, ground-level escape velocity is 11.2 km/s; the small difference between LEO and the surface (~400 km altitude) accounts for the slight reduction.' },
+        { q: 'Saturn\'s rings exist primarily because:',
+          options: ['Saturn\'s moons leave debris', 'They lie inside Saturn\'s Roche limit, where tidal forces prevent moon formation', 'They\'re leftover ice from formation', 'A passing comet was captured'],
+          correct: 1,
+          explain: 'The Roche limit is the distance below which tidal forces exceed self-gravity — a self-gravitating moon would be torn apart. All of Saturn\'s main rings lie inside its Roche limit. Material there either fell in from elsewhere (perhaps a destroyed moon) or never coalesced into a moon. Saturn\'s actual moons all orbit outside the Roche limit.' },
+        { q: 'JWST sits at the Sun-Earth L2 point because:',
+          options: ['It\'s stable indefinitely with no station-keeping needed', 'Earth blocks the Sun\'s direct radiation while the spacecraft orbits with Earth around the Sun', 'It\'s the closest stable point to Earth', 'L2 has the best view of the universe'],
+          correct: 1,
+          explain: 'L2 is on Earth\'s anti-sunward side, ~1.5 million km out. Earth + Sun\'s combined gravity exactly matches the centripetal acceleration needed for a 1-year orbit at L2\'s distance — so JWST orbits the Sun in lockstep with Earth, always shadowed. L2 is technically unstable (a saddle), so JWST does need occasional station-keeping (~1 m/s/year of ΔV).' },
+      ]} />
+
+      <TryThis title="Build your orbital intuition"
+               items={[
+                 { title: 'Play Kerbal Space Program', text: 'The single best way to develop orbital intuition is to actually fly missions in this physics simulator. You\'ll learn rendezvous, Hohmann transfers, gravity assists, and station-keeping through hands-on experience. Many professional aerospace engineers credit it with teaching them more than any textbook.', gear: 'A computer + ~$40 game' },
+                 { title: 'Watch the ISS pass overhead', text: 'Use Heavens-Above or NASA\'s "Spot the Station" to find when the ISS passes over your location. It\'s moving at ~7.7 km/s in real time. Watch it traverse the sky in 3-5 minutes — that motion is what falling sideways forever actually looks like.', gear: 'Eyes + a clear sky' },
+                 { title: 'Trace Mars\'s retrograde motion', text: 'Plot Mars\'s position against background stars over a few months when it\'s near opposition. You\'ll see it appear to slow, stop, reverse direction (retrograde motion), then resume normal direction. This is purely a perspective effect from Earth\'s faster inner orbit overtaking Mars — the puzzle that drove Kepler\'s work.', gear: 'Stellarium app + patience' },
+                 { title: 'Calculate when to launch to Mars', text: 'Using Earth\'s orbital position today and Mars\'s, work out roughly when the next Hohmann launch window occurs. (Hint: synodic period is ~26 months.) Check against NASA\'s planned launches.', gear: 'A bit of arithmetic' },
+               ]} />
+
+      <OpenQuestions items={[
+        { q: 'Is the solar system actually stable long-term?',
+          detail: '— Numerical simulations show the solar system is technically chaotic. Mercury\'s eccentricity may grow secularly over Gyr timescales; there\'s ~1% probability it becomes unstable enough to collide with Venus or Earth, or be ejected, over the next 5 Gyr. Our future is statistical, not deterministic.' },
+        { q: 'Where exactly is the boundary of the Oort cloud?',
+          detail: '— The Oort cloud is the inferred origin of long-period comets. Its inner edge is ~2,000 AU, but the outer edge is uncertain — perhaps 50,000-200,000 AU. Stars passing close to the Sun (every few Myr) can perturb Oort cloud objects, dropping them inward. The detailed dynamics are still being mapped.' },
+        { q: 'How common are stable habitable orbits around other stars?',
+          detail: '— Around binaries, around tight resonances, around varying-mass post-main-sequence stars — many configurations might exist. Kepler discovered "Tatooine" planets orbiting two stars (Kepler-16). Stability of planets in such systems on geological timescales is still being characterised.' },
+        { q: 'Why is the solar system\'s architecture (small inner rocky, gas giants, ice giants, Kuiper belt) typical or atypical?',
+          detail: '— Kepler statistics show our solar system\'s arrangement is actually unusual. "Super-Earths" (1-10 M_Earth, between Earth and Neptune in size) are the most common planet type in the galaxy — but we have zero. Most systems found also pack their large planets in tighter than the Sun\'s. Why? Our giant planets\' migration history (the Nice and Grand Tack models) is one proposed explanation but isn\'t settled.' },
+      ]} />
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 //  ROOT
 // ═══════════════════════════════════════════════════════════════════════════
 export default function App() {
@@ -6075,6 +6821,7 @@ export default function App() {
     obs:    <ObservationalAstronomy onBack={() => setView('hub')} />,
     sr:     <SpecialRelativity onBack={() => setView('hub')} />,
     cmb:    <CMB               onBack={() => setView('hub')} />,
+    orb:    <Orbits            onBack={() => setView('hub')} />,
     paths:  <LearningPaths     onBack={() => setView('hub')} onSelect={setView} />,
   };
   return views[view] || <Hub onSelect={setView} onShowPaths={() => setView('paths')} />;
