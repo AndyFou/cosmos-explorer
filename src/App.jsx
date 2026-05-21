@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, Eye, EyeOff, X, ChevronLeft, ChevronRight, Sparkles, Zap, BookOpen, Info } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   COSMOS EXPLORER v0.8
+   COSMOS EXPLORER v0.9
    An interactive astrophysics primer at first-year-course depth.
    ─────────────────────────────────────────────────────────────────────────── */
 
@@ -109,7 +109,7 @@ function PageShell({ children, onBack, title, eyebrow }) {
               ⎙ print
             </button>
             <div className="font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: DIM }}>
-              cosmos explorer · v0.8
+              cosmos explorer · v0.9
             </div>
           </div>
         </div>
@@ -242,6 +242,13 @@ const GLOSSARY = {
   'spectroscopy': 'The measurement of light intensity as a function of wavelength. Splitting light into its spectrum reveals composition, temperature, motion, magnetic fields, and rotation of distant objects.',
   'interferometry': 'Combining light from multiple telescopes to achieve angular resolution equivalent to a single telescope as large as the separation between them. Used at radio (VLA, EHT) and optical (VLTI, CHARA) wavelengths.',
   'atmospheric window': 'A band of wavelengths at which Earth\'s atmosphere is reasonably transparent. The main optical window is ~300–1100 nm; the radio window is ~1 cm to ~10 m. Other wavelengths (most IR, UV, X-ray, gamma) require space-based telescopes.',
+  'quark': 'A fundamental matter particle that experiences the strong force. Six flavours exist (up, down, charm, strange, top, bottom). Protons and neutrons are made of up and down quarks bound by gluons. Quarks have fractional electric charge.',
+  'lepton': 'A fundamental matter particle that does not experience the strong force. Six types: electron, muon, tau (charged) and their three neutrinos. The electron orbits the atomic nucleus; muons and taus are heavier unstable cousins.',
+  'gauge boson': 'A force-carrier particle. The Standard Model has four: photon (electromagnetism), W and Z (weak force), gluon (strong force). The hypothetical graviton would carry gravity but is not part of the Standard Model.',
+  'higgs boson': 'A scalar particle discovered at the LHC in 2012, completing the Standard Model. Its associated Higgs field gives mass to all other massive particles via the Higgs mechanism. Discovery: 2013 Nobel for Higgs and Englert.',
+  'antimatter': 'For every matter particle there is an antiparticle with opposite charge but identical mass. The positron is the electron\'s antiparticle. Matter and antimatter annihilate on contact, producing photons. Why the universe is matter-dominated remains an open question.',
+  'cp violation': 'A subtle asymmetry where the laws of physics behave slightly differently for matter vs antimatter (after also flipping left and right). Observed in kaons, B mesons, and D mesons. Necessary but not sufficient to explain matter-antimatter asymmetry of the universe.',
+  'standard model': 'The current best theory of fundamental particles and three of the four forces (excluding gravity). Includes 17 fundamental particles: 6 quarks, 6 leptons, 4 gauge bosons, and the Higgs. Predictions verified to extraordinary precision; but doesn\'t include gravity or dark matter.',
 };
 
 function Term({ k, children }) {
@@ -588,24 +595,24 @@ const PATHS = {
     title: 'Newcomer',
     sub: 'No mathematical background assumed',
     desc: 'Visual intuition first, equations as context. Start with what you can already observe yourself, then build outward from the familiar to the cosmic. Equations appear, but you can skip past them — the prose carries the story.',
-    order: ['obs', 'moon', 'ss', 'sizes', 'tel', 'spec', 'hr', 'life', 'orb', 'exo', 'gal', 'bb', 'cmb', 'fusion', 'ladder', 'bh', 'sr'],
-    note: 'Start with things you can verify with your own eyes (constellations, Moon, nearby planets), then learn what light and telescopes reveal, then move outward to stars, galaxies, and finally the deepest physics.',
+    order: ['obs', 'moon', 'ss', 'sizes', 'tel', 'spec', 'hr', 'life', 'orb', 'exo', 'gal', 'bb', 'cmb', 'fusion', 'ladder', 'bh', 'sr', 'sm'],
+    note: 'Start with things you can verify with your own eyes (constellations, Moon, nearby planets), then learn what light and telescopes reveal, then move outward to stars, galaxies, and finally the deepest physics including the particles that build everything.',
   },
   refresher: {
     icon: '🔄',
     title: 'Refresher',
     sub: "You've seen this before",
     desc: "Core spine of stellar physics and cosmology, in the order they're usually taught. Skip the gentle warmups and go straight for the central machinery.",
-    order: ['orb', 'tel', 'spec', 'hr', 'life', 'fusion', 'sr', 'ladder', 'exo', 'gal', 'bb', 'cmb', 'bh', 'ss', 'moon', 'obs'],
-    note: 'Heavily weighted to stellar astrophysics in the first half, cosmology and extreme physics in the second. Orbital mechanics and how telescopes work come first as foundational.',
+    order: ['orb', 'tel', 'spec', 'hr', 'life', 'fusion', 'sm', 'sr', 'ladder', 'exo', 'gal', 'bb', 'cmb', 'bh', 'ss', 'moon', 'obs'],
+    note: 'Heavily weighted to stellar astrophysics in the first half, cosmology and extreme physics in the second. Particle physics sits next to fusion as the underlying microscopic theory.',
   },
   deepdiver: {
     icon: '🔬',
     title: 'Deep diver',
     sub: 'Career-transition preparation',
-    desc: 'Follow the physics. Start with the most fundamental processes (orbits, relativity, fusion) and build outward. Pay close attention to derivations, scaling laws, and the worked examples in each topic.',
-    order: ['orb', 'sr', 'fusion', 'tel', 'spec', 'hr', 'life', 'bh', 'ladder', 'cmb', 'bb', 'gal', 'exo', 'ss', 'moon', 'obs'],
-    note: 'This path treats astronomy as applied physics. Each topic builds on machinery from the previous ones. Orbits and Special Relativity are the two foundations everything else assumes.',
+    desc: 'Follow the physics. Start with the most fundamental processes (particles, orbits, relativity, fusion) and build outward. Pay close attention to derivations, scaling laws, and the worked examples in each topic.',
+    order: ['sm', 'orb', 'sr', 'fusion', 'tel', 'spec', 'hr', 'life', 'bh', 'ladder', 'cmb', 'bb', 'gal', 'exo', 'ss', 'moon', 'obs'],
+    note: 'This path treats astronomy as applied physics. The Standard Model is the substrate — every nucleosynthesis reaction, every photon detection, every neutrino oscillation runs on it. Then orbital mechanics and special relativity, then stellar and cosmological scale phenomena.',
   },
 };
 
@@ -737,6 +744,7 @@ const TOPICS = [
   { id: 'cmb',    n: '15', title: 'The Cosmic Microwave Background', sub: 'A baby photo of the universe at 380,000 years',     ready: true },
   { id: 'bh',     n: '16', title: 'Anatomy of a Black Hole',       sub: 'Horizons, photon spheres, and Hawking evaporation',   ready: true },
   { id: 'sr',     n: '17', title: 'Special Relativity Essentials', sub: 'The Lorentz factor and what it does to spacetime',    ready: true },
+  { id: 'sm',     n: '18', title: 'The Standard Model',             sub: 'The 17 particles that build everything we can see',   ready: true },
 ];
 
 function StarField() {
@@ -761,7 +769,7 @@ function Hub({ onSelect, onShowPaths }) {
       <StarField />
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-16 md:pt-24 pb-16">
         <div className="font-mono text-xs uppercase tracking-[0.3em] mb-4" style={{ color: ACCENT }}>
-          An interactive primer · v0.8
+          An interactive primer · v0.9
         </div>
         <h1 className="font-display font-light text-6xl md:text-7xl leading-[1.0] mb-6 max-w-4xl" style={{ letterSpacing: '-0.025em' }}>
           Cosmos<br />
@@ -8076,6 +8084,579 @@ function Telescopes({ onBack }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+//  18 · THE STANDARD MODEL OF PARTICLE PHYSICS
+// ═══════════════════════════════════════════════════════════════════════════
+
+const PARTICLES = {
+  // Up-type quarks (charge +2/3)
+  u: {
+    symbol: 'u', name: 'Up quark', kind: 'quark', subtype: 'up-type', gen: 1,
+    mass: '2.2 MeV/c²', charge: '+2/3', spin: '½', colour: 'r, g, or b',
+    discovered: '1968 — SLAC deep inelastic scattering',
+    desc: 'The lightest quark and one of the two building blocks of ordinary matter. A proton contains two up quarks and one down quark (uud). The up quark itself is never seen alone — quarks are permanently confined inside hadrons by the strong force.',
+    fact: 'You\'re mostly made of up quarks. Every atomic nucleus is built from up and down quarks.'
+  },
+  c: {
+    symbol: 'c', name: 'Charm quark', kind: 'quark', subtype: 'up-type', gen: 2,
+    mass: '1.27 GeV/c²', charge: '+2/3', spin: '½', colour: 'r, g, or b',
+    discovered: '1974 — BNL & SLAC (the "November Revolution")',
+    desc: 'The second-generation up-type quark. Its discovery as the J/ψ meson (a charm-anticharm bound state) by two independent groups simultaneously was so dramatic it forced the entire physics community to accept the quark model overnight.',
+    fact: 'The simultaneous discovery is one of the most famous events in particle physics.'
+  },
+  t: {
+    symbol: 't', name: 'Top quark', kind: 'quark', subtype: 'up-type', gen: 3,
+    mass: '173 GeV/c²', charge: '+2/3', spin: '½', colour: 'r, g, or b',
+    discovered: '1995 — Fermilab Tevatron',
+    desc: 'The heaviest known elementary particle — about as massive as a tungsten atom. It decays so fast (~5 × 10⁻²⁵ s) that it never has time to form hadrons. The top is the only quark we observe "bare" rather than bound inside a composite particle.',
+    fact: 'Its huge mass means it couples most strongly of any particle to the Higgs field — making it a key probe of new physics.'
+  },
+  // Down-type quarks (charge −1/3)
+  d: {
+    symbol: 'd', name: 'Down quark', kind: 'quark', subtype: 'down-type', gen: 1,
+    mass: '4.7 MeV/c²', charge: '−1/3', spin: '½', colour: 'r, g, or b',
+    discovered: '1968 — SLAC deep inelastic scattering',
+    desc: 'The other building block of ordinary matter. A neutron contains two down quarks and one up quark (udd). Beta decay is fundamentally a down quark transforming into an up quark via W boson emission.',
+    fact: 'Slightly heavier than the up quark — this small mass difference is why free neutrons decay but free protons don\'t.'
+  },
+  s: {
+    symbol: 's', name: 'Strange quark', kind: 'quark', subtype: 'down-type', gen: 2,
+    mass: '93 MeV/c²', charge: '−1/3', spin: '½', colour: 'r, g, or b',
+    discovered: '1947 — cosmic ray studies (kaons)',
+    desc: 'Found in unusual cosmic-ray events from the 1940s, hence "strange". Particles containing strange quarks (like kaons) live unexpectedly long because the weak interaction is required to change strangeness.',
+    fact: 'CP violation was first observed in kaon decays in 1964 — a small hint at the matter-antimatter asymmetry of the universe.'
+  },
+  b: {
+    symbol: 'b', name: 'Bottom quark', kind: 'quark', subtype: 'down-type', gen: 3,
+    mass: '4.18 GeV/c²', charge: '−1/3', spin: '½', colour: 'r, g, or b',
+    discovered: '1977 — Fermilab (the Υ meson)',
+    desc: 'The down-type quark of the third generation. B-mesons (containing a bottom quark) exhibit the cleanest measurable CP violation, and B-meson factories like LHCb and Belle II study them intensively.',
+    fact: 'Some physicists prefer to call it the "beauty" quark, but "bottom" stuck.'
+  },
+  // Charged leptons (charge −1)
+  e: {
+    symbol: 'e⁻', name: 'Electron', kind: 'lepton', subtype: 'charged', gen: 1,
+    mass: '0.511 MeV/c²', charge: '−1', spin: '½', colour: 'none',
+    discovered: '1897 — J.J. Thomson',
+    desc: 'The first elementary particle ever discovered. Stable, abundant, and responsible for all of chemistry. Orbits atomic nuclei via the electromagnetic force.',
+    fact: 'Every electron in the universe is identical to every other — there\'s no way to tell them apart, even in principle.'
+  },
+  mu: {
+    symbol: 'μ⁻', name: 'Muon', kind: 'lepton', subtype: 'charged', gen: 2,
+    mass: '105.7 MeV/c²', charge: '−1', spin: '½', colour: 'none',
+    discovered: '1936 — Anderson & Neddermeyer (cosmic rays)',
+    desc: 'A heavier copy of the electron, ~207 times more massive. Lives only 2.2 microseconds at rest before decaying to an electron plus two neutrinos. "Who ordered that?" — Isidor Rabi, on hearing about the muon\'s discovery.',
+    fact: 'Cosmic-ray muons time-dilate enough to reach Earth\'s surface despite their short lifetime — confirming special relativity daily.'
+  },
+  tau: {
+    symbol: 'τ⁻', name: 'Tau', kind: 'lepton', subtype: 'charged', gen: 3,
+    mass: '1.777 GeV/c²', charge: '−1', spin: '½', colour: 'none',
+    discovered: '1975 — Martin Perl at SLAC',
+    desc: 'The heaviest lepton, ~3,500× more massive than the electron. So heavy it can decay into hadrons (not just lighter leptons). Lifetime: 2.9 × 10⁻¹³ s.',
+    fact: 'Discovery completed the third generation of leptons and earned Perl the 1995 Nobel Prize.'
+  },
+  // Neutrinos (charge 0)
+  ve: {
+    symbol: 'νₑ', name: 'Electron neutrino', kind: 'lepton', subtype: 'neutrino', gen: 1,
+    mass: '< 0.8 eV/c²', charge: '0', spin: '½', colour: 'none',
+    discovered: '1956 — Cowan & Reines (Savannah River reactor)',
+    desc: 'Predicted by Pauli in 1930 to save energy conservation in beta decay; detected 26 years later. Almost massless and barely interacts — ~100 trillion solar neutrinos pass through your body every second, mostly without effect.',
+    fact: 'Neutrinos detected from SN 1987A arrived before the visible supernova light, because they escape the dense core before photons can.'
+  },
+  vmu: {
+    symbol: 'ν_μ', name: 'Muon neutrino', kind: 'lepton', subtype: 'neutrino', gen: 2,
+    mass: '< 0.19 MeV/c²', charge: '0', spin: '½', colour: 'none',
+    discovered: '1962 — Lederman, Schwartz & Steinberger (BNL)',
+    desc: 'Distinct from the electron neutrino — the discovery established that there were multiple neutrino "flavours". Produced mostly in particle decays involving muons (e.g. pion decay).',
+    fact: 'Neutrinos oscillate between flavours as they travel, meaning they must have mass — first solid confirmation came from Super-K in 1998.'
+  },
+  vtau: {
+    symbol: 'ν_τ', name: 'Tau neutrino', kind: 'lepton', subtype: 'neutrino', gen: 3,
+    mass: '< 18.2 MeV/c²', charge: '0', spin: '½', colour: 'none',
+    discovered: '2000 — DONUT experiment at Fermilab',
+    desc: 'The last fermion to be directly detected. Predicted in the 1970s but extraordinarily hard to identify because of how rarely it interacts.',
+    fact: 'Of the trillions of solar neutrinos passing through Earth every second, you\'d expect on average ~1 to be a tau neutrino — and you\'d still need a 1-kiloton detector to catch it.'
+  },
+  // Gauge bosons
+  photon: {
+    symbol: 'γ', name: 'Photon', kind: 'gauge', subtype: 'electromagnetic', gen: '—',
+    mass: '0 (exactly)', charge: '0', spin: '1', colour: 'none',
+    discovered: '1905 — Einstein (theory); 1923 — Compton (experiment)',
+    desc: 'The quantum of the electromagnetic field. Carries the electromagnetic force between charged particles. Massless and travels at exactly c.',
+    fact: 'Every photon you\'ve ever seen reaching your eye was created by an electron transitioning to a lower energy state somewhere — usually in the Sun.'
+  },
+  gluon: {
+    symbol: 'g', name: 'Gluon', kind: 'gauge', subtype: 'strong', gen: '—',
+    mass: '0 (theoretically)', charge: '0', spin: '1', colour: 'colour + anticolour',
+    discovered: '1979 — PETRA (DESY) three-jet events',
+    desc: 'Carries the strong force binding quarks. Unlike the photon, gluons themselves carry colour charge (eight types exist), which is why they interact with each other and why the strong force gets STRONGER with distance — leading to quark confinement.',
+    fact: 'You can never have a single isolated gluon — like quarks, they\'re confined inside hadrons.'
+  },
+  W: {
+    symbol: 'W±', name: 'W boson', kind: 'gauge', subtype: 'weak', gen: '—',
+    mass: '80.4 GeV/c²', charge: '±1', spin: '1', colour: 'none',
+    discovered: '1983 — UA1 & UA2 at CERN SPS',
+    desc: 'Carries the charged-current weak force responsible for beta decay and most particle transformations. Comes in W⁺ and W⁻ varieties. Its huge mass (~85× the proton) makes the weak force short-range and weak at low energies.',
+    fact: 'Rubbia and Van der Meer shared the 1984 Nobel for the W and Z discoveries — barely a year after the experimental detection.'
+  },
+  Z: {
+    symbol: 'Z⁰', name: 'Z boson', kind: 'gauge', subtype: 'weak', gen: '—',
+    mass: '91.2 GeV/c²', charge: '0', spin: '1', colour: 'none',
+    discovered: '1983 — UA1 & UA2 at CERN SPS',
+    desc: 'Carries the neutral-current weak force. Predicted in the 1960s and confirmed via neutrino scattering before direct detection in 1983. Like the W, its huge mass restricts the weak force to subatomic ranges.',
+    fact: 'The Z\'s decay width (how rapidly it decays) precisely constrains the number of light neutrino flavours to 3 — there are no more.'
+  },
+  // Scalar boson
+  H: {
+    symbol: 'H', name: 'Higgs boson', kind: 'higgs', subtype: 'scalar', gen: '—',
+    mass: '125.1 GeV/c²', charge: '0', spin: '0', colour: 'none',
+    discovered: '2012 — ATLAS & CMS at CERN LHC',
+    desc: 'The quantum of the Higgs field. Discovered after a 48-year search — Peter Higgs first proposed it in 1964. The Higgs field permeates all space; particles gain mass by interacting with it. Higgs and Englert won the 2013 Nobel Prize.',
+    fact: 'The Higgs is the only known fundamental scalar (spin-0) particle. Why its mass is "only" ~125 GeV — rather than the Planck scale (~10¹⁹ GeV) — is the hierarchy problem and remains unexplained.'
+  },
+};
+
+// Helper to render colour-coded badges based on particle kind
+function particleColour(kind) {
+  if (kind === 'quark') return '#ff8a70';
+  if (kind === 'lepton') return '#7ac4ff';
+  if (kind === 'gauge') return '#ffc97a';
+  if (kind === 'higgs') return '#c79bff';
+  return DIM;
+}
+
+function StandardModel({ onBack }) {
+  const [selected, setSelected] = useState('e');
+  const p = PARTICLES[selected];
+
+  // The grid layout: rows are particle type, columns are generation + bosons
+  // Row 1: up-type quarks
+  // Row 2: down-type quarks
+  // Row 3: charged leptons
+  // Row 4: neutrinos
+  // Right column / extra: gauge bosons and Higgs
+  const grid = [
+    [{ id: 'u', label: 'u', name: 'up' },     { id: 'c', label: 'c', name: 'charm' },   { id: 't', label: 't', name: 'top' },    { id: 'gluon',  label: 'g', name: 'gluon' }],
+    [{ id: 'd', label: 'd', name: 'down' },   { id: 's', label: 's', name: 'strange' }, { id: 'b', label: 'b', name: 'bottom' }, { id: 'photon', label: 'γ', name: 'photon' }],
+    [{ id: 'e', label: 'e', name: 'electron' }, { id: 'mu', label: 'μ', name: 'muon' },   { id: 'tau', label: 'τ', name: 'tau' }, { id: 'Z', label: 'Z', name: 'Z boson' }],
+    [{ id: 've', label: 'νₑ', name: 'e neutrino' }, { id: 'vmu', label: 'ν_μ', name: 'μ neutrino' }, { id: 'vtau', label: 'ν_τ', name: 'τ neutrino' }, { id: 'W', label: 'W', name: 'W boson' }],
+  ];
+
+  return (
+    <PageShell onBack={onBack} eyebrow="18 — Fundamental Particles"
+               title={<>The Standard <em style={{ color: ACCENT, fontStyle: 'italic' }}>Model</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-3" style={{ color: '#c8c3b1' }}>
+        Every electron, every photon, every quark inside every proton in your body, every neutrino
+        streaming from the Sun — they're all described by a single theory developed over the second
+        half of the twentieth century. The
+        <Term k="standard model"> Standard Model</Term> contains just 17 fundamental particles and three
+        of the four known forces. From these ingredients alone, it predicts experimental outcomes to
+        accuracies of one part in a billion.
+      </p>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        It is also famously incomplete: it doesn't include gravity, has nothing to say about dark
+        matter, can't fully explain why the universe is made of matter rather than antimatter, and
+        contains roughly 20 free parameters that have to be measured rather than derived. Despite that,
+        it is the most precise scientific theory ever constructed.
+      </p>
+
+      <Section title="The whole zoo on one page">
+        <p>
+          Click any particle to see its properties and story. <span style={{ color: '#ff8a70' }}>Orange</span> tiles are
+          <Term k="quark"> quarks</Term> (the only particles that feel the strong force);
+          <span style={{ color: '#7ac4ff' }}> blue</span> tiles are
+          <Term k="lepton"> leptons</Term> (electrons, muons, taus, and the three neutrinos);
+          <span style={{ color: ACCENT }}> yellow</span> tiles are the
+          <Term k="gauge boson"> gauge bosons</Term> (force carriers); the
+          <span style={{ color: '#c79bff' }}> violet</span> tile is the
+          <Term k="higgs boson"> Higgs</Term>, which gives mass to everything else.
+        </p>
+        <p>
+          The three vertical columns of fermions (quarks + leptons) are the three "generations" of
+          matter. Each successive generation is heavier than the last, otherwise identical. Why three?
+          Nobody knows.
+        </p>
+      </Section>
+
+      {/* The interactive grid */}
+      <div className="my-8">
+        <div className="grid grid-cols-4 gap-2 mb-2">
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-center pb-2" style={{ color: DIM }}>Generation I</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-center pb-2" style={{ color: DIM }}>Generation II</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-center pb-2" style={{ color: DIM }}>Generation III</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-center pb-2" style={{ color: DIM }}>Gauge Bosons</div>
+        </div>
+
+        <div className="grid grid-cols-4 gap-2">
+          {grid.flat().map((cell) => {
+            const part = PARTICLES[cell.id];
+            const isSelected = selected === cell.id;
+            const col = particleColour(part.kind);
+            return (
+              <button key={cell.id}
+                      onClick={() => setSelected(cell.id)}
+                      className="aspect-square transition-all relative overflow-hidden"
+                      style={{
+                        background: isSelected ? `${col}25` : '#0e1018',
+                        border: `1px solid ${isSelected ? col : BORDER}`,
+                        outline: isSelected ? `1px solid ${col}` : 'none',
+                      }}>
+                <div className="absolute top-2 left-2 font-mono text-[9px] uppercase tracking-[0.15em]"
+                     style={{ color: isSelected ? col : DIM }}>
+                  {part.kind === 'quark' ? 'quark' : part.kind === 'lepton' ? 'lepton' : part.kind === 'gauge' ? 'boson' : 'higgs'}
+                </div>
+                <div className="absolute top-2 right-2 font-mono text-[9px]" style={{ color: DIM }}>
+                  {part.charge}
+                </div>
+                <div className="flex items-center justify-center h-full">
+                  <div className="font-display text-3xl md:text-4xl"
+                       style={{ color: isSelected ? col : INK, letterSpacing: '-0.02em' }}>
+                    {cell.label}
+                  </div>
+                </div>
+                <div className="absolute bottom-2 left-0 right-0 text-center font-mono text-[9px] uppercase tracking-[0.1em]"
+                     style={{ color: isSelected ? col : DIM }}>
+                  {cell.name}
+                </div>
+                <div className="absolute bottom-7 left-0 right-0 text-center font-mono text-[8px]"
+                     style={{ color: FAINT }}>
+                  {part.mass}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Higgs sits separately */}
+        <div className="grid grid-cols-4 gap-2 mt-2">
+          <div></div>
+          <div></div>
+          <div></div>
+          <button onClick={() => setSelected('H')}
+                  className="aspect-square transition-all relative overflow-hidden"
+                  style={{
+                    background: selected === 'H' ? '#c79bff25' : '#0e1018',
+                    border: `1px solid ${selected === 'H' ? '#c79bff' : BORDER}`,
+                    outline: selected === 'H' ? `1px solid #c79bff` : 'none',
+                  }}>
+            <div className="absolute top-2 left-2 font-mono text-[9px] uppercase tracking-[0.15em]"
+                 style={{ color: selected === 'H' ? '#c79bff' : DIM }}>scalar</div>
+            <div className="absolute top-2 right-2 font-mono text-[9px]" style={{ color: DIM }}>0</div>
+            <div className="flex items-center justify-center h-full">
+              <div className="font-display text-3xl md:text-4xl"
+                   style={{ color: selected === 'H' ? '#c79bff' : INK, letterSpacing: '-0.02em' }}>H</div>
+            </div>
+            <div className="absolute bottom-2 left-0 right-0 text-center font-mono text-[9px] uppercase tracking-[0.1em]"
+                 style={{ color: selected === 'H' ? '#c79bff' : DIM }}>Higgs</div>
+            <div className="absolute bottom-7 left-0 right-0 text-center font-mono text-[8px]" style={{ color: FAINT }}>125.1 GeV/c²</div>
+          </button>
+        </div>
+
+        {/* Detail card for selected particle */}
+        <div className="mt-6 p-6 fade-in" key={selected}
+             style={{ border: `1px solid ${particleColour(p.kind)}40`, background: `${particleColour(p.kind)}08` }}>
+          <div className="flex items-baseline justify-between mb-4 flex-wrap gap-3">
+            <div className="flex items-baseline gap-4">
+              <span className="font-display text-5xl" style={{ color: particleColour(p.kind), letterSpacing: '-0.02em' }}>{p.symbol}</span>
+              <div>
+                <h3 className="font-display text-2xl" style={{ letterSpacing: '-0.02em' }}>{p.name}</h3>
+                <div className="font-mono text-xs uppercase tracking-[0.2em] mt-1" style={{ color: DIM }}>
+                  {p.kind === 'gauge' ? `${p.subtype} force carrier` : p.kind === 'higgs' ? 'scalar boson' : `${p.subtype} ${p.kind}, generation ${p.gen}`}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-px mb-5" style={{ background: BORDER }}>
+            <div className="p-3" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Mass</div>
+              <div className="font-mono text-sm" style={{ color: INK }}>{p.mass}</div>
+            </div>
+            <div className="p-3" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Electric charge</div>
+              <div className="font-mono text-sm" style={{ color: INK }}>{p.charge}</div>
+            </div>
+            <div className="p-3" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Spin</div>
+              <div className="font-mono text-sm" style={{ color: INK }}>{p.spin}</div>
+            </div>
+            <div className="p-3" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Colour charge</div>
+              <div className="font-mono text-sm" style={{ color: INK }}>{p.colour}</div>
+            </div>
+            <div className="p-3" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Discovered</div>
+              <div className="font-mono text-xs" style={{ color: INK }}>{p.discovered}</div>
+            </div>
+          </div>
+
+          <p className="font-display text-base leading-relaxed mb-3" style={{ color: '#c8c3b1' }}>{p.desc}</p>
+          <p className="font-display text-sm leading-relaxed italic" style={{ color: DIM }}>{p.fact}</p>
+        </div>
+      </div>
+
+      <Section title="What makes a particle fundamental?">
+        <p>
+          A "fundamental" particle in the Standard Model has no known internal structure. Every test we
+          can perform — at the highest collision energies we can produce — sees them as point-like
+          objects with no measurable size. This is in contrast to <em>composite</em> particles:
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>Protons and neutrons</strong> are not fundamental — they're
+          made of three quarks each, bound by gluons. <strong style={{ color: ACCENT }}>Atoms</strong>
+          are not fundamental — they're a nucleus (protons + neutrons) plus electrons.
+          <strong style={{ color: ACCENT }}> Mesons</strong> (pions, kaons, J/ψ, B-mesons) are quark-antiquark pairs.
+          All of these are bound states of fundamental particles.
+        </p>
+        <p>
+          The 17 particles in the grid above are, as far as we can currently tell, the actual end of the
+          reductionist line. Whether they really have no substructure, or whether deeper physics will
+          reveal them as composites of even more elementary objects (preons? strings?), remains open.
+        </p>
+      </Section>
+
+      <Section title="Three generations of matter">
+        <p>
+          The fermions (matter particles) come in three families, called "generations". Each generation
+          has exactly two quarks (one up-type, one down-type), one charged lepton, and one neutrino.
+          Within each row of the grid, the particles in successive columns are heavier copies of the
+          same thing.
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>Generation I</strong> (up, down, electron, electron neutrino)
+          contains everything that makes up stable matter. All ordinary atoms are first-generation.
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>Generations II and III</strong> (charm/strange/muon/μ-neutrino,
+          and top/bottom/tau/τ-neutrino) are unstable. They appear briefly in cosmic-ray collisions, in
+          particle accelerators, and in the early universe — but their components decay quickly back to
+          first-generation particles.
+        </p>
+        <p>
+          Why three? It's one of the great mysteries of physics. Three is the minimum needed for CP
+          violation (and thus the matter-antimatter asymmetry), but nothing in the Standard Model forbids
+          a fourth generation. Experiment has ruled out a fourth <em>light</em> neutrino with great
+          precision (from Z boson decay width), but that doesn't rule out heavier sequential generations
+          completely.
+        </p>
+      </Section>
+
+      <Section title="The four forces (well, three)">
+        <p>
+          The Standard Model describes three of the four known fundamental forces:
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>Electromagnetism</strong> (carried by the photon, γ) — Acts on
+          electric charge. Long-range (1/r²). Responsible for chemistry, light, magnets, friction,
+          electronics. The photon is massless, which is why EM forces reach to infinity.
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>The strong force</strong> (carried by gluons, g) — Acts on
+          colour charge. Binds quarks into protons and neutrons; binds nucleons into nuclei. Counterintuitively
+          gets STRONGER with distance — pull two quarks apart and you eventually produce a new quark-antiquark
+          pair rather than separate them. This is <em>confinement</em>.
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>The weak force</strong> (carried by W and Z bosons) — Responsible
+          for beta decay, neutrino interactions, and almost all particle transformations. Short-range
+          (~10⁻¹⁸ m) because the W and Z are extraordinarily heavy (~80–91 GeV). Despite being called
+          "weak", it is actually comparable in strength to EM at very short distances — it's the heavy
+          force carriers that make it appear weak at human scales.
+        </p>
+        <p>
+          <strong style={{ color: ACCENT3 }}>Gravity</strong> — Not in the Standard Model. We have no
+          consistent quantum theory of gravity. A hypothetical "graviton" would carry it, but has never
+          been detected and gravity is so weak at quantum scales that direct detection of individual
+          gravitons may be permanently impossible. Reconciling quantum mechanics with general relativity
+          is the deepest unsolved problem in fundamental physics.
+        </p>
+      </Section>
+
+      <Section title="The Higgs: where mass comes from">
+        <p>
+          For most of the 20th century, particle physicists assumed mass was just an intrinsic property of
+          each particle — a number you measured but didn't try to explain. In 1964, six theorists
+          (independently, in three groups: Higgs; Englert & Brout; Guralnik, Hagen & Kibble) proposed
+          something stranger: an invisible field fills all of space, and particles get their mass by
+          interacting with it.
+        </p>
+        <p>
+          The
+          <Term k="higgs boson"> Higgs field</Term> is fundamentally different from other fields. Most
+          fields are zero in empty space (and excited above zero where particles exist). The Higgs field
+          has a <em>nonzero</em> value everywhere, even in vacuum. The strength of a particle's coupling
+          to this background field determines its mass:
+        </p>
+        <Eq>m_particle = (Higgs coupling strength) × (Higgs vacuum value, ~246 GeV)</Eq>
+        <p>
+          A top quark couples strongly → 173 GeV. An electron couples weakly → 0.5 MeV (~350,000× less).
+          A photon doesn't couple at all → exactly zero mass. The Higgs field gives a natural origin for
+          masses but doesn't predict the coupling strengths — those still have to be measured.
+        </p>
+        <p>
+          The Higgs <em>boson</em>, the particle, is the quantum excitation of the Higgs field. Detecting
+          it required the Large Hadron Collider — colliding protons at 13 TeV until enough Higgs bosons
+          were produced (and decayed in distinctive ways) to be unambiguously identified. The 2012
+          discovery completed the Standard Model. Higgs and Englert shared the 2013 Nobel Prize. (Brout
+          had died in 2011; the Nobel is not awarded posthumously.)
+        </p>
+      </Section>
+
+      <Section title="Antimatter and CP violation">
+        <p>
+          Every fermion in the Standard Model has an
+          <Term k="antimatter"> antiparticle</Term>: same mass, opposite charge (and opposite "colour"
+          if applicable). The electron's antiparticle is the positron (e⁺); the up quark's antiparticle
+          is the anti-up (ū). Some neutral particles (the photon, the Z boson, the Higgs) are their own
+          antiparticles. Whether neutrinos are their own antiparticles (Majorana fermions) is currently
+          unknown.
+        </p>
+        <p>
+          The big puzzle: matter and antimatter should have been produced in equal amounts at the Big
+          Bang, but they aren't equal now. The visible universe is overwhelmingly matter, with a
+          baryon-to-photon ratio of ~10⁻⁹. Where did the antimatter go?
+        </p>
+        <p>
+          Andrei Sakharov in 1967 identified three conditions necessary to produce a matter excess:
+          (1) baryon number must not be conserved, (2) <Term k="cp violation">CP-symmetry violation</Term>
+          must occur, and (3) interactions must depart from thermal equilibrium. CP violation HAS been
+          observed in the Standard Model — first in kaon decays (1964), then in B-mesons and D-mesons.
+          But the amount predicted by the Standard Model is too small by ~10¹⁰ to account for the actual
+          matter excess.
+        </p>
+        <p>
+          Either there's CP violation outside the Standard Model (a major motivation for searching for
+          new physics in B-meson decays and neutrino oscillation), or the matter asymmetry was set by
+          some other early-universe mechanism we don't yet understand.
+        </p>
+      </Section>
+
+      <Section title="What the Standard Model cannot explain">
+        <p>
+          For all its precision, the Standard Model has gaping holes:
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>Gravity.</strong> Not included at all. We have general relativity
+          for gravity at macroscopic scales, but no working quantum theory. Reconciling them requires
+          new physics — strings, loop quantum gravity, asymptotic safety, or something else entirely.
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>Dark matter.</strong> ~27% of the universe, gravitationally
+          detected, made of something the Standard Model doesn't contain. WIMPs (Weakly Interacting
+          Massive Particles), axions, sterile neutrinos, and primordial black holes are leading candidates.
+          No direct laboratory detection despite 40 years of trying.
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>Dark energy.</strong> ~68% of the universe, driving accelerating
+          cosmic expansion. The simplest explanation is Einstein's cosmological constant Λ, but its value
+          is wrong by ~120 orders of magnitude compared to naive quantum-field-theory estimates. The
+          cosmological constant problem is arguably the worst theoretical prediction in the history of
+          physics.
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>Neutrino masses.</strong> The Standard Model originally
+          predicted neutrinos to be massless. Observations of neutrino flavour oscillation (Super-K
+          1998, SNO 2001 — 2015 Nobel) showed they have small but nonzero masses, requiring an extension
+          of the original theory.
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>Matter-antimatter asymmetry.</strong> CP violation in the
+          Standard Model is too small to explain the observed matter dominance, as discussed above.
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>The hierarchy problem.</strong> Why is the Higgs mass
+          (~125 GeV) so much smaller than the Planck mass (~10¹⁹ GeV)? Naive quantum corrections should
+          make it enormous; something must cancel them. Supersymmetry was the leading proposed
+          explanation but has not been found at the LHC.
+        </p>
+        <p>
+          <strong style={{ color: ACCENT }}>Three generations.</strong> Why three? Why these specific
+          masses? Why these specific mixing patterns? The Standard Model just contains these as input
+          parameters.
+        </p>
+      </Section>
+
+      <Playground
+        title="Particle Compton wavelength and energy"
+        description="The Compton wavelength λ = h/mc sets the natural size scale of a particle. Energy E = mc² gives its rest energy. Try the electron (0.511 MeV), the proton (938 MeV), the top quark (173 GeV), or the Planck mass (1.22 × 10¹⁹ GeV)."
+        inputs={[
+          { key: 'm_GeV', label: 'Particle mass', default: 0.000511, min: -9, max: 20, log: true, unit: 'GeV/c²' },
+        ]}
+        compute={(v) => {
+          // E = mc² where m in GeV/c² gives E in GeV directly
+          const E_GeV = v.m_GeV;
+          // Compton wavelength λ = h/(mc) = hc/(mc²)
+          // h × c ≈ 1.239 × 10⁻⁶ eV·m = 1.239e-15 GeV·m
+          const hc_GeV_m = 1.239e-15;
+          const lambda_m = hc_GeV_m / v.m_GeV;
+          const lambda_fm = lambda_m * 1e15;
+          // Schwarzschild radius if it were a black hole: r_s = 2GM/c²
+          // Mass in kg: m_kg = m_GeV × 1.78e-27 (since 1 GeV/c² = 1.78e-27 kg)
+          const m_kg = v.m_GeV * 1.78e-27;
+          const G = 6.674e-11;
+          const c = 2.998e8;
+          const r_s = 2 * G * m_kg / (c * c);
+          return { E_GeV, lambda_m, lambda_fm, r_s };
+        }}
+        outputs={[
+          { key: 'E_GeV', label: 'Rest energy', unit: 'GeV' },
+          { key: 'lambda_m', label: 'Compton wavelength', unit: 'm' },
+          { key: 'lambda_fm', label: 'In femtometres (= 10⁻¹⁵ m)', unit: 'fm' },
+          { key: 'r_s', label: 'Schwarzschild radius (if a BH)', unit: 'm' },
+        ]}
+      />
+
+      <WorkedExample title="Why does the Higgs discovery require the LHC?"
+                     steps={[
+                       { text: 'The Higgs boson has rest mass 125.1 GeV/c². To produce one in a particle collision, you need at least 125.1 GeV of collision energy concentrated in a single interaction.',
+                         eq: 'E_min ≈ 125 GeV (just to create one Higgs at rest)' },
+                       { text: 'In a proton-proton collider, the two protons each carry ~half the beam energy, but the actual collision is between individual quarks/gluons inside the protons — and each quark/gluon carries only a small fraction (~10%) of the proton\'s momentum.',
+                         eq: 'Effective collision energy ≈ 0.1 × E_beam (per proton)' },
+                       { text: 'So to reliably have ~125 GeV available in quark-gluon collisions, you need beam energies of order 1 TeV (1000 GeV) per proton — the LHC runs at 6.8 TeV per beam, giving 13.6 TeV center-of-mass energy.',
+                         eq: 'E_beam ~ 7 TeV; √s ~ 14 TeV' },
+                       { text: 'Even then, Higgs production is rare: ~1 in 10⁹ collisions. The LHC runs ~10⁹ collisions per second to compensate. Over years of running, enough Higgs events accumulate to be distinguished from background.',
+                         answer: 'The LHC is large (27 km), powerful (14 TeV), and runs many years at extraordinary luminosity precisely because the Higgs is heavy (125 GeV) and produced rarely. Lower-energy colliders (Tevatron, LEP) could glimpse hints but lacked the energy and statistics to confirm it. ATLAS and CMS both saw the Higgs at >5σ significance in 2012.' },
+                     ]} />
+
+      <Quiz questions={[
+        { q: 'A proton is made of which combination of quarks?',
+          options: ['uud (two up, one down)', 'udd (one up, two down)', 'uuu (three up)', 'ud (one up, one down)'],
+          correct: 0,
+          explain: 'A proton contains two up quarks (charge +2/3 each) and one down quark (charge −1/3), totaling +1. A neutron contains one up and two down quarks (udd), totaling 0. The "sea" of virtual quarks and gluons inside is much more complex, but the "valence" quarks defining the particle are uud or udd.' },
+        { q: 'The Higgs field is special because:',
+          options: ['It carries the strong force', 'It has a nonzero value everywhere, even in vacuum', 'It only exists inside particles', 'It travels faster than light'],
+          correct: 1,
+          explain: 'Most fields are zero in their lowest-energy "vacuum" state and only oscillate where particles exist. The Higgs field has a nonzero value (~246 GeV) everywhere — the vacuum itself is permeated by it. This is why particles can interact with it everywhere and gain mass from it.' },
+        { q: 'Why are W and Z bosons short-range while photons are long-range?',
+          options: ['Photons travel faster', 'W and Z bosons have huge masses (~80–91 GeV); the photon is massless', 'Photons carry electric charge; W and Z don\'t', 'It\'s a coincidence'],
+          correct: 1,
+          explain: 'Forces mediated by massive particles are short-range; their range is roughly the Compton wavelength of the carrier. W/Z have masses of ~80–91 GeV, giving range ~10⁻¹⁸ m. The photon is exactly massless (electromagnetism has infinite range). Gluons are also massless but the strong force is confined for a different reason — the gluons interact with themselves.' },
+        { q: 'How many fundamental fermions (quarks + leptons) are in the Standard Model?',
+          options: ['6', '12', '17', '24'],
+          correct: 1,
+          explain: '6 quarks + 6 leptons = 12 fermions. Plus 4 gauge bosons (photon, gluon, W, Z) and 1 scalar (Higgs) = 17 fundamental particles total. If you count antiparticles separately, the total is 24 fermions + 13 bosons (gluons come in 8 varieties, W has ±, so distinct gauge bosons = 1 + 8 + 2 + 1 = 12) + 1 Higgs = ~36 particle states.' },
+        { q: 'The Standard Model does NOT include:',
+          options: ['Gravity', 'Dark matter', 'A particle for dark energy', 'All of the above'],
+          correct: 3,
+          explain: 'The Standard Model has no quantum theory of gravity, no candidate particle for dark matter, and no explanation for dark energy. These three constitute the bulk of what we don\'t understand about the universe — yet the Standard Model has nothing to say about any of them.' },
+      ]} />
+
+      <OpenQuestions items={[
+        { q: 'Why exactly three generations of matter?',
+          detail: '— The Standard Model accommodates any number of generations as a parameter, but doesn\'t predict three. Z boson decay measurements rule out a fourth light neutrino. But heavy sequential or non-sequential additional generations remain possible. Why nature chose three may require physics beyond the Standard Model — possibly string theory or grand unification.' },
+        { q: 'Is the Higgs really fundamental, or is it composite?',
+          detail: '— Some theories (e.g. "Technicolor", later "Composite Higgs") propose that the Higgs is actually a bound state of more fundamental particles, similar to how the pion is a quark-antiquark bound state. The Higgs\'s mass and properties are precisely measurable now; if there\'s substructure, it should show up in deviations from Standard Model predictions at higher energy.' },
+        { q: 'Are neutrinos their own antiparticles?',
+          detail: '— If neutrinos are "Majorana" fermions (their own antiparticles), they would explain why neutrino masses are so small via the "seesaw mechanism", and would allow neutrinoless double beta decay. Several experiments (KamLAND-Zen, GERDA, CUORE) are searching for this signature; none have found it yet, but limits are improving.' },
+        { q: 'Where is supersymmetry?',
+          detail: '— SUSY (predicting a "superpartner" for every Standard Model particle) was the leading candidate for new physics in the 1980s-2000s, motivated by the hierarchy problem and dark matter. But the LHC has ruled out SUSY at all energies it can reach. Either superpartners are heavier than the LHC can produce, or SUSY is wrong about the natural energy scale, or it\'s simply incorrect.' },
+        { q: 'What is dark matter made of?',
+          detail: '— We know dark matter exists from its gravitational effects (galaxy rotation curves, cluster dynamics, structure formation, CMB). We know it\'s not Standard Model particles. WIMPs were the leading candidate but direct detection experiments have found nothing. Axions, sterile neutrinos, and primordial black holes remain alive. The next decade of searches should narrow the field.' },
+      ]} />
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 //  ROOT
 // ═══════════════════════════════════════════════════════════════════════════
 export default function App() {
@@ -8100,6 +8681,7 @@ export default function App() {
     orb:    <Orbits            onBack={() => setView('hub')} />,
     ss:     <SolarSystem       onBack={() => setView('hub')} />,
     tel:    <Telescopes        onBack={() => setView('hub')} />,
+    sm:     <StandardModel     onBack={() => setView('hub')} />,
     paths:  <LearningPaths     onBack={() => setView('hub')} onSelect={setView} />,
   };
   return views[view] || <Hub onSelect={setView} onShowPaths={() => setView('paths')} />;
