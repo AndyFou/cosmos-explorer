@@ -464,10 +464,13 @@ function Photo({ src, alt, caption, credit }) {
       {failed ? (
         <div className="p-8 text-center font-mono text-xs" style={{ color: DIM }}>
           [photograph: {alt}]
-          <br /><span style={{ color: FAINT }}>image unavailable</span>
+          <br /><span style={{ color: FAINT }}>image unavailable — see source: {credit}</span>
         </div>
       ) : (
-        <img src={src} alt={alt} loading="lazy" onError={() => setFailed(true)}
+        <img src={src} alt={alt}
+             loading="lazy"
+             referrerPolicy="no-referrer"
+             onError={() => setFailed(true)}
              style={{ width: '100%', display: 'block' }} />
       )}
       {(caption || credit) && (
@@ -485,6 +488,17 @@ function Photo({ src, alt, caption, credit }) {
 }
 
 // Numerical playground — input fields with live computed outputs
+function fmtPlayground(n) {
+  if (typeof n !== 'number' || !isFinite(n)) return String(n);
+  const abs = Math.abs(n);
+  if (abs === 0) return '0';
+  if (abs < 1e-3 || abs >= 1e5) return n.toExponential(2);
+  if (abs >= 100) return n.toFixed(0);
+  if (abs >= 10) return n.toFixed(1);
+  if (abs >= 1) return n.toFixed(2);
+  return n.toPrecision(3);
+}
+
 function Playground({ title, description, inputs, compute, outputs }) {
   const [values, setValues] = useState(() =>
     Object.fromEntries(inputs.map(i => [i.key, i.default]))
@@ -509,16 +523,14 @@ function Playground({ title, description, inputs, compute, outputs }) {
                 <div className="flex justify-between items-baseline mb-1">
                   <label className="font-display text-sm" style={{ color: INK }}>{inp.label}</label>
                   <span className="font-mono text-xs" style={{ color: ACCENT }}>
-                    {typeof values[inp.key] === 'number' ?
-                      (values[inp.key] < 0.01 || values[inp.key] >= 10000 ?
-                        values[inp.key].toExponential(2) :
-                        values[inp.key].toPrecision(3))
-                      : values[inp.key]}
+                    {fmtPlayground(values[inp.key])}
                     {inp.unit && <span style={{ color: DIM }}> {inp.unit}</span>}
                   </span>
                 </div>
                 <input type="range"
-                       min={inp.min} max={inp.max} step={inp.step || (inp.max - inp.min) / 100}
+                       min={inp.min}
+                       max={inp.max}
+                       step={inp.step || (inp.log ? 0.01 : (inp.max - inp.min) / 100)}
                        value={inp.log ? Math.log10(values[inp.key]) : values[inp.key]}
                        onChange={e => {
                          const v = parseFloat(e.target.value);
@@ -532,22 +544,23 @@ function Playground({ title, description, inputs, compute, outputs }) {
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT2 }}>Computed</div>
           <div className="space-y-2">
-            {outputs.map(out => (
-              <div key={out.key} className="flex justify-between items-baseline py-2"
-                   style={{ borderBottom: `1px solid ${BORDER}` }}>
-                <span className="font-display text-sm" style={{ color: '#c8c3b1' }}>{out.label}</span>
-                <span className="font-mono text-sm" style={{ color: INK }}>
-                  {results[out.key] !== undefined ?
-                    (typeof results[out.key] === 'number' ?
-                      (Math.abs(results[out.key]) < 0.001 || Math.abs(results[out.key]) >= 1e6 ?
-                        fmtSci(results[out.key], 2) :
-                        Number(results[out.key].toPrecision(3)).toString())
-                      : results[out.key])
-                    : '—'}
-                  {out.unit && <span style={{ color: DIM }}> {out.unit}</span>}
-                </span>
-              </div>
-            ))}
+            {outputs.map(out => {
+              const val = results[out.key];
+              let display;
+              if (val === undefined || val === null) display = '—';
+              else if (typeof val === 'number') display = fmtPlayground(val);
+              else display = String(val);
+              return (
+                <div key={out.key} className="flex justify-between items-baseline py-2"
+                     style={{ borderBottom: `1px solid ${BORDER}` }}>
+                  <span className="font-display text-sm" style={{ color: '#c8c3b1' }}>{out.label}</span>
+                  <span className="font-mono text-sm" style={{ color: INK }}>
+                    {display}
+                    {out.unit && <span style={{ color: DIM }}> {out.unit}</span>}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -2419,12 +2432,12 @@ function BlackHole({ onBack }) {
       <div className="mt-12 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
         <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>Imaging the unimageable</h3>
 
-        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Black_hole_-_Messier_87_crop_max_res.jpg/1280px-Black_hole_-_Messier_87_crop_max_res.jpg"
+        <Photo src="https://nsf-gov-resources.nsf.gov/2024-12/Event%20Horizon%20Black%20Hole%20Image.jpg"
                alt="EHT image of M87*"
                caption="The Event Horizon Telescope's 2019 image of M87* — the supermassive black hole at the centre of M87. The dark central region is the black hole's shadow, ~2.6× the Schwarzschild diameter due to gravitational lensing. The bright ring is the photon sphere illuminated by accreting plasma."
                credit="Event Horizon Telescope Collaboration" />
 
-        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/EHT_Saggitarius_A_black_hole.tif/lossy-page1-1280px-EHT_Saggitarius_A_black_hole.tif.jpg"
+        <Photo src="https://nsf-gov-resources.nsf.gov/2024-12/sag-event-image.jpg"
                alt="EHT image of Sgr A*"
                caption="EHT's 2022 image of Sagittarius A* — the supermassive black hole at the centre of our own Milky Way (~4.3 × 10⁶ M☉, ~27,000 ly away). About 1,500× less massive than M87* but ~2,000× closer, so similar angular size."
                credit="Event Horizon Telescope Collaboration" />
@@ -2852,15 +2865,15 @@ function GalaxyMorph({ onBack }) {
       <div className="mt-12 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
         <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>The real thing</h3>
 
-        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/M31bobo.jpg/1280px-M31bobo.jpg"
+        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Andromeda_Galaxy_%28with_h-alpha%29.jpg/1200px-Andromeda_Galaxy_%28with_h-alpha%29.jpg"
                alt="Andromeda Galaxy (M31)"
                caption="The Andromeda Galaxy (M31), a large Sb spiral and the Milky Way's nearest major neighbour at ~765 kpc. Hubble's 1924 detection of Cepheids in this galaxy settled the Great Debate by proving it lay far outside the Milky Way."
-               credit="Bob Franke, via Wikimedia Commons (CC BY-SA)" />
+               credit="Adam Evans, via Wikimedia Commons (CC BY 2.0)" />
 
-        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/M101_hires_STScI-PRC2006-10a.jpg/1280px-M101_hires_STScI-PRC2006-10a.jpg"
+        <Photo src="https://science.nasa.gov/wp-content/uploads/2023/04/m101-jpg.webp"
                alt="Pinwheel Galaxy (M101)"
                caption="The Pinwheel Galaxy (M101), a textbook Sc spiral seen nearly face-on. The bright pink knots are HII regions — vast clouds of ionised hydrogen lit up by clusters of young, massive stars."
-               credit="NASA, ESA, K.D. Kuntz (JHU), F. Bresolin (University of Hawaii), J. Trauger (Jet Propulsion Lab), J. Mould (NOAO), Y.-H. Chu (University of Illinois, Urbana), and STScI" />
+               credit="NASA, ESA, K.D. Kuntz (JHU), F. Bresolin (University of Hawaii), J. Trauger (JPL), J. Mould (NOAO), Y.-H. Chu (University of Illinois, Urbana), and STScI" />
 
         <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/M87_jet.jpg/1280px-M87_jet.jpg"
                alt="M87 elliptical galaxy with jet"
@@ -4278,10 +4291,10 @@ function MoonTopic({ onBack }) {
           </p>
         </Section>
 
-        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/1024px-FullMoon2010.jpg"
-               alt="Full Moon photograph"
-               caption="The full Moon. The dark patches are the maria — basaltic lava plains from impacts 3.0–3.8 billion years ago. Notice their concentration on the near side; the far side has almost none, due to crustal thickness asymmetry."
-               credit="Gregory H. Revera, via Wikimedia Commons (CC BY-SA)" />
+        <Photo src="https://www.nasa.gov/wp-content/uploads/2023/03/as11-44-6667.jpg"
+               alt="Full Moon from Apollo 11"
+               caption="The full Moon photographed from Apollo 11 during its trans-Earth journey, ~18,500 km from the Moon. The dark patches are the maria — basaltic lava plains from impacts 3.0–3.8 billion years ago. Notice their concentration on the near side; the far side has almost none, due to crustal thickness asymmetry."
+               credit="NASA / Apollo 11" />
 
         <Playground
           title="Tidal force calculator"
