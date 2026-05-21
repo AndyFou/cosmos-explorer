@@ -6870,21 +6870,173 @@ const PLANETS = [
     fact: 'Strongest winds in the Solar System (up to 2,100 km/h). Was discovered by mathematics (Le Verrier 1846) before being observed — its existence inferred from anomalies in Uranus\'s orbit.' },
 ];
 
+function SolarSystemViz({ size = 720, speedMul = 1, onPlanetClick, selected }) {
+  const [t, setT] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setT(prev => prev + 0.01 * speedMul), 30);
+    return () => clearInterval(id);
+  }, [speedMul]);
+
+  // Logarithmic scaling so all 8 planets fit but inner ones don't pile on top of each other.
+  // Real semi-major axes in AU: 0.39, 0.72, 1.00, 1.52, 5.20, 9.54, 19.19, 30.07
+  // We compress with sqrt to keep proportions readable but reasonable.
+  const orbits = PLANETS.map((p, i) => ({
+    ...p,
+    rPx: 35 + 38 * Math.sqrt(p.r_au),   // scaled orbital radius in px
+    // Angular speed by Kepler's third law: T ∝ a^(3/2), so ω ∝ a^(-3/2)
+    omega: Math.pow(p.r_au, -1.5),
+    // Slight phase offset so initial layout is varied
+    phase: i * 0.9,
+    // Planet display sizes (not to scale — true scale would make rocky planets invisible)
+    sizePx: p.type === 'gas giant' ? 8 : p.type === 'ice giant' ? 6 : 3.5,
+    colour:
+      p.id === 'mer' ? '#a39684'
+      : p.id === 'ven' ? '#e8c290'
+      : p.id === 'ear' ? '#4d8edc'
+      : p.id === 'mar' ? '#d77556'
+      : p.id === 'jup' ? '#d8b48a'
+      : p.id === 'sat' ? '#e8d49a'
+      : p.id === 'ura' ? '#a4dbe0'
+      : '#3f7fb3', // nep
+  }));
+
+  const cx = size / 2, cy = size / 2;
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-auto" style={{ background: '#06070d' }}>
+      {/* Background stars */}
+      {Array.from({ length: 100 }).map((_, i) => {
+        const sx = ((i * 73) % 1000) / 1000 * size;
+        const sy = ((i * 137) % 1000) / 1000 * size;
+        const r = 0.3 + ((i * 17) % 10) / 25;
+        return <circle key={i} cx={sx} cy={sy} r={r} fill="#fff" opacity={0.2 + ((i * 31) % 100) / 250} />;
+      })}
+
+      {/* Orbital paths */}
+      {orbits.map((o) => (
+        <circle key={`orbit-${o.id}`} cx={cx} cy={cy} r={o.rPx}
+                stroke={selected === o.id ? `${ACCENT}` : BORDER_STRONG}
+                strokeWidth={selected === o.id ? 0.8 : 0.4}
+                fill="none"
+                opacity={selected === o.id ? 0.9 : 0.5} />
+      ))}
+
+      {/* Sun */}
+      <circle cx={cx} cy={cy} r={14} fill={ACCENT} />
+      <circle cx={cx} cy={cy} r={22} fill={ACCENT} opacity={0.2} />
+      <circle cx={cx} cy={cy} r={32} fill={ACCENT} opacity={0.08} />
+
+      {/* Planets */}
+      {orbits.map((o) => {
+        const ang = o.phase + t * o.omega;
+        const px = cx + o.rPx * Math.cos(ang);
+        const py = cy + o.rPx * Math.sin(ang);
+        const isSelected = selected === o.id;
+        return (
+          <g key={o.id} style={{ cursor: 'pointer' }} onClick={() => onPlanetClick && onPlanetClick(o.id)}>
+            {/* Generous invisible click target */}
+            <circle cx={px} cy={py} r={Math.max(14, o.sizePx * 2.5)} fill="transparent" />
+            {/* Glow ring for selection */}
+            {isSelected && (
+              <circle cx={px} cy={py} r={o.sizePx * 2.5} fill="none" stroke={ACCENT} strokeWidth="1" opacity={0.7} />
+            )}
+            {/* The planet itself */}
+            <circle cx={px} cy={py} r={o.sizePx} fill={o.colour} />
+            {/* Saturn's rings — special case */}
+            {o.id === 'sat' && (
+              <ellipse cx={px} cy={py} rx={o.sizePx * 2} ry={o.sizePx * 0.5}
+                       fill="none" stroke="#e8d49a" strokeWidth="0.7" opacity="0.7"
+                       transform={`rotate(-20 ${px} ${py})`} />
+            )}
+            {/* Label */}
+            <text x={px} y={py - o.sizePx - 4}
+                  fontFamily="JetBrains Mono, monospace" fontSize="9"
+                  textAnchor="middle"
+                  fill={isSelected ? ACCENT : DIM}
+                  opacity={isSelected ? 1 : 0.7}>
+              {o.name}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* Asteroid belt (subtle dotted ring between Mars and Jupiter) */}
+      {Array.from({ length: 60 }).map((_, i) => {
+        const ang = (i / 60) * 2 * Math.PI + t * 0.15;
+        const rPx = 35 + 38 * Math.sqrt(2.8) + ((i * 23) % 12) - 6;
+        const ax = cx + rPx * Math.cos(ang);
+        const ay = cy + rPx * Math.sin(ang);
+        return <circle key={`ast-${i}`} cx={ax} cy={ay} r={0.4} fill={DIM} opacity={0.5} />;
+      })}
+
+      {/* Caption */}
+      <text x={size - 12} y={size - 12}
+            fontFamily="JetBrains Mono, monospace" fontSize="9"
+            textAnchor="end" fill={DIM} opacity={0.7}>
+        click any planet · orbital speeds to Kepler scale · sizes not to scale
+      </text>
+    </svg>
+  );
+}
+
 function SolarSystem({ onBack }) {
   const [tab, setTab] = useState('worlds');
   const [planetIdx, setPlanetIdx] = useState(3); // Earth default
+  const [speed, setSpeed] = useState(1);
 
   const p = PLANETS[planetIdx];
+
+  // Find planet by id when user clicks one in the viz
+  const handlePlanetClick = (id) => {
+    const idx = PLANETS.findIndex(pl => pl.id === id);
+    if (idx >= 0) {
+      setPlanetIdx(idx);
+      setTab('worlds');
+    }
+  };
 
   return (
     <PageShell onBack={onBack} eyebrow="03 — Our Cosmic Neighbourhood"
                title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>Solar System</em></>}>
-      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-6" style={{ color: '#c8c3b1' }}>
         Eight planets, hundreds of moons, millions of asteroids, trillions of comets, all orbiting a
         single star. The Solar System is the only planetary system we can study up close — the
         ground-truth against which we calibrate everything we learn about exoplanets, planetary
         formation, and habitability. It also happens to contain the only life we know of.
       </p>
+
+      {/* Interactive Solar System viz */}
+      <div className="mb-10">
+        <SolarSystemViz size={720} speedMul={speed}
+                        onPlanetClick={handlePlanetClick}
+                        selected={PLANETS[planetIdx].id} />
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-center">
+          <div>
+            <div className="flex justify-between items-baseline mb-1">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: DIM }}>Animation speed</span>
+              <span className="font-mono text-xs" style={{ color: ACCENT }}>{speed.toFixed(1)}×</span>
+            </div>
+            <input type="range" min="0" max="8" step="0.1" value={speed}
+                   onChange={e => setSpeed(parseFloat(e.target.value))} className="w-full" />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setSpeed(0)}
+                    className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em] transition hover:bg-white/5"
+                    style={{ border: `1px solid ${BORDER}`, color: speed === 0 ? ACCENT : DIM }}>Pause</button>
+            <button onClick={() => setSpeed(1)}
+                    className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em] transition hover:bg-white/5"
+                    style={{ border: `1px solid ${BORDER}`, color: speed === 1 ? ACCENT : DIM }}>Real Kepler</button>
+            <button onClick={() => setSpeed(5)}
+                    className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em] transition hover:bg-white/5"
+                    style={{ border: `1px solid ${BORDER}`, color: speed === 5 ? ACCENT : DIM }}>Fast forward</button>
+          </div>
+        </div>
+        <p className="font-display text-sm leading-relaxed mt-4" style={{ color: DIM }}>
+          The planets move at speeds set by Kepler's third law (T ∝ a^(3/2)), so the inner planets really do
+          whip around much faster than Neptune trudges along. Click any planet to see its details below.
+          Orbital radii are compressed (square-root scaled) to fit all eight on screen at once.
+        </p>
+      </div>
 
       {/* Tabs */}
       <div className="grid grid-cols-3 md:grid-cols-5 gap-px mb-6" style={{ background: BORDER }}>
