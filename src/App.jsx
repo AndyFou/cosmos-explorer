@@ -458,21 +458,9 @@ function TryThis({ title, items }) {
 }
 
 function Photo({ src, alt, caption, credit }) {
-  const [failed, setFailed] = useState(false);
   return (
     <figure className="my-8" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
-      {failed ? (
-        <div className="p-8 text-center font-mono text-xs" style={{ color: DIM }}>
-          [photograph: {alt}]
-          <br /><span style={{ color: FAINT }}>image unavailable — see source: {credit}</span>
-        </div>
-      ) : (
-        <img src={src} alt={alt}
-             loading="lazy"
-             referrerPolicy="no-referrer"
-             onError={() => setFailed(true)}
-             style={{ width: '100%', display: 'block' }} />
-      )}
+      <img src={src} alt={alt} style={{ width: '100%', display: 'block' }} />
       {(caption || credit) && (
         <figcaption className="px-4 py-3" style={{ borderTop: `1px solid ${BORDER}` }}>
           {caption && (
@@ -2865,17 +2853,17 @@ function GalaxyMorph({ onBack }) {
       <div className="mt-12 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
         <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>The real thing</h3>
 
-        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Andromeda_Galaxy_%28with_h-alpha%29.jpg/1200px-Andromeda_Galaxy_%28with_h-alpha%29.jpg"
+        <Photo src="https://science.nasa.gov/wp-content/uploads/2023/07/m31.jpg"
                alt="Andromeda Galaxy (M31)"
-               caption="The Andromeda Galaxy (M31), a large Sb spiral and the Milky Way's nearest major neighbour at ~765 kpc. Hubble's 1924 detection of Cepheids in this galaxy settled the Great Debate by proving it lay far outside the Milky Way."
-               credit="Adam Evans, via Wikimedia Commons (CC BY 2.0)" />
+               caption="The Andromeda Galaxy (M31), the Milky Way's nearest major neighbour at ~765 kpc. Hubble's 1924 detection of Cepheids in this galaxy settled the Great Debate by proving it lay far outside the Milky Way. This is the largest Hubble mosaic of M31 to date, assembled from 7,398 individual exposures."
+               credit="NASA, ESA, J. Dalcanton, B.F. Williams, and L.C. Johnson (UW), the PHAT team, and R. Gendler" />
 
         <Photo src="https://science.nasa.gov/wp-content/uploads/2023/04/m101-jpg.webp"
                alt="Pinwheel Galaxy (M101)"
                caption="The Pinwheel Galaxy (M101), a textbook Sc spiral seen nearly face-on. The bright pink knots are HII regions — vast clouds of ionised hydrogen lit up by clusters of young, massive stars."
                credit="NASA, ESA, K.D. Kuntz (JHU), F. Bresolin (University of Hawaii), J. Trauger (JPL), J. Mould (NOAO), Y.-H. Chu (University of Illinois, Urbana), and STScI" />
 
-        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/M87_jet.jpg/1280px-M87_jet.jpg"
+        <Photo src="https://science.nasa.gov/wp-content/uploads/2023/04/m87-jet-jpg.webp"
                alt="M87 elliptical galaxy with jet"
                caption="M87, a giant elliptical galaxy at the centre of the Virgo Cluster. The bright bluish jet is a relativistic outflow from the supermassive black hole (~6.5 × 10⁹ M☉) at its core — the same black hole imaged by the Event Horizon Telescope in 2019."
                credit="NASA and The Hubble Heritage Team (STScI/AURA)" />
