@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, Eye, EyeOff, X, ChevronLeft, ChevronRight, Sparkles, Zap, BookOpen, Info } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   COSMOS EXPLORER v0.4
+   COSMOS EXPLORER v0.5
    An interactive astrophysics primer at first-year-course depth.
    ─────────────────────────────────────────────────────────────────────────── */
 
@@ -35,6 +35,20 @@ const FontStyles = () => (
     input[type="range"] { -webkit-appearance: none; height: 2px; background: ${BORDER_STRONG}; border-radius: 1px; outline: none; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: ${ACCENT}; border-radius: 50%; cursor: pointer; border: 2px solid ${BG}; }
     input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; background: ${ACCENT}; border-radius: 50%; cursor: pointer; border: 2px solid ${BG}; }
+
+    @media print {
+      .no-print, button, aside { display: none !important; }
+      .grain::before { display: none !important; }
+      body, html { background: #fff !important; color: #000 !important; }
+      * { background: #fff !important; color: #000 !important; border-color: #ccc !important; box-shadow: none !important; }
+      .font-display, .font-mono { color: #000 !important; }
+      h1, h2, h3, h4 { color: #000 !important; page-break-after: avoid; }
+      svg { max-width: 100%; }
+      img { max-width: 100%; page-break-inside: avoid; }
+      a { color: #000 !important; text-decoration: underline; }
+      .fade-in { animation: none !important; }
+      @page { margin: 1.5cm; }
+    }
   `}</style>
 );
 
@@ -79,7 +93,7 @@ function PageShell({ children, onBack, title, eyebrow }) {
     <div className="min-h-screen relative grain" style={{ background: BG, color: INK }}>
       <FontStyles />
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-6 pb-16">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 no-print">
           {onBack ? (
             <button onClick={onBack}
               className="font-mono text-xs uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded hover:bg-white/5 transition"
@@ -87,8 +101,16 @@ function PageShell({ children, onBack, title, eyebrow }) {
               <ArrowLeft size={14} /> back to index
             </button>
           ) : <div />}
-          <div className="font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: DIM }}>
-            cosmos explorer · v0.4
+          <div className="flex items-center gap-4">
+            <button onClick={() => window.print()}
+              className="font-mono text-xs uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded hover:bg-white/5 transition"
+              style={{ color: DIM }}
+              title="Print or save as PDF">
+              ⎙ print
+            </button>
+            <div className="font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: DIM }}>
+              cosmos explorer · v0.5
+            </div>
           </div>
         </div>
         {eyebrow && (
@@ -138,6 +160,499 @@ function Pill({ children, color = ACCENT }) {
   return (
     <span className="font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-1 rounded-sm"
           style={{ color, border: `1px solid ${color}40` }}>{children}</span>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  GLOSSARY — terms appear as dotted-underline hoverables across the app
+// ═══════════════════════════════════════════════════════════════════════════
+const GLOSSARY = {
+  'parsec': 'The distance at which 1 AU subtends 1 arcsecond. 1 pc = 3.26 light-years = 3.086 × 10¹⁶ m. Defined by the geometry of parallax measurement.',
+  'parallax': 'The apparent shift of a nearby star against background stars as Earth orbits the Sun. The parallax angle p (in arcseconds) gives distance in parsecs as d = 1/p.',
+  'redshift': 'The stretching of light to longer wavelengths. Cosmological redshift (z) arises from the expansion of space itself, while Doppler redshift arises from motion through space. Defined as z = (λ_observed − λ_emitted) / λ_emitted.',
+  'luminosity': 'The total power output of a star (in watts or solar luminosities L☉). Distinct from apparent brightness, which depends on distance.',
+  'metallicity': 'In astronomy, the abundance of elements heavier than helium. Often expressed as [Fe/H], the logarithmic iron-to-hydrogen ratio relative to the Sun. Pop I stars (like the Sun) are metal-rich; Pop II are metal-poor; Pop III (hypothetical first stars) were metal-free.',
+  'main sequence': 'The phase of a star\'s life when it fuses hydrogen into helium in its core. ~90% of a star\'s life is spent on the main sequence. Plotted as a diagonal band on the HR diagram.',
+  'stefan-boltzmann': 'The relation L = 4π R² σ T⁴, connecting a star\'s luminosity, radius, and surface temperature. σ ≈ 5.67 × 10⁻⁸ W/m²/K⁴ is the Stefan-Boltzmann constant.',
+  'chandrasekhar limit': 'The maximum mass (~1.4 M☉) of a white dwarf supported by electron degeneracy pressure. Above this, the star collapses further into a neutron star or black hole. Derived by Chandrasekhar in 1930 at age 19.',
+  'schwarzschild radius': 'The radius r_s = 2GM/c² inside which no signal can escape to infinity. For mass M in solar masses, r_s ≈ 2.95 km × (M/M☉).',
+  'event horizon': 'The boundary of a black hole — the surface at r = r_s for Schwarzschild black holes. Inside, all future-directed paths lead toward the singularity.',
+  'hawking radiation': 'Thermal radiation predicted to be emitted by black holes due to quantum effects near the event horizon. Temperature is inversely proportional to mass.',
+  'cmb': 'The Cosmic Microwave Background — the leftover radiation from the early universe, released when the universe became transparent at recombination (~380,000 years after the Big Bang). Now redshifted to ~2.725 K.',
+  'recombination': 'The era ~380,000 years after the Big Bang when electrons combined with nuclei to form neutral atoms. Made the universe transparent to light.',
+  'reionization': 'The era starting ~150 Myr after the Big Bang and completing by ~1 Gyr, when UV from the first stars and galaxies re-ionized the neutral hydrogen between galaxies.',
+  'inflation': 'A hypothesized brief period (~10⁻³⁶ to ~10⁻³² seconds after the Big Bang) of exponential cosmic expansion. Solves the flatness, horizon, and monopole problems and seeds structure.',
+  'dark matter': 'A form of matter that does not interact electromagnetically but exerts gravity. Makes up ~27% of the universe\'s energy. Its particle nature remains unknown.',
+  'dark energy': 'The unknown component (~68% of the universe) driving the accelerating expansion of the universe. Observationally consistent with a cosmological constant Λ.',
+  'baryonic matter': 'Ordinary matter made of protons, neutrons, and electrons. Only ~5% of the universe\'s energy budget.',
+  'cepheid': 'A class of pulsating variable star with a tight relation between pulsation period and intrinsic luminosity. Used as standard candles for measuring distances up to ~50 Mpc.',
+  'standard candle': 'An object of known intrinsic luminosity. Compare its brightness to its known luminosity and you get the distance via the inverse-square law.',
+  'absolute magnitude': 'The apparent magnitude an object would have at a standard distance of 10 parsecs. A measure of intrinsic luminosity in the magnitude system.',
+  'apparent magnitude': 'How bright an object appears from Earth, on a logarithmic scale where lower numbers are brighter. The Sun is −26.7; Sirius is −1.46; the faintest naked-eye stars are ~+6.',
+  'spectral class': 'The OBAFGKM classification of stars by surface temperature (hot to cool). Subdivided 0–9 (G2 is hotter than G8). The Sun is G2V.',
+  'luminosity class': 'A Roman-numeral suffix to the spectral type indicating evolutionary state. V = main sequence (dwarf), III = giant, I = supergiant, D = white dwarf.',
+  'saha equation': 'Governs the ionization balance in a gas. Predicts how much of an element is in each ionization state at a given temperature and electron density.',
+  'pp chain': 'Proton-proton chain — the dominant hydrogen-burning process in stars of ≤1.3 M☉. Converts four protons into one ⁴He nucleus, releasing ~26.7 MeV.',
+  'cno cycle': 'A hydrogen-fusion pathway using carbon, nitrogen, and oxygen as catalysts. Dominates in stars > ~1.3 M☉ because of its extreme temperature sensitivity (rate ∝ T¹⁷).',
+  'triple-alpha': 'The fusion of three ⁴He nuclei into one ¹²C, ignited at ~10⁸ K in red giants. Requires the Hoyle resonance in ¹²C.',
+  'binding energy': 'Energy that holds a nucleus together. Per-nucleon binding energy peaks at ⁵⁶Fe. Fusing lighter elements or splitting heavier ones releases energy.',
+  'hubble tension': 'The ~5σ disagreement between the locally measured Hubble constant (~73 km/s/Mpc, from Cepheids + Type Ia SNe) and the CMB-inferred value (~67 km/s/Mpc). One of the biggest open problems in cosmology.',
+  'big bang nucleosynthesis': 'BBN — the formation of the first light elements (D, ³He, ⁴He, ⁷Li) in the first ~20 minutes after the Big Bang.',
+  'planck epoch': 'The earliest moment in cosmic history (before t ≈ 10⁻⁴³ s) where known physics breaks down and a theory of quantum gravity is needed.',
+  'ism': 'The Interstellar Medium — the gas and dust filling space between stars within a galaxy. Has multiple phases from cold molecular clouds to hot ionized gas.',
+  'agb': 'Asymptotic Giant Branch — late phase of evolution for low- and intermediate-mass stars, characterized by thermal pulses and heavy mass loss before becoming a white dwarf.',
+  'isco': 'Innermost Stable Circular Orbit — the closest stable circular orbit around a black hole. r = 3 r_s for non-spinning (Schwarzschild) holes; can be as small as 0.5 r_s for maximally rotating Kerr holes.',
+  'photon sphere': 'The radius (1.5 r_s for Schwarzschild) at which light can theoretically orbit a black hole. Unstable orbit. Visible as the bright ring in EHT images.',
+  'eht': 'Event Horizon Telescope — a global network of radio telescopes that imaged the shadows of supermassive black holes in M87 (2019) and Sgr A* (2022).',
+  'mk classification': 'Morgan-Keenan stellar classification system — combines spectral type (O-M) with luminosity class (I-V). The Sun is G2V; Betelgeuse is M1-2Ia.',
+  'hr diagram': 'Hertzsprung-Russell diagram — a plot of stellar luminosity (vertical) vs surface temperature (horizontal, reversed). Reveals stellar evolution as patterns on the diagram.',
+  'tidal locking': 'When a body\'s rotation period equals its orbital period, so the same face always points toward its partner. The Moon is tidally locked to Earth.',
+  'libration': 'Apparent rocking of the Moon (or any tidally locked body) due to orbital eccentricity and inclination. Lets us see ~59% of the Moon\'s surface over time.',
+  'synodic month': 'The 29.53-day period from one new moon to the next, longer than the sidereal month (27.32 d) because Earth moves around the Sun during the Moon\'s orbit.',
+  'sidereal month': 'The 27.32-day period for the Moon to return to the same position relative to the stars.',
+  'saros cycle': 'An 18-year-11-day-8-hour eclipse repetition period, used since Babylonian times. Eclipses one Saros apart have nearly identical geometry.',
+  'transit method': 'Detecting exoplanets by observing the small dip in starlight when a planet passes in front of its star. Used by Kepler and TESS.',
+  'radial velocity': 'Detecting exoplanets by measuring the Doppler shift of a star\'s spectrum as it wobbles around the common centre of mass with its planet(s).',
+  'habitable zone': 'The orbital range around a star where a rocky planet could maintain liquid water on its surface. Scales as a ∝ √L.',
+  'sn ia': 'Type Ia supernova — thermonuclear explosion of a white dwarf that exceeded the Chandrasekhar limit by accretion or merger. Standardisable candle reaching cosmological distances.',
+  'friedmann equations': 'The equations from general relativity that govern the expansion of a homogeneous, isotropic universe. Connect the Hubble parameter to the energy density.',
+  'lambda cdm': 'The standard cosmological model: a universe dominated by a cosmological constant (Λ) and cold dark matter (CDM), with ordinary matter, radiation, and neutrinos.',
+  'ergosphere': 'Region outside the event horizon of a rotating (Kerr) black hole where spacetime is dragged so strongly that no observer can remain stationary.',
+  'planetary nebula': 'The expanding shell of gas expelled by a low- or intermediate-mass star at the end of its AGB phase, illuminated by the exposed hot core (a future white dwarf). Nothing to do with planets.',
+};
+
+function Term({ k, children }) {
+  const [open, setOpen] = useState(false);
+  const def = GLOSSARY[k?.toLowerCase()];
+  if (!def) return <span>{children}</span>;
+  return (
+    <span style={{ position: 'relative', display: 'inline' }}>
+      <span
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onClick={() => setOpen(o => !o)}
+        style={{
+          cursor: 'help',
+          borderBottom: `1px dotted ${ACCENT}`,
+          color: 'inherit',
+        }}>
+        {children}
+      </span>
+      {open && (
+        <span style={{
+          position: 'absolute',
+          bottom: '100%',
+          left: '0',
+          marginBottom: 8,
+          padding: '12px 14px',
+          background: '#0d1018',
+          border: `1px solid ${ACCENT}40`,
+          borderRadius: 4,
+          width: 320,
+          maxWidth: '90vw',
+          zIndex: 100,
+          fontSize: '13px',
+          fontFamily: 'Fraunces, serif',
+          color: '#c8c3b1',
+          lineHeight: 1.5,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+          display: 'block',
+        }}>
+          <span style={{
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: '10px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.15em',
+            color: ACCENT,
+            display: 'block',
+            marginBottom: 6,
+          }}>{k}</span>
+          {def}
+        </span>
+      )}
+    </span>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  SHARED INTERACTIVE COMPONENTS
+//  Worked example, quiz, numerical playground, open-questions sidebar, photo
+// ═══════════════════════════════════════════════════════════════════════════
+
+function WorkedExample({ title, steps }) {
+  const [step, setStep] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const current = steps[step];
+
+  return (
+    <div className="my-8 p-6 rounded" style={{ border: `1px solid ${ACCENT}30`, background: 'rgba(255, 201, 122, 0.03)' }}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <Pill>worked example</Pill>
+          <span className="font-mono text-xs" style={{ color: DIM }}>
+            Step {step + 1} of {steps.length}
+          </span>
+        </div>
+        <div className="flex gap-1">
+          {steps.map((_, i) => (
+            <div key={i} className="w-6 h-0.5 rounded-full transition"
+                 style={{ background: i <= step ? ACCENT : BORDER }} />
+          ))}
+        </div>
+      </div>
+
+      <h4 className="font-display text-xl mb-4" style={{ letterSpacing: '-0.01em' }}>{title}</h4>
+
+      <div className="fade-in" key={step}>
+        <div className="font-display text-base leading-relaxed mb-4" style={{ color: '#c8c3b1' }}>
+          {current.text}
+        </div>
+        {current.eq && (
+          <Eq>{current.eq}</Eq>
+        )}
+        {current.answer && (
+          <div className="mt-4">
+            {!revealed ? (
+              <button onClick={() => setRevealed(true)}
+                className="font-mono text-xs uppercase tracking-widest px-4 py-2 rounded transition"
+                style={{ color: ACCENT, border: `1px solid ${ACCENT}40` }}>
+                Reveal answer
+              </button>
+            ) : (
+              <div className="p-4 rounded fade-in" style={{ background: 'rgba(122, 196, 255, 0.06)', border: `1px solid ${ACCENT2}30` }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: ACCENT2 }}>Answer</div>
+                <div className="font-display text-base" style={{ color: INK }}>{current.answer}</div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-between mt-6">
+        <button onClick={() => { setStep(Math.max(0, step - 1)); setRevealed(false); }}
+                disabled={step === 0}
+                className="font-mono text-xs uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded transition disabled:opacity-30"
+                style={{ color: INK, border: `1px solid ${BORDER}` }}>
+          <ChevronLeft size={12} /> previous
+        </button>
+        <button onClick={() => { setStep(Math.min(steps.length - 1, step + 1)); setRevealed(false); }}
+                disabled={step === steps.length - 1}
+                className="font-mono text-xs uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded transition disabled:opacity-30"
+                style={{ color: BG, background: ACCENT }}>
+          next <ChevronRight size={12} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Quiz({ questions }) {
+  const [answers, setAnswers] = useState({});
+  const [revealed, setRevealed] = useState({});
+
+  function chooseAnswer(qIdx, optIdx) {
+    setAnswers(a => ({ ...a, [qIdx]: optIdx }));
+    setRevealed(r => ({ ...r, [qIdx]: true }));
+  }
+
+  return (
+    <div className="my-8 p-6 rounded" style={{ border: `1px solid ${ACCENT2}30`, background: 'rgba(122, 196, 255, 0.03)' }}>
+      <div className="flex items-center justify-between mb-6">
+        <Pill color={ACCENT2}>quick check</Pill>
+        <span className="font-mono text-xs" style={{ color: DIM }}>
+          {Object.keys(revealed).length} / {questions.length} answered
+        </span>
+      </div>
+
+      <div className="space-y-8">
+        {questions.map((q, qIdx) => (
+          <div key={qIdx}>
+            <div className="font-display text-base mb-4" style={{ color: INK }}>
+              <span className="font-mono text-sm mr-2" style={{ color: ACCENT2 }}>{qIdx + 1}.</span>
+              {q.q}
+            </div>
+            <div className="space-y-2">
+              {q.options.map((opt, optIdx) => {
+                const isChosen = answers[qIdx] === optIdx;
+                const isCorrect = optIdx === q.correct;
+                const isRevealed = revealed[qIdx];
+                let bg = BG, border = BORDER, color = INK;
+                if (isRevealed) {
+                  if (isCorrect) { bg = 'rgba(122, 255, 122, 0.08)'; border = '#7aff7a60'; color = '#c8e8c8'; }
+                  else if (isChosen) { bg = 'rgba(255, 122, 122, 0.06)'; border = '#ff7a7a40'; color = '#e8c8c8'; }
+                  else { color = DIM; }
+                }
+                return (
+                  <button key={optIdx}
+                    onClick={() => !isRevealed && chooseAnswer(qIdx, optIdx)}
+                    disabled={isRevealed}
+                    className="w-full text-left px-4 py-3 rounded transition font-display text-sm"
+                    style={{ background: bg, border: `1px solid ${border}`, color,
+                             cursor: isRevealed ? 'default' : 'pointer' }}>
+                    <span className="font-mono text-xs mr-2 opacity-60">{['A', 'B', 'C', 'D'][optIdx]}.</span>
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+            {revealed[qIdx] && q.explain && (
+              <div className="mt-3 px-4 py-3 rounded fade-in font-display text-sm leading-relaxed"
+                   style={{ background: 'rgba(255, 255, 255, 0.02)', color: '#c8c3b1' }}>
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] mr-2" style={{ color: ACCENT }}>why</span>
+                {q.explain}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OpenQuestions({ items }) {
+  return (
+    <div className="my-8 p-6 rounded" style={{ border: `1px solid ${ACCENT3}30`, background: 'rgba(255, 138, 112, 0.03)' }}>
+      <div className="flex items-center gap-3 mb-4">
+        <Pill color={ACCENT3}>what we don't know</Pill>
+      </div>
+      <p className="font-display text-sm italic mb-5" style={{ color: DIM }}>
+        Every topic has its frontiers. These are the open questions in this area where genuine
+        research is happening right now.
+      </p>
+      <ul className="space-y-4">
+        {items.map((item, i) => (
+          <li key={i} className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>
+            <span style={{ color: ACCENT3 }}>◆</span> <strong style={{ color: INK }}>{item.q}</strong> {item.detail}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function TryThis({ title, items }) {
+  return (
+    <div className="my-8 p-6 rounded" style={{ border: `1px solid ${ACCENT}30`, background: 'rgba(255, 201, 122, 0.03)' }}>
+      <div className="flex items-center gap-3 mb-4">
+        <Pill>try this yourself</Pill>
+      </div>
+      <h4 className="font-display text-xl mb-4" style={{ letterSpacing: '-0.01em' }}>{title}</h4>
+      <ul className="space-y-4">
+        {items.map((item, i) => (
+          <li key={i} className="flex gap-4">
+            <div className="font-mono text-xs" style={{ color: ACCENT, minWidth: 24 }}>{String(i + 1).padStart(2, '0')}</div>
+            <div className="flex-1">
+              <div className="font-display text-base mb-1" style={{ color: INK }}>{item.title}</div>
+              <div className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{item.text}</div>
+              {item.gear && (
+                <div className="font-mono text-[10px] uppercase tracking-[0.15em] mt-2" style={{ color: DIM }}>
+                  gear: {item.gear}
+                </div>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Photo({ src, alt, caption, credit }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <figure className="my-8" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+      {failed ? (
+        <div className="p-8 text-center font-mono text-xs" style={{ color: DIM }}>
+          [photograph: {alt}]
+          <br /><span style={{ color: FAINT }}>image unavailable</span>
+        </div>
+      ) : (
+        <img src={src} alt={alt} loading="lazy" onError={() => setFailed(true)}
+             style={{ width: '100%', display: 'block' }} />
+      )}
+      {(caption || credit) && (
+        <figcaption className="px-4 py-3" style={{ borderTop: `1px solid ${BORDER}` }}>
+          {caption && (
+            <div className="font-display text-sm leading-relaxed mb-1" style={{ color: '#c8c3b1' }}>{caption}</div>
+          )}
+          {credit && (
+            <div className="font-mono text-[10px] uppercase tracking-[0.15em]" style={{ color: DIM }}>credit: {credit}</div>
+          )}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
+// Numerical playground — input fields with live computed outputs
+function Playground({ title, description, inputs, compute, outputs }) {
+  const [values, setValues] = useState(() =>
+    Object.fromEntries(inputs.map(i => [i.key, i.default]))
+  );
+  const results = compute(values);
+
+  return (
+    <div className="my-8 p-6 rounded" style={{ border: `1px solid ${ACCENT}30`, background: 'rgba(255, 201, 122, 0.04)' }}>
+      <div className="flex items-center gap-3 mb-3">
+        <Pill>playground</Pill>
+      </div>
+      <h4 className="font-display text-xl mb-2" style={{ letterSpacing: '-0.01em' }}>{title}</h4>
+      {description && (
+        <p className="font-display text-sm mb-5 leading-relaxed" style={{ color: DIM }}>{description}</p>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT }}>Inputs</div>
+          <div className="space-y-4">
+            {inputs.map(inp => (
+              <div key={inp.key}>
+                <div className="flex justify-between items-baseline mb-1">
+                  <label className="font-display text-sm" style={{ color: INK }}>{inp.label}</label>
+                  <span className="font-mono text-xs" style={{ color: ACCENT }}>
+                    {typeof values[inp.key] === 'number' ?
+                      (values[inp.key] < 0.01 || values[inp.key] >= 10000 ?
+                        values[inp.key].toExponential(2) :
+                        values[inp.key].toPrecision(3))
+                      : values[inp.key]}
+                    {inp.unit && <span style={{ color: DIM }}> {inp.unit}</span>}
+                  </span>
+                </div>
+                <input type="range"
+                       min={inp.min} max={inp.max} step={inp.step || (inp.max - inp.min) / 100}
+                       value={inp.log ? Math.log10(values[inp.key]) : values[inp.key]}
+                       onChange={e => {
+                         const v = parseFloat(e.target.value);
+                         setValues(vs => ({ ...vs, [inp.key]: inp.log ? Math.pow(10, v) : v }));
+                       }}
+                       className="w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT2 }}>Computed</div>
+          <div className="space-y-2">
+            {outputs.map(out => (
+              <div key={out.key} className="flex justify-between items-baseline py-2"
+                   style={{ borderBottom: `1px solid ${BORDER}` }}>
+                <span className="font-display text-sm" style={{ color: '#c8c3b1' }}>{out.label}</span>
+                <span className="font-mono text-sm" style={{ color: INK }}>
+                  {results[out.key] !== undefined ?
+                    (typeof results[out.key] === 'number' ?
+                      (Math.abs(results[out.key]) < 0.001 || Math.abs(results[out.key]) >= 1e6 ?
+                        fmtSci(results[out.key], 2) :
+                        Number(results[out.key].toPrecision(3)).toString())
+                      : results[out.key])
+                    : '—'}
+                  {out.unit && <span style={{ color: DIM }}> {out.unit}</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  LEARNING PATHS PAGE
+// ═══════════════════════════════════════════════════════════════════════════
+const PATHS = {
+  newcomer: {
+    icon: '🌱',
+    title: 'Newcomer',
+    sub: 'No mathematical background assumed',
+    desc: 'Visual intuition first, equations as context. Start with what you can already observe yourself, then build outward from the familiar to the cosmic. Equations appear, but you can skip past them — the prose carries the story.',
+    order: ['moon', 'obs', 'sizes', 'spec', 'hr', 'life', 'gal', 'bb', 'exo', 'ladder', 'bh', 'fusion'],
+    note: 'Start with topics you can verify with your own eyes (Moon, constellations), then move to what light tells us (Spectra, HR Diagram), and finally to the things that require trust in physics (Fusion, Black Holes).',
+  },
+  refresher: {
+    icon: '🔄',
+    title: 'Refresher',
+    sub: "You've seen this before",
+    desc: "Core spine of stellar physics and cosmology, in the order they're usually taught. Skip the gentle warmups and go straight for the central machinery.",
+    order: ['hr', 'life', 'fusion', 'spec', 'ladder', 'bb', 'gal', 'bh', 'exo', 'moon', 'obs'],
+    note: 'Heavily weighted to stellar astrophysics in the first half, cosmology and exoplanets in the second.',
+  },
+  deepdiver: {
+    icon: '🔬',
+    title: 'Deep diver',
+    sub: 'Career-transition preparation',
+    desc: 'Follow the physics. Start with the most fundamental processes (nuclear fusion) and build outward. Pay close attention to derivations, scaling laws, and the worked examples in each topic.',
+    order: ['fusion', 'hr', 'life', 'spec', 'bh', 'ladder', 'bb', 'gal', 'exo', 'moon', 'obs'],
+    note: 'This path treats astronomy as applied physics. Each topic builds on machinery from the previous ones.',
+  },
+};
+
+function LearningPaths({ onBack, onSelect }) {
+  const [chosen, setChosen] = useState('newcomer');
+  const path = PATHS[chosen];
+  return (
+    <PageShell onBack={onBack} eyebrow="Curriculum"
+               title={<>Suggested <em style={{ color: ACCENT, fontStyle: 'italic' }}>Learning Paths</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        Topics can be explored in any order — each stands alone. But there are coherent paths through
+        them. Pick the one that fits where you are.
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-px mb-10" style={{ background: BORDER }}>
+        {Object.entries(PATHS).map(([key, p]) => (
+          <button key={key} onClick={() => setChosen(key)}
+                  className="p-6 text-left transition"
+                  style={{ background: chosen === key ? `${ACCENT}10` : BG,
+                           borderTop: chosen === key ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+            <div className="text-3xl mb-3">{p.icon}</div>
+            <div className="font-display text-2xl mb-1" style={{ letterSpacing: '-0.01em', color: chosen === key ? ACCENT : INK }}>{p.title}</div>
+            <div className="font-mono text-xs" style={{ color: DIM }}>{p.sub}</div>
+          </button>
+        ))}
+      </div>
+
+      <div className="fade-in" key={chosen}>
+        <p className="font-display text-base leading-relaxed mb-8 max-w-3xl" style={{ color: '#c8c3b1' }}>
+          {path.desc}
+        </p>
+
+        <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: ACCENT }}>
+          The path · {path.order.length} topics
+        </div>
+        <div className="space-y-px mb-8" style={{ background: BORDER }}>
+          {path.order.map((topicId, idx) => {
+            const topic = TOPICS.find(t => t.id === topicId);
+            if (!topic) return null;
+            return (
+              <button key={topicId} onClick={() => topic.ready && onSelect(topicId)}
+                      disabled={!topic.ready}
+                      className={`w-full text-left p-5 transition ${topic.ready ? 'hover:bg-white/[0.03]' : ''}`}
+                      style={{ background: BG, cursor: topic.ready ? 'pointer' : 'not-allowed' }}>
+                <div className="flex items-center gap-5">
+                  <div className="font-mono text-2xl" style={{ color: DIM, minWidth: 40 }}>
+                    {String(idx + 1).padStart(2, '0')}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-display text-xl" style={{ color: topic.ready ? INK : DIM, letterSpacing: '-0.01em' }}>
+                      {topic.title}
+                    </div>
+                    <div className="font-display text-sm mt-1" style={{ color: DIM }}>{topic.sub}</div>
+                  </div>
+                  {topic.ready ? (
+                    <span className="font-mono text-xs" style={{ color: ACCENT }}>→</span>
+                  ) : (
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: FAINT }}>soon</span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-start gap-3 max-w-2xl">
+          <Sparkles size={14} style={{ color: ACCENT, marginTop: 4 }} />
+          <p className="font-mono text-xs leading-relaxed" style={{ color: DIM }}>{path.note}</p>
+        </div>
+      </div>
+    </PageShell>
   );
 }
 
@@ -192,8 +707,9 @@ const TOPICS = [
   { id: 'bb',     n: '09', title: 'The Big Bang Timeline',         sub: 'From Planck era to recombination, logarithmically',   ready: true },
   { id: 'exo',    n: '10', title: 'Exoplanet Detection',           sub: 'Transits, radial velocity, microlensing, imaging',    ready: true },
   { id: 'moon',   n: '11', title: 'The Moon · Phases & Tides',     sub: 'Our nearest neighbour and the rhythms it drives',     ready: true },
-  { id: 'sr',     n: '12', title: 'Special Relativity Essentials', sub: 'The Lorentz factor and what it does to spacetime',    ready: false },
-  { id: 'cmb',    n: '13', title: 'The Cosmic Microwave Background', sub: 'A baby photo of the universe at 380,000 years',     ready: false },
+  { id: 'obs',    n: '12', title: 'Observational Astronomy',       sub: 'Constellations, the sky tonight, and how to look up',  ready: true },
+  { id: 'sr',     n: '13', title: 'Special Relativity Essentials', sub: 'The Lorentz factor and what it does to spacetime',    ready: false },
+  { id: 'cmb',    n: '14', title: 'The Cosmic Microwave Background', sub: 'A baby photo of the universe at 380,000 years',     ready: false },
 ];
 
 function StarField() {
@@ -211,24 +727,30 @@ function StarField() {
   );
 }
 
-function Hub({ onSelect }) {
+function Hub({ onSelect, onShowPaths }) {
   return (
     <div className="min-h-screen relative grain overflow-hidden" style={{ background: BG, color: INK }}>
       <FontStyles />
       <StarField />
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-16 md:pt-24 pb-16">
         <div className="font-mono text-xs uppercase tracking-[0.3em] mb-4" style={{ color: ACCENT }}>
-          An interactive primer · v0.4
+          An interactive primer · v0.5
         </div>
         <h1 className="font-display font-light text-6xl md:text-7xl leading-[1.0] mb-6 max-w-4xl" style={{ letterSpacing: '-0.025em' }}>
           Cosmos<br />
           <span style={{ fontStyle: 'italic', color: ACCENT }}>Explorer.</span>
         </h1>
-        <p className="font-display text-lg md:text-xl max-w-3xl mb-16 leading-relaxed" style={{ color: '#c8c3b1' }}>
+        <p className="font-display text-lg md:text-xl max-w-3xl mb-8 leading-relaxed" style={{ color: '#c8c3b1' }}>
           A growing collection of interactive astrophysics primers — built at first-year-course depth,
           with real equations, derivations, and connections between topics. Each entry stands alone;
           taken together they form a curriculum.
         </p>
+
+        <button onClick={onShowPaths}
+          className="font-mono text-xs uppercase tracking-widest flex items-center gap-2 px-4 py-3 rounded transition mb-12 hover:bg-white/5"
+          style={{ color: ACCENT, border: `1px solid ${ACCENT}40` }}>
+          <BookOpen size={14} /> Where should I start? · Learning paths
+        </button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px"
              style={{ background: BORDER }}>
@@ -528,6 +1050,67 @@ function HRDiagram({ onBack }) {
                 giant, I is a supergiant. The Sun is G2V; Betelgeuse is M1-2Ia.
               </p>
             </Section>
+
+            <Playground
+              title="Stellar diagnostic calculator"
+              description="Drag the sliders to set any star's basic parameters and see what falls out — Stefan-Boltzmann radius and rough main-sequence lifetime."
+              inputs={[
+                { key: 'T', label: 'Surface temperature', default: 5778, min: 2500, max: 40000, step: 100, unit: 'K' },
+                { key: 'L', label: 'Luminosity', default: 1, min: -4, max: 6, log: true, unit: 'L☉' },
+                { key: 'M', label: 'Mass (assumes MS)', default: 1, min: -1, max: 2, log: true, unit: 'M☉' },
+              ]}
+              compute={(v) => {
+                // L = 4π R² σ T⁴, in solar units: L/L☉ = (R/R☉)² (T/T☉)⁴
+                const R = Math.sqrt(v.L / Math.pow(v.T / 5778, 4));
+                const tMS = 1e10 * Math.pow(v.M, -2.5);
+                const Lpredicted = Math.pow(v.M, 3.5);
+                const spectralClass = spectralLetter(v.T);
+                return {
+                  R: R, tMS: tMS, Lpredicted: Lpredicted, spectralClass: spectralClass,
+                };
+              }}
+              outputs={[
+                { key: 'spectralClass', label: 'Spectral class', unit: '' },
+                { key: 'R', label: 'Radius (Stefan-Boltzmann)', unit: 'R☉' },
+                { key: 'Lpredicted', label: 'L predicted from M (MS)', unit: 'L☉' },
+                { key: 'tMS', label: 'Main-sequence lifetime', unit: 'yr' },
+              ]}
+            />
+
+            <WorkedExample title="Estimate the Sun's main-sequence lifetime"
+                           steps={[
+                             { text: 'The Sun fuses hydrogen into helium. Each conversion of four protons into one ⁴He releases ~26.7 MeV, of which ~2% is lost as neutrinos and the rest powers the Sun. Roughly 10% of the Sun\'s total hydrogen will be burned during its main-sequence life (only the core gets hot enough).',
+                               eq: 'E_available = 0.10 × M☉ × X_H × 0.007 × c²' },
+                             { text: 'X_H is the hydrogen mass fraction (≈0.71 for the Sun). The factor 0.007 is the fraction of rest mass converted to energy per hydrogen-to-helium conversion (∼26.7 MeV / ∼4 × 938 MeV/c²).',
+                               eq: 'E_available ≈ 0.10 × (2 × 10³⁰ kg) × 0.71 × 0.007 × (3 × 10⁸ m/s)² ≈ 9 × 10⁴³ J' },
+                             { text: 'Divide by the Sun\'s current luminosity to estimate the lifetime.',
+                               eq: 't_MS = E_available / L☉ ≈ (9 × 10⁴³ J) / (3.8 × 10²⁶ W) ≈ 2.4 × 10¹⁷ s',
+                               answer: '≈ 7.5 × 10⁹ years (about 7.5 Gyr), consistent with detailed stellar models that give ~10 Gyr. The Sun is currently ~4.6 Gyr old, so it\'s about halfway through its main-sequence life.' },
+                           ]} />
+
+            <Quiz questions={[
+              { q: 'A star is hotter than the Sun but has the same luminosity. Compared to the Sun, it must be:',
+                options: ['Larger', 'Smaller', 'Same size', 'More massive'],
+                correct: 1,
+                explain: 'From L = 4πR²σT⁴, if L is the same but T is higher, then R must be smaller. Hotter surface, smaller area, same total power. This is why hot subdwarfs and white dwarfs sit below the main sequence.' },
+              { q: 'Which lives longest on the main sequence?',
+                options: ['A 50 M☉ O star', 'A 1 M☉ G star like the Sun', 'A 0.3 M☉ M dwarf', 'They all live about the same time'],
+                correct: 2,
+                explain: 't_MS ∝ M / L ∝ M^(-2.5). A 0.3 M☉ red dwarf has a lifetime ~70× the Sun\'s — longer than the current age of the universe. No M dwarf has ever finished its main-sequence life by natural causes.' },
+              { q: 'The position of a star on the HR diagram is set primarily by its:',
+                options: ['Age', 'Composition', 'Mass (during MS)', 'Distance from Earth'],
+                correct: 2,
+                explain: 'During the main sequence, a star\'s mass nearly fully determines its luminosity and temperature (composition and rotation cause smaller variations). The HR diagram is, for MS stars, essentially a "mass spectrum."' },
+            ]} />
+
+            <OpenQuestions items={[
+              { q: 'How exactly do convective and radiative transport interact in stars?',
+                detail: 'Stellar interior models still use simple mixing-length theory for convection — a 1950s phenomenological model. 3D hydrodynamic simulations are revealing significant departures from this picture, especially near stellar surfaces. Getting this right matters for stellar ages, masses, and the helioseismology of the Sun.' },
+              { q: 'What sets the upper mass limit of stars?',
+                detail: 'Theoretical limits suggest ~150 M☉ should be the ceiling for stable stars (above this, radiation pressure tears them apart). But objects up to ~300 M☉ have been claimed observationally. How — and whether they\'re actually individual stars or unresolved multiples — is still debated.' },
+              { q: 'Why does the Sun show a "lithium problem"?',
+                detail: 'The Sun\'s photospheric lithium is depleted by ~200× compared to meteoritic abundance, far more than standard stellar models predict. The most likely cause is some form of mixing reaching deep enough to burn lithium, but the mechanism (rotation? convective overshoot? planet engulfment?) remains unclear.' },
+            ]} />
           </div>
         </div>
 
@@ -1502,6 +2085,91 @@ function DistanceLadder({ onBack }) {
             Hubble was within 20%. Considering he was the first to do it, that’s remarkable.
           </p>
         </Section>
+
+        <Playground
+          title="Distance from parallax"
+          description="The parallax angle p (in arcseconds) gives distance in parsecs as d = 1/p. Try plugging in real measurements."
+          inputs={[
+            { key: 'p', label: 'Parallax angle', default: 0.1, min: -3, max: 1, log: true, unit: 'arcsec' },
+          ]}
+          compute={(v) => {
+            const d_pc = 1 / v.p;
+            const d_ly = d_pc * 3.262;
+            const d_km = d_pc * 3.086e13;
+            return { d_pc, d_ly, d_km };
+          }}
+          outputs={[
+            { key: 'd_pc', label: 'Distance', unit: 'pc' },
+            { key: 'd_ly', label: 'Distance', unit: 'ly' },
+            { key: 'd_km', label: 'Distance', unit: 'km' },
+          ]}
+        />
+
+        <Playground
+          title="Distance from a Cepheid"
+          description="Use the period-luminosity relation. The Leavitt law gives M_V from the pulsation period; with the apparent magnitude m, the distance modulus gives the distance."
+          inputs={[
+            { key: 'P', label: 'Pulsation period', default: 10, min: 0, max: 2, log: true, unit: 'days' },
+            { key: 'm', label: 'Apparent magnitude m', default: 12, min: 4, max: 25, step: 0.1, unit: 'mag' },
+          ]}
+          compute={(v) => {
+            // Leavitt law (V band): M_V ≈ -2.78 log P - 1.35
+            const Mv = -2.78 * Math.log10(v.P) - 1.35;
+            const distMod = v.m - Mv;
+            const d_pc = Math.pow(10, distMod / 5 + 1);
+            const d_kpc = d_pc / 1000;
+            const d_Mpc = d_pc / 1e6;
+            return { Mv, distMod, d_pc, d_kpc, d_Mpc };
+          }}
+          outputs={[
+            { key: 'Mv', label: 'Absolute magnitude M_V', unit: 'mag' },
+            { key: 'distMod', label: 'Distance modulus (m − M)', unit: 'mag' },
+            { key: 'd_pc', label: 'Distance', unit: 'pc' },
+            { key: 'd_kpc', label: 'Distance', unit: 'kpc' },
+            { key: 'd_Mpc', label: 'Distance', unit: 'Mpc' },
+          ]}
+        />
+
+        <WorkedExample title="Cosmological distance from redshift"
+                       steps={[
+                         { text: 'A galaxy\'s spectrum shows the H-alpha line, normally at 656.3 nm, observed at 730 nm. Compute the redshift.',
+                           eq: 'z = (λ_obs − λ_rest) / λ_rest = (730 − 656.3) / 656.3' },
+                         { text: 'This gives z = 0.112, a low redshift where the simple Hubble law applies.',
+                           eq: 'v = cz = (3 × 10⁵ km/s) × 0.112 ≈ 33,700 km/s' },
+                         { text: 'Apply Hubble\'s law with H₀ ≈ 70 km/s/Mpc:',
+                           eq: 'd = v / H₀ = 33,700 / 70',
+                           answer: '≈ 480 Mpc ≈ 1.6 billion light-years. We see this galaxy as it was 1.6 Gyr ago. At higher z (z > 0.3), the simple v = cz approximation breaks down and full GR is needed to convert redshift to distance.' },
+                       ]} />
+
+        <Quiz questions={[
+          { q: 'A star has parallax 0.5 arcseconds. How far away is it?',
+            options: ['0.5 parsec', '1 parsec', '2 parsec', '5 parsec'],
+            correct: 2,
+            explain: 'd (pc) = 1 / p (arcsec). 1 / 0.5 = 2 pc. The parsec is defined as the distance giving exactly 1 arcsec of parallax. Larger parallax angle = closer star.' },
+          { q: 'Why does the Cosmic Distance Ladder need so many "rungs"?',
+            options: ['To be more accurate', 'No single method works at all distances', 'Different colours of light see different distances', 'Tradition'],
+            correct: 1,
+            explain: 'Each method only works in a limited range. Parallax fails beyond ~10 kpc (angles too small); Cepheids fade beyond ~50 Mpc; supernovae are rare. Each rung is calibrated by the one below.' },
+          { q: 'The Hubble tension is the disagreement between H₀ measured from:',
+            options: ['Earth vs space-based telescopes', 'Cepheids vs supernovae', 'Local distance ladder (~73 km/s/Mpc) vs CMB (~67 km/s/Mpc)', 'Optical vs radio observations'],
+            correct: 2,
+            explain: 'Local measurements using parallax → Cepheids → Type Ia SNe give H₀ ≈ 73; the CMB combined with ΛCDM gives H₀ ≈ 67. The disagreement is ~5σ and resists every explanation tried. Either there\'s an unidentified systematic, or our cosmological model is incomplete.' },
+        ]} />
+
+        <TryThis title="Measure a real cosmic distance yourself"
+                 items={[
+                   { title: 'Estimate the Moon\'s distance by parallax', text: 'Have a friend ~1 km away photograph the Moon at exactly the same time as you, both with a distant landmark in frame. The Moon\'s position relative to the landmark will shift between the two photos. Use the geometry (baseline of 1 km, measured angle shift) to compute the Moon\'s distance — you should get something near 400,000 km.', gear: 'Two phone cameras, one friend, a clear night' },
+                   { title: 'Find a Cepheid in real data', text: 'Download AAVSO data for any well-known Cepheid (δ Cephei itself is good). Plot magnitude vs time. The light curve repeats with the same period the discovery used to set the P-L relation.', gear: 'Browser + free AAVSO account' },
+                 ]} />
+
+        <OpenQuestions items={[
+          { q: 'Is the Hubble tension real?',
+            detail: '— After a decade of effort, the discrepancy between local (~73) and CMB (~67) H₀ measurements has not narrowed. Either there\'s a subtle systematic in the Cepheid/SN Ia calibration chain or in the CMB analysis, or there\'s new physics: early dark energy, modified neutrino interactions, or a deviation from ΛCDM at recombination.' },
+          { q: 'What if Type Ia supernovae are not as standard as we think?',
+            detail: '— Modern surveys are finding evidence that Type Ia SNe in different host galaxy types may have slightly different intrinsic luminosities. A ~1-2% effect at this level would shift H₀ enough to matter.' },
+          { q: 'Can gravitational-wave "standard sirens" break the tension?',
+            detail: '— Binary neutron star mergers provide an independent distance measurement (via the GW waveform amplitude) that doesn\'t depend on the distance ladder. GW170817 gave one such measurement; more are coming. With ~50 events we should have a clean independent H₀.' },
+        ]} />
       </div>
     </PageShell>
   );
@@ -1746,6 +2414,81 @@ function BlackHole({ onBack }) {
           </div>
         </aside>
       </div>
+
+      {/* Real photographs */}
+      <div className="mt-12 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+        <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>Imaging the unimageable</h3>
+
+        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Black_hole_-_Messier_87_crop_max_res.jpg/1280px-Black_hole_-_Messier_87_crop_max_res.jpg"
+               alt="EHT image of M87*"
+               caption="The Event Horizon Telescope's 2019 image of M87* — the supermassive black hole at the centre of M87. The dark central region is the black hole's shadow, ~2.6× the Schwarzschild diameter due to gravitational lensing. The bright ring is the photon sphere illuminated by accreting plasma."
+               credit="Event Horizon Telescope Collaboration" />
+
+        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/EHT_Saggitarius_A_black_hole.tif/lossy-page1-1280px-EHT_Saggitarius_A_black_hole.tif.jpg"
+               alt="EHT image of Sgr A*"
+               caption="EHT's 2022 image of Sagittarius A* — the supermassive black hole at the centre of our own Milky Way (~4.3 × 10⁶ M☉, ~27,000 ly away). About 1,500× less massive than M87* but ~2,000× closer, so similar angular size."
+               credit="Event Horizon Telescope Collaboration" />
+      </div>
+
+      <WorkedExample title="Compute the Schwarzschild radius of the Sun"
+                     steps={[
+                       { text: 'The Schwarzschild radius is the radius at which the escape velocity from a mass equals the speed of light. Set ½v² = GM/r with v = c.',
+                         eq: 'r_s = 2GM / c²' },
+                       { text: 'Plug in the Sun\'s mass (M = 1.989 × 10³⁰ kg), G = 6.674 × 10⁻¹¹ N·m²/kg², and c = 2.998 × 10⁸ m/s.',
+                         eq: 'r_s = 2 × (6.674e−11) × (1.989e30) / (2.998e8)²' },
+                       { text: 'Compute carefully step by step.',
+                         eq: 'r_s = 2.654 × 10²⁰ / 8.988 × 10¹⁶ ≈ 2,953 m',
+                         answer: '≈ 2.95 km. If the Sun collapsed into a black hole, its event horizon would be a sphere ~3 km across — about the size of a small town. Earth\'s Schwarzschild radius is just 8.8 mm.' },
+                     ]} />
+
+      <Playground
+        title="Black hole calculator"
+        description="Set any black hole mass and see its key parameters. Stellar-mass holes are tiny and hot (relatively speaking); supermassive holes are vast and cold."
+        inputs={[
+          { key: 'M', label: 'Mass', default: 10, min: 0, max: 10, log: true, unit: 'M☉' },
+        ]}
+        compute={(v) => {
+          const G = 6.674e-11, c = 2.998e8, Msun = 1.989e30;
+          const hbar = 1.055e-34, kB = 1.381e-23;
+          const rs_km = 2 * G * (v.M * Msun) / (c * c) / 1000;
+          const T_H = (hbar * Math.pow(c, 3)) / (8 * Math.PI * G * (v.M * Msun) * kB);
+          const t_evap = 2.1e67 * Math.pow(v.M, 3);
+          const density = (v.M * Msun) / ((4/3) * Math.PI * Math.pow(rs_km * 1000, 3));
+          return { rs_km, T_H, t_evap, density };
+        }}
+        outputs={[
+          { key: 'rs_km', label: 'Schwarzschild radius', unit: 'km' },
+          { key: 'T_H', label: 'Hawking temperature', unit: 'K' },
+          { key: 'density', label: 'Average density', unit: 'kg/m³' },
+          { key: 't_evap', label: 'Evaporation time', unit: 'yr' },
+        ]}
+      />
+
+      <Quiz questions={[
+        { q: 'A black hole is twice as massive. Its event horizon radius is:',
+          options: ['Half as large', 'Same size', 'Twice as large', 'Four times as large'],
+          correct: 2,
+          explain: 'r_s = 2GM/c² is linear in mass. Double the mass, double the radius. Note this means the volume goes up as M³, so density falls as M⁻². A black hole the size of our solar system would have density less than water.' },
+        { q: 'Why isn\'t Hawking radiation from stellar-mass black holes observable?',
+          options: ['It doesn\'t exist', 'The temperature is too low (microkelvins to nanokelvins)', 'It\'s blocked by the event horizon', 'It only escapes during mergers'],
+          correct: 1,
+          explain: 'T_H = ℏc³/(8πGMk_B). For a 10 M☉ BH, T_H ≈ 6 × 10⁻⁹ K. The CMB at 2.725 K pours far more energy in than Hawking radiation pours out — so these BHs are net gaining mass from the CMB alone, never evaporating until the CMB cools below T_H, in ~10²⁰ years.' },
+        { q: 'What is the photon sphere?',
+          options: ['The event horizon', 'The radius where light can orbit the BH (1.5 r_s)', 'The accretion disk', 'The Roche limit'],
+          correct: 1,
+          explain: 'At r = 1.5 r_s for a Schwarzschild BH, light can theoretically orbit in unstable circular paths. The EHT images of M87* and Sgr A* show the photon sphere as the bright ring around the dark central shadow.' },
+      ]} />
+
+      <OpenQuestions items={[
+        { q: 'Where does the information go?',
+          detail: '— Hawking\'s 1974 calculation suggests information falling into a black hole is destroyed when the BH evaporates. Quantum mechanics says information must be conserved. This is the "black hole information paradox" and remains one of the deepest unsolved problems in fundamental physics. Recent work on the "Page curve" and entanglement islands offers tantalising progress.' },
+        { q: 'How did supermassive black holes form so quickly?',
+          detail: '— We see ~10⁹ M☉ BHs at z > 7, less than a billion years after the Big Bang. Standard accretion from stellar-mass seeds is too slow. Direct collapse of pristine gas clouds into ~10⁵ M☉ "seed" BHs is the leading hypothesis, but the conditions required (no metal cooling, no fragmentation) are stringent.' },
+        { q: 'Is there a "firewall" at the event horizon?',
+          detail: '— The 2012 AMPS paper argued that a strict version of black hole complementarity, the equivalence principle, and unitarity cannot all be true simultaneously. The proposed resolution — that infalling observers encounter a high-energy "firewall" at the horizon — would overturn general relativity. The debate remains open.' },
+        { q: 'Are LIGO\'s heavy stellar-mass BHs (~30-80 M☉) the products of normal stellar evolution?',
+          detail: '— Many gravitational-wave-detected merging BHs are heavier than expected from single-star evolution at solar metallicity. Possible explanations include low-metallicity environments, dynamical formation in dense clusters, or "primordial" BHs.' },
+      ]} />
     </PageShell>
   );
 }
@@ -2104,6 +2847,37 @@ function GalaxyMorph({ onBack }) {
           </div>
         </aside>
       </div>
+
+      {/* Real photographs */}
+      <div className="mt-12 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+        <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>The real thing</h3>
+
+        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/M31bobo.jpg/1280px-M31bobo.jpg"
+               alt="Andromeda Galaxy (M31)"
+               caption="The Andromeda Galaxy (M31), a large Sb spiral and the Milky Way's nearest major neighbour at ~765 kpc. Hubble's 1924 detection of Cepheids in this galaxy settled the Great Debate by proving it lay far outside the Milky Way."
+               credit="Bob Franke, via Wikimedia Commons (CC BY-SA)" />
+
+        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/M101_hires_STScI-PRC2006-10a.jpg/1280px-M101_hires_STScI-PRC2006-10a.jpg"
+               alt="Pinwheel Galaxy (M101)"
+               caption="The Pinwheel Galaxy (M101), a textbook Sc spiral seen nearly face-on. The bright pink knots are HII regions — vast clouds of ionised hydrogen lit up by clusters of young, massive stars."
+               credit="NASA, ESA, K.D. Kuntz (JHU), F. Bresolin (University of Hawaii), J. Trauger (Jet Propulsion Lab), J. Mould (NOAO), Y.-H. Chu (University of Illinois, Urbana), and STScI" />
+
+        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/M87_jet.jpg/1280px-M87_jet.jpg"
+               alt="M87 elliptical galaxy with jet"
+               caption="M87, a giant elliptical galaxy at the centre of the Virgo Cluster. The bright bluish jet is a relativistic outflow from the supermassive black hole (~6.5 × 10⁹ M☉) at its core — the same black hole imaged by the Event Horizon Telescope in 2019."
+               credit="NASA and The Hubble Heritage Team (STScI/AURA)" />
+      </div>
+
+      <OpenQuestions items={[
+        { q: 'How were the first galaxies built?',
+          detail: '— JWST is finding luminous galaxies at z > 10 (less than 500 Myr after the Big Bang) that look more massive and more evolved than ΛCDM predicts. Either galaxies formed faster than expected, the stellar masses are being overestimated, or something fundamental about early structure formation is off.' },
+        { q: 'What\'s the dominant mechanism for "quenching" star formation in massive galaxies?',
+          detail: '— Multiple candidates: AGN feedback, halo quenching above ~10¹² M☉, stripping in clusters. Different galaxies probably use different mechanisms — but disentangling which dominates where remains an active research area.' },
+        { q: 'Why are spiral arms so persistent?',
+          detail: '— Density-wave theory works in broad strokes but has trouble explaining how spiral patterns are sustained over many galactic rotations. Modern theories (transient spiral instabilities, swing amplification) better match simulations but the full picture isn\'t settled.' },
+        { q: 'What is the true incidence of intermediate-mass black holes (10² – 10⁵ M☉)?',
+          detail: '— We have abundant evidence for stellar-mass BHs and supermassive BHs, but the intermediate-mass regime is sparsely populated. Whether this is because they\'re truly rare, or just hard to detect, has implications for how supermassive BHs grew.' },
+      ]} />
     </PageShell>
   );
 }
@@ -3503,7 +4277,627 @@ function MoonTopic({ onBack }) {
             unvisited terrain.
           </p>
         </Section>
+
+        <Photo src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/1024px-FullMoon2010.jpg"
+               alt="Full Moon photograph"
+               caption="The full Moon. The dark patches are the maria — basaltic lava plains from impacts 3.0–3.8 billion years ago. Notice their concentration on the near side; the far side has almost none, due to crustal thickness asymmetry."
+               credit="Gregory H. Revera, via Wikimedia Commons (CC BY-SA)" />
+
+        <Playground
+          title="Tidal force calculator"
+          description="The tidal force on a body of radius r from a perturbing mass M at distance d scales as 2GMr/d³. Try comparing the Moon to the Sun, or to a hypothetical close neutron star."
+          inputs={[
+            { key: 'M', label: 'Perturbing mass', default: 7.35e22, min: 20, max: 30, log: true, unit: 'kg' },
+            { key: 'd', label: 'Distance', default: 3.84e8, min: 6, max: 12, log: true, unit: 'm' },
+          ]}
+          compute={(v) => {
+            const G = 6.674e-11;
+            const r_earth = 6.371e6; // m
+            const a_tidal = 2 * G * v.M * r_earth / Math.pow(v.d, 3);
+            // Equilibrium tide height: 1/2 (a_tidal / g_earth) * r_earth
+            const g = 9.81;
+            const h_eq = 0.5 * (a_tidal / g) * r_earth;
+            return { a_tidal, h_eq };
+          }}
+          outputs={[
+            { key: 'a_tidal', label: 'Tidal acceleration at Earth\'s surface', unit: 'm/s²' },
+            { key: 'h_eq', label: 'Equilibrium tide height', unit: 'm' },
+          ]}
+        />
+
+        <WorkedExample title="Compute the synodic month"
+                       steps={[
+                         { text: 'The sidereal month (Moon\'s orbit relative to the stars) is 27.32 days. The synodic month (full moon to full moon) is longer because Earth is also moving around the Sun.',
+                           eq: '1 / T_syn = 1 / T_sid − 1 / T_year' },
+                         { text: 'Plug in: T_sid = 27.32 days, T_year = 365.25 days.',
+                           eq: '1 / T_syn = 1/27.32 − 1/365.25 = 0.03661 − 0.00274 = 0.03387' },
+                         { text: 'Invert.',
+                           eq: 'T_syn = 1 / 0.03387 ≈ 29.53 days',
+                           answer: '29.53 days. This is why a lunar calendar (12 synodic months = 354 days) drifts ~11 days per solar year against a solar calendar.' },
+                       ]} />
+
+        <Quiz questions={[
+          { q: 'Why are there two high tides per day, not one?',
+            options: ['The Moon orbits Earth twice per day', 'Tides are differential gravity — both near and far sides bulge', 'The Sun contributes one and the Moon contributes the other', 'Coriolis effect'],
+            correct: 1,
+            explain: 'The Moon\'s gravity pulls the near-side ocean more than Earth\'s centre, and Earth\'s centre more than the far-side ocean. Both effects produce a bulge — one toward the Moon, one away. As Earth rotates, every coast passes through both bulges per day.' },
+          { q: 'When is the Moon highest in the sky?',
+            options: ['Always around midnight', 'When it\'s full', 'Roughly when it transits the meridian, which depends on its phase', 'When it\'s new'],
+            correct: 2,
+            explain: 'The Moon is highest when it transits your local meridian. A full Moon transits around midnight (opposite the Sun); a first-quarter Moon transits at sunset; a new Moon transits at noon (alongside the Sun, invisible).' },
+          { q: 'The Moon is receding from Earth at:',
+            options: ['Not at all — distance is fixed', '3.8 cm per year', '3.8 m per year', '3.8 km per year'],
+            correct: 1,
+            explain: '3.8 cm/year, measured directly by laser ranging off the Apollo retroreflectors. Tidal friction drags Earth\'s bulges ahead of the Earth-Moon line; the gravitational pull on the Moon from those displaced bulges does positive work, transferring angular momentum from Earth\'s rotation to the Moon\'s orbit.' },
+        ]} />
+
+        <TryThis title="Verify these facts yourself"
+                 items={[
+                   { title: 'Predict the next full Moon', text: 'A full Moon occurs every 29.53 days. From any known full-Moon date (your phone\'s calendar shows them), count 29.53 days forward. Verify with a glance at the sky on that night.', gear: 'Calendar' },
+                   { title: 'Watch the terminator over three nights', text: 'Photograph the Moon at the same time on three consecutive nights, especially around first quarter. The terminator visibly moves; specific craters that were in darkness one night are in sunlight the next. You\'re watching a lunar day unfold ~15× faster than an Earth day.', gear: 'Phone camera or binoculars' },
+                   { title: 'Estimate the Moon\'s angular size', text: 'Hold a pencil at arm\'s length. The Moon\'s diameter is about ½° (0.5° of arc, ~10 mm wide at arm\'s length). Compare to your thumb — you\'ll find your thumb is several times wider. The fact that the Moon "looks bigger" near the horizon is a well-known optical illusion.', gear: 'Eyes, pencil' },
+                 ]} />
+
+        <OpenQuestions items={[
+          { q: 'How exactly did the Moon form?',
+            detail: '— The giant-impact hypothesis is broadly accepted but the details remain unclear. Single-impact models match isotope ratios only with very specific Theia compositions. Multiple-impact models (a series of smaller collisions) and synestia models (an impact-vaporised disc-cloud) are being actively explored.' },
+          { q: 'Why is the lunar far side so different?',
+            detail: '— The far-side crust is ~30 km thicker than the near-side, and far-side maria are nearly absent. Asymmetric tidal heating early in lunar history? An asymmetric impact (the giant South Pole-Aitken basin)? Compositional differences? Still unresolved.' },
+          { q: 'How much water is actually at the lunar poles?',
+            detail: '— LCROSS (2009) found water ice in a permanently shadowed crater; LRO has since mapped polar hydrogen abundance. But the depth, distribution, purity, and origin of this water remain uncertain. Critical for any sustained human lunar presence — and a target of NASA\'s Artemis programme.' },
+          { q: 'Why is the Earth-Moon mass ratio so unusual?',
+            detail: '— Most moons in the solar system are < 0.001 of their planet\'s mass. The Moon is 1.2% of Earth\'s. This is a strong constraint on formation scenarios — and it\'s why some authors call Earth-Moon a "double planet."' },
+        ]} />
       </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  12 · OBSERVATIONAL ASTRONOMY
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Major constellations with their brightest stars and approximate positions
+const CONSTELLATIONS = [
+  { id: 'orion', name: 'Orion', latin: 'The Hunter',
+    bestMonths: 'November – March (evening)',
+    hemisphere: 'Equatorial · visible from both',
+    desc: 'The most recognisable constellation in the sky. Its three belt stars in a perfect line, flanked by Betelgeuse (red supergiant) and Rigel (blue supergiant), make it unmistakable. Look just below the belt and you\'ll find the Orion Nebula (M42), a stellar nursery visible to the naked eye as a fuzzy patch.',
+    // Stick-figure coordinates (relative, 0-1)
+    stars: [
+      { x: 0.30, y: 0.18, mag: 0.5, name: 'Betelgeuse', col: '#ff8a70' },
+      { x: 0.72, y: 0.22, mag: 1.6, name: 'Bellatrix', col: '#aabfff' },
+      { x: 0.42, y: 0.45, mag: 1.7, name: 'Alnitak', col: '#9bb0ff' },
+      { x: 0.50, y: 0.47, mag: 1.6, name: 'Alnilam', col: '#9bb0ff' },
+      { x: 0.58, y: 0.49, mag: 1.7, name: 'Mintaka', col: '#9bb0ff' },
+      { x: 0.32, y: 0.78, mag: 0.18, name: 'Rigel', col: '#cad7ff' },
+      { x: 0.75, y: 0.74, mag: 2.1, name: 'Saiph', col: '#aabfff' },
+      { x: 0.48, y: 0.62, mag: 4.0, name: 'M42 (Orion Nebula)', col: '#ffc4b8' },
+    ],
+    lines: [[0,1],[0,2],[1,4],[2,3],[3,4],[2,5],[4,6],[5,6]],
+    targets: [
+      { name: 'Betelgeuse', tip: 'Visibly red, even to the naked eye. Compare to nearby Bellatrix.' },
+      { name: 'Orion Nebula (M42)', tip: 'Fuzzy patch in the "sword" below the belt. Binoculars reveal nebulosity; small telescopes show the Trapezium cluster.' },
+      { name: 'Horsehead Nebula', tip: 'Just below Alnitak. Requires dark skies and a telescope with hydrogen-alpha filter to see.' },
+    ]
+  },
+  { id: 'ursa', name: 'Ursa Major', latin: 'The Great Bear',
+    bestMonths: 'All year (northern hemisphere)',
+    hemisphere: 'Northern · circumpolar above lat 41°N',
+    desc: 'Contains the asterism known as the Big Dipper or Plough — seven bright stars in a saucepan shape. The two stars on the "front" of the bowl point directly to Polaris. The middle star of the handle (Mizar) has a famous naked-eye companion, Alcor — once a vision test.',
+    stars: [
+      { x: 0.85, y: 0.40, mag: 1.8, name: 'Dubhe', col: '#ffd2a1' },
+      { x: 0.72, y: 0.32, mag: 2.4, name: 'Merak', col: '#cad7ff' },
+      { x: 0.55, y: 0.38, mag: 2.4, name: 'Phecda', col: '#cad7ff' },
+      { x: 0.50, y: 0.50, mag: 3.3, name: 'Megrez', col: '#fff4ea' },
+      { x: 0.36, y: 0.45, mag: 1.8, name: 'Alioth', col: '#fff4ea' },
+      { x: 0.22, y: 0.58, mag: 2.3, name: 'Mizar', col: '#fff4ea' },
+      { x: 0.08, y: 0.62, mag: 1.9, name: 'Alkaid', col: '#cad7ff' },
+    ],
+    lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[0,3]],
+    targets: [
+      { name: 'Mizar & Alcor', tip: 'Middle of the handle. Two stars visible to the naked eye on a dark night.' },
+      { name: 'Find Polaris', tip: 'Draw a line from Merak through Dubhe and extend it ~5× further — you reach Polaris.' },
+      { name: 'M81 & M82 galaxies', tip: 'A pair of galaxies above the bowl. Binoculars show them as faint smudges; a telescope reveals structure.' },
+    ]
+  },
+  { id: 'cas', name: 'Cassiopeia', latin: 'The Queen',
+    bestMonths: 'All year (northern hemisphere)',
+    hemisphere: 'Northern · circumpolar above lat 35°N',
+    desc: 'A distinctive W or M shape, depending on the time of year. Opposite the Big Dipper across Polaris — when one is high in the sky, the other is low. Located in a rich Milky Way star field with many open clusters.',
+    stars: [
+      { x: 0.12, y: 0.30, mag: 2.2, name: 'Segin', col: '#aabfff' },
+      { x: 0.30, y: 0.55, mag: 2.7, name: 'Ruchbah', col: '#fff4ea' },
+      { x: 0.50, y: 0.25, mag: 2.5, name: 'Navi', col: '#cad7ff' },
+      { x: 0.70, y: 0.50, mag: 2.2, name: 'Schedar', col: '#ffd2a1' },
+      { x: 0.88, y: 0.30, mag: 2.3, name: 'Caph', col: '#fff4ea' },
+    ],
+    lines: [[0,1],[1,2],[2,3],[3,4]],
+    targets: [
+      { name: 'Double Cluster (NGC 869/884)', tip: 'Between Cassiopeia and Perseus. A pair of brilliant open clusters visible to the naked eye and stunning in binoculars.' },
+      { name: 'Andromeda Galaxy', tip: 'From Cassiopeia point toward the right side (the deeper "V"); Andromeda is the next constellation.' },
+    ]
+  },
+  { id: 'cyg', name: 'Cygnus', latin: 'The Swan',
+    bestMonths: 'June – November',
+    hemisphere: 'Northern',
+    desc: 'A cross of bright stars in the Milky Way (sometimes called the "Northern Cross"). The swan flies south down the band of our galaxy, with Deneb marking the tail and Albireo at the head. Albireo through any telescope is one of the great visual treats of astronomy — a vivid orange-blue double star.',
+    stars: [
+      { x: 0.50, y: 0.10, mag: 1.25, name: 'Deneb', col: '#cad7ff' },
+      { x: 0.50, y: 0.40, mag: 2.2, name: 'Sadr', col: '#fff4ea' },
+      { x: 0.50, y: 0.75, mag: 3.1, name: 'Albireo', col: '#ffd2a1' },
+      { x: 0.22, y: 0.42, mag: 2.5, name: 'Gienah', col: '#ffd2a1' },
+      { x: 0.78, y: 0.42, mag: 2.5, name: 'Fawaris', col: '#cad7ff' },
+    ],
+    lines: [[0,1],[1,2],[1,3],[1,4]],
+    targets: [
+      { name: 'Albireo', tip: 'Point any telescope at the head of the swan. A magnificent gold + blue double, ~430 ly distant.' },
+      { name: 'Milky Way through Cygnus', tip: 'Look at Cygnus on a dark night — you\'re looking down the Orion Spur of our galaxy.' },
+      { name: 'North America Nebula', tip: 'A continent-shaped nebula near Deneb. Hard to see visually; great in photographs.' },
+    ]
+  },
+  { id: 'leo', name: 'Leo', latin: 'The Lion',
+    bestMonths: 'February – May',
+    hemisphere: 'Equatorial',
+    desc: 'A real lion shape, with a backwards-question-mark "sickle" forming the head and mane, and a triangle of stars at the rump. Regulus, at the base of the sickle, is one of the closest very bright stars to the ecliptic — it\'s often near the Moon and planets.',
+    stars: [
+      { x: 0.20, y: 0.30, mag: 1.4, name: 'Regulus', col: '#aabfff' },
+      { x: 0.25, y: 0.22, mag: 2.0, name: 'Algieba', col: '#ffd2a1' },
+      { x: 0.30, y: 0.12, mag: 2.6, name: 'Adhafera', col: '#fff4ea' },
+      { x: 0.38, y: 0.10, mag: 3.4, name: 'Algenubi', col: '#ffd2a1' },
+      { x: 0.40, y: 0.20, mag: 3.5, name: 'Rasalas', col: '#ffd2a1' },
+      { x: 0.50, y: 0.40, mag: 3.4, name: 'Chertan', col: '#fff4ea' },
+      { x: 0.75, y: 0.50, mag: 2.1, name: 'Denebola', col: '#fff4ea' },
+      { x: 0.60, y: 0.55, mag: 3.3, name: 'Zosma', col: '#fff4ea' },
+    ],
+    lines: [[0,1],[1,2],[2,3],[3,4],[4,1],[1,5],[5,6],[5,7],[7,6]],
+    targets: [
+      { name: 'Leo Triplet', tip: 'A trio of galaxies (M65, M66, NGC 3628) below the lion. Visible in small telescopes.' },
+      { name: 'Regulus and the ecliptic', tip: 'Watch Regulus through a year — the Moon and bright planets will repeatedly pass near it.' },
+    ]
+  },
+  { id: 'scorpio', name: 'Scorpius', latin: 'The Scorpion',
+    bestMonths: 'May – August (low in southern sky from temperate north)',
+    hemisphere: 'Southern · best below lat 40°N',
+    desc: 'One of the few constellations that genuinely looks like its namesake — a curving body and stinger like a scorpion. Antares ("rival of Mars") glows red at its heart. Located on the Milky Way toward the galactic centre, the region is dense with clusters and nebulae.',
+    stars: [
+      { x: 0.18, y: 0.20, mag: 2.6, name: 'Acrab', col: '#aabfff' },
+      { x: 0.22, y: 0.28, mag: 2.3, name: 'Dschubba', col: '#aabfff' },
+      { x: 0.20, y: 0.38, mag: 2.9, name: 'Pi Sco', col: '#aabfff' },
+      { x: 0.30, y: 0.45, mag: 1.1, name: 'Antares', col: '#ff8a70' },
+      { x: 0.42, y: 0.55, mag: 2.9, name: 'Tau Sco', col: '#aabfff' },
+      { x: 0.55, y: 0.65, mag: 1.9, name: 'Epsilon Sco', col: '#ffd2a1' },
+      { x: 0.62, y: 0.78, mag: 3.0, name: 'Mu Sco', col: '#aabfff' },
+      { x: 0.55, y: 0.88, mag: 1.6, name: 'Shaula', col: '#aabfff' },
+      { x: 0.45, y: 0.92, mag: 2.7, name: 'Lesath', col: '#aabfff' },
+    ],
+    lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8]],
+    targets: [
+      { name: 'Antares', tip: 'Visibly red and ~700× the Sun\'s diameter. A red supergiant nearing the end of its life.' },
+      { name: 'M4 globular cluster', tip: 'Just to the right of Antares. The closest globular to Earth at ~7,200 ly.' },
+      { name: 'Galactic centre region', tip: 'Sweep with binoculars between Scorpius and Sagittarius for one of the richest views in the sky.' },
+    ]
+  },
+];
+
+function ConstellationDiagram({ constellation: c, size = 360 }) {
+  const W = size, H = size * 0.85;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" style={{ background: '#020208' }}>
+      {/* Faint background stars */}
+      {Array.from({ length: 80 }).map((_, i) => {
+        const x = ((i * 37) % 100) / 100 * W;
+        const y = ((i * 53) % 100) / 100 * H;
+        const r = ((i * 7) % 10) / 30;
+        return <circle key={i} cx={x} cy={y} r={r} fill="#fff" opacity={0.3} />;
+      })}
+
+      {/* Constellation lines */}
+      {c.lines.map(([a, b], i) => {
+        const sA = c.stars[a], sB = c.stars[b];
+        return (
+          <line key={i} x1={sA.x * W} y1={sA.y * H} x2={sB.x * W} y2={sB.y * H}
+                stroke={ACCENT} strokeWidth="0.6" opacity="0.4" />
+        );
+      })}
+
+      {/* Stars */}
+      {c.stars.map((s, i) => {
+        // Brighter (lower magnitude) = bigger circle
+        const r = Math.max(1.5, 6 - s.mag * 0.8);
+        return (
+          <g key={i}>
+            <circle cx={s.x * W} cy={s.y * H} r={r + 3} fill={s.col} opacity="0.2" />
+            <circle cx={s.x * W} cy={s.y * H} r={r} fill={s.col} />
+            <text x={s.x * W + r + 4} y={s.y * H + 3}
+                  fontFamily="JetBrains Mono, monospace" fontSize="9" fill={INK} opacity="0.7">
+              {s.name}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+// Light pollution / Bortle scale
+const BORTLE = [
+  { class: '1', sky: 'Excellent dark site', limit: 7.6, mw: 'Milky Way casts shadows. Zodiacal light, gegenschein, airglow visible.', where: 'Remote deserts, ocean islands, high mountains', col: '#000' },
+  { class: '2', sky: 'Typical truly dark site', limit: 7.1, mw: 'Milky Way highly structured. M33 easily naked-eye.', where: 'National parks far from cities', col: '#0a0a18' },
+  { class: '3', sky: 'Rural sky', limit: 6.6, mw: 'Milky Way shows complex structure. Some light domes from distant cities.', where: 'Most rural areas', col: '#181830' },
+  { class: '4', sky: 'Rural / suburban transition', limit: 6.1, mw: 'Milky Way still visible but washed out near horizon. Light pollution domes obvious.', where: 'Outskirts of small towns', col: '#283050' },
+  { class: '5', sky: 'Suburban sky', limit: 5.6, mw: 'Milky Way very weak or invisible near horizon. M31 (Andromeda) barely naked-eye.', where: 'Suburban neighbourhoods', col: '#404870' },
+  { class: '6', sky: 'Bright suburban sky', limit: 5.1, mw: 'Milky Way invisible. Clouds appear orange. Sky has greyish background.', where: 'Larger suburbs', col: '#605c70' },
+  { class: '7', sky: 'Suburban / urban transition', limit: 4.6, mw: 'Sky shows strong light pollution. Only brightest constellations visible.', where: 'Inner suburbs of cities', col: '#807870' },
+  { class: '8', sky: 'City sky', limit: 4.1, mw: 'Only Moon, planets, and brightest stars visible. Constellations hard to identify.', where: 'Urban areas', col: '#a0907a' },
+  { class: '9', sky: 'Inner-city sky', limit: 4.0, mw: 'Only ~10–20 brightest stars visible. Even the brightest constellations dissolved.', where: 'Downtown cities', col: '#b89c70' },
+];
+
+function ObservationalAstronomy({ onBack }) {
+  const [tab, setTab] = useState('constellations');
+  const [conIdx, setConIdx] = useState(0);
+  const c = CONSTELLATIONS[conIdx];
+
+  const [bortle, setBortle] = useState(4);
+  const bortleData = BORTLE[bortle - 1];
+
+  // What to look for - by category
+  return (
+    <PageShell onBack={onBack} eyebrow="12 — Looking Up"
+               title={<>Observational <em style={{ color: ACCENT, fontStyle: 'italic' }}>Astronomy</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        Astronomy started by stepping outside and looking up. That's still the most direct connection
+        to the cosmos available. This topic is about what you can actually see — with eyes, binoculars,
+        or a small telescope — and how to find it.
+      </p>
+
+      {/* Tabs */}
+      <div className="grid grid-cols-4 gap-px mb-6" style={{ background: BORDER }}>
+        {[
+          ['constellations', 'Constellations'],
+          ['gear', 'Eyes, Binos, Scopes'],
+          ['bortle', 'Light Pollution'],
+          ['planets', 'Planets & Moon'],
+        ].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)}
+                  className="p-4 text-center transition"
+                  style={{ background: tab === id ? `${ACCENT}15` : BG,
+                           borderTop: tab === id ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+            <div className="font-display text-sm md:text-base" style={{ color: tab === id ? ACCENT : INK, letterSpacing: '-0.01em' }}>{label}</div>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'constellations' && (
+        <div className="fade-in">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-px mb-6" style={{ background: BORDER }}>
+            {CONSTELLATIONS.map((con, i) => (
+              <button key={con.id} onClick={() => setConIdx(i)}
+                      className="p-3 text-center transition"
+                      style={{ background: conIdx === i ? `${ACCENT}10` : BG,
+                               borderTop: conIdx === i ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+                <div className="font-display text-sm" style={{ color: conIdx === i ? ACCENT : INK }}>{con.name}</div>
+                <div className="font-mono text-[9px] mt-1" style={{ color: DIM }}>{con.latin}</div>
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 fade-in" key={c.id}>
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT }}>
+                {c.name} · {c.latin}
+              </div>
+              <div className="relative mb-6" style={{ border: `1px solid ${BORDER}` }}>
+                <ConstellationDiagram constellation={c} />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-px mb-6" style={{ background: BORDER }}>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Best seen</div>
+                  <div className="font-display text-sm" style={{ color: INK }}>{c.bestMonths}</div>
+                </div>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Visibility</div>
+                  <div className="font-display text-sm" style={{ color: INK }}>{c.hemisphere}</div>
+                </div>
+              </div>
+
+              <p className="font-display text-base leading-relaxed" style={{ color: '#c8c3b1' }}>{c.desc}</p>
+            </div>
+
+            <aside style={{ borderLeft: `1px solid ${BORDER}` }}>
+              <div className="pl-6">
+                <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: ACCENT }}>What to look for</div>
+                <ul className="space-y-5">
+                  {c.targets.map((t, i) => (
+                    <li key={i}>
+                      <div className="font-display text-base mb-1" style={{ color: INK }}>{t.name}</div>
+                      <div className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{t.tip}</div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </aside>
+          </div>
+
+          <TryThis title="Find these in the real sky"
+                   items={[
+                     { title: 'Star-hop from a known constellation', text: 'Pick any constellation here that\'s visible tonight. Find it. Then trace a known "pointer" (e.g. Dubhe → Merak → Polaris). This is the most basic and durable astronomy skill — it never stops being useful.', gear: 'Eyes' },
+                     { title: 'Estimate sky brightness from naked-eye limit', text: 'Find the faintest star you can see with no optical aid in a familiar constellation. Look up its apparent magnitude. That number is your local limit — and a rough Bortle indicator.', gear: 'Eyes + a star chart app' },
+                     { title: 'Spot Mizar and Alcor', text: 'Look at the middle of the Big Dipper\'s handle on a dark night. Two stars separated by ~12 arcminutes (about ⅓ the Moon\'s diameter). Once a vision test in the Roman army.', gear: 'Eyes (dark sky helps)' },
+                     { title: 'Photograph a constellation', text: 'Any phone on a tripod, 10-second exposure, manual mode. Most modern phones will pick up dozens of stars and the rough shape of bright constellations. Try Orion, the Big Dipper, or Cassiopeia.', gear: 'Phone + tripod or stable surface' },
+                   ]} />
+
+          <Quiz questions={[
+            { q: 'Which three stars form the most identifiable feature of Orion?',
+              options: ['The shoulders and feet', 'The three belt stars', 'The sword stars', 'Betelgeuse, Bellatrix, and Rigel'],
+              correct: 1,
+              explain: 'The three nearly-perfectly-aligned belt stars (Alnitak, Alnilam, Mintaka) are the most recognisable feature. They\'re also a useful pointer: extending the belt leads to Sirius (to the south-east) and Aldebaran (to the north-west).' },
+            { q: 'You can see the Big Dipper year-round if you live above which latitude?',
+              options: ['25°N', '41°N', '60°N', '74°N'],
+              correct: 1,
+              explain: 'Above ~41°N the Big Dipper is "circumpolar" — it never sets. London (51°N), New York (40°N marginally), Berlin (52°N), and Moscow (55°N) qualify. Tokyo (35°N) and Miami (25°N) do not.' },
+            { q: 'Why does Antares appear visibly red?',
+              options: ['Atmospheric reddening', 'It\'s very far away', 'Its surface temperature is only ~3,600 K', 'It\'s receding rapidly (redshift)'],
+              correct: 2,
+              explain: 'Antares is a red supergiant with a surface temperature around 3,600 K. By Wien\'s law its peak emission is in the near-infrared, with the visible part of its spectrum heavily weighted toward the red. Cool = red is a fundamental colour-temperature relationship.' },
+          ]} />
+        </div>
+      )}
+
+      {tab === 'gear' && (
+        <div className="fade-in">
+          <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>What you can see with what</h3>
+
+          <div className="space-y-6 mb-10">
+            {[
+              { gear: 'Naked eye', mag: '~6 (dark site), ~3 (city)', sees: 'Brightest few thousand stars, all the major constellations, the Milky Way (dark sky), the Moon\'s phases and major maria, all five naked-eye planets, meteors, satellites, M31 Andromeda Galaxy (dark sky), M42 Orion Nebula' },
+              { gear: 'Binoculars (7×50 or 10×50)', mag: '~10', sees: 'Hundreds of thousands of stars, Jupiter\'s four Galilean moons, lunar craters and rilles, the brightest open clusters (M45 Pleiades is stunning), brightest globular clusters as fuzzy "stars", brightest nebulae and galaxies as faint smudges, comets, asteroids near opposition' },
+              { gear: 'Small telescope (4–6")', mag: '~13', sees: 'Saturn\'s rings, Jupiter\'s cloud bands, Mars polar caps, Venus phases, lunar detail down to ~1 km, double stars (Albireo is a classic), most Messier objects, planetary nebulae, structure in brighter galaxies' },
+              { gear: 'Medium telescope (8–12")', mag: '~15', sees: 'Spiral arms in bright galaxies, dust lanes, fainter clusters, more planetary nebulae, Uranus and Neptune as discs, asteroid shapes (rotation), exoplanet transits (with photometry)' },
+              { gear: 'Large amateur (16"+)', mag: '~17', sees: 'Faint galaxies in nearby clusters, spectroscopic features, supernovae in other galaxies, fine planetary detail. Diminishing returns from atmosphere — bigger doesn\'t help without good seeing.' },
+            ].map((row, i) => (
+              <div key={i} className="grid grid-cols-1 md:grid-cols-[200px_120px_1fr] gap-6 p-4 rounded" style={{ background: PANEL, border: `1px solid ${BORDER}` }}>
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: ACCENT }}>Gear</div>
+                  <div className="font-display text-lg" style={{ color: INK, letterSpacing: '-0.01em' }}>{row.gear}</div>
+                </div>
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: ACCENT }}>Limit mag</div>
+                  <div className="font-mono text-base" style={{ color: INK }}>{row.mag}</div>
+                </div>
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: ACCENT }}>What you can see</div>
+                  <div className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{row.sees}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Section title="Why aperture matters more than magnification">
+            <p>
+              The most common beginner mistake is to ask "how much does it magnify?" The right question
+              is "how big is the lens or mirror?" The collecting area determines how many photons you
+              gather per second. A larger aperture lets you see fainter things at <em>any</em> magnification.
+              Magnification is just spreading those photons over more of your eye — past a certain
+              point you're just magnifying noise.
+            </p>
+            <p>
+              Useful maximum magnification on a small scope is roughly <strong>50× per inch of aperture</strong>.
+              A 4" scope can do ~200× before the image starts to break down. The atmosphere usually
+              limits real-world performance below this.
+            </p>
+            <Eq>Light gathering ∝ D²,  where D = aperture diameter</Eq>
+          </Section>
+
+          <Section title="Useful number: the dark-adaptation rule">
+            <p>
+              Your eyes take about <strong>20–30 minutes</strong> to fully adapt to darkness. A single
+              glance at a bright phone screen resets the process completely. Use a red light (most
+              astronomy apps have a "red night mode") and avoid white light entirely while observing.
+            </p>
+            <p>
+              Fully dark-adapted, your eye's pupil opens to ~7 mm in young observers, less with age.
+              This sets a hard limit on how much benefit you get from a telescope's exit pupil — pick
+              eyepiece + scope combinations so the exit pupil (eyepiece focal length ÷ scope f-ratio) is
+              no larger than your dilated pupil. Beyond that, you're just wasting light.
+            </p>
+          </Section>
+
+          <TryThis title="Build observation skills"
+                   items={[
+                     { title: 'A week of Jupiter\'s moons', text: 'Sketch Jupiter and the positions of its four bright moons (Io, Europa, Ganymede, Callisto) each clear night for a week. You\'ll see them swap positions as they orbit. The same observation Galileo made in 1610 that broke the geocentric universe.', gear: 'Binoculars (10×50) or any telescope' },
+                     { title: 'Lunar terminator sketches', text: 'Pick a single crater near the terminator (the day-night boundary) and sketch it over three consecutive evenings. The shadows will be utterly different each night — the same crater, same scope, three very different views.', gear: 'Small telescope, pencil, paper' },
+                     { title: 'Star colour estimation', text: 'Pick a bright star (Betelgeuse, Antares, Rigel, Vega) and consciously notice its colour. Compare to a neighbour. Then look up the surface temperatures and check — you\'re doing applied stellar spectroscopy.', gear: 'Eyes' },
+                     { title: 'A meteor count', text: 'During a meteor shower (Perseids in August, Geminids in December), lie back and count meteors per hour for a 30-minute window. Compare to the predicted "ZHR" (zenithal hourly rate) — the difference is your sky\'s transparency.', gear: 'Eyes, blanket, dark sky' },
+                   ]} />
+        </div>
+      )}
+
+      {tab === 'bortle' && (
+        <div className="fade-in">
+          <p className="font-display text-base leading-relaxed mb-8 max-w-3xl" style={{ color: '#c8c3b1' }}>
+            The Bortle scale rates sky darkness from 1 (truly dark) to 9 (inner city). Your local
+            class determines what's even possible — there's no telescope that can punch through a
+            Bortle 9 sky to see the Milky Way.
+          </p>
+
+          <div className="mb-6">
+            <div className="flex justify-between items-baseline mb-3">
+              <div className="font-mono text-xs uppercase tracking-[0.25em]" style={{ color: ACCENT }}>Bortle class</div>
+              <div className="font-display text-3xl" style={{ letterSpacing: '-0.01em' }}>{bortle}</div>
+            </div>
+            <input type="range" min="1" max="9" step="1" value={bortle}
+                   onChange={e => setBortle(parseInt(e.target.value))} className="w-full" />
+            <div className="flex justify-between mt-2">
+              {[1,2,3,4,5,6,7,8,9].map(b => (
+                <button key={b} onClick={() => setBortle(b)}
+                        className="font-mono text-[10px] hover:text-white transition"
+                        style={{ color: b === bortle ? ACCENT : DIM }}>{b}</button>
+              ))}
+            </div>
+          </div>
+
+          <div className="fade-in" key={bortle}>
+            <div className="p-6 mb-6 rounded" style={{ background: bortleData.col, border: `1px solid ${BORDER_STRONG}` }}>
+              <div className="font-display text-2xl mb-2" style={{ color: bortleData.class >= '6' ? '#000' : '#fff', letterSpacing: '-0.01em' }}>
+                Class {bortleData.class} — {bortleData.sky}
+              </div>
+              <div className="font-mono text-xs" style={{ color: bortleData.class >= '6' ? '#000' : '#ccc' }}>
+                Naked-eye limit: ~{bortleData.limit} mag
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-px mb-8" style={{ background: BORDER }}>
+              <div className="p-4" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: ACCENT }}>What the sky looks like</div>
+                <div className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{bortleData.mw}</div>
+              </div>
+              <div className="p-4" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: ACCENT }}>Where you find it</div>
+                <div className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{bortleData.where}</div>
+              </div>
+            </div>
+          </div>
+
+          <Section title="Why light pollution matters astronomically and not just aesthetically">
+            <p>
+              Light pollution isn't a small effect. Going from Bortle 4 to Bortle 7 — a change you might
+              experience by moving from a rural town to a small city — costs you about <strong>3 magnitudes</strong>
+              of sky depth. That's a factor of ~16× in flux. <Term k="ism">The Milky Way</Term> becomes
+              invisible; thousands of stars vanish; nebulae disappear entirely.
+            </p>
+            <p>
+              The fastest-growing form is blue-rich LED street lighting, which scatters more strongly
+              in the atmosphere than the older sodium lamps it replaced. The International Dark-Sky
+              Association advocates for warm (≤3000 K), shielded, downward-pointing fixtures — which
+              also save energy and improve human circadian health.
+            </p>
+            <p>
+              For astrophotography, light pollution can be partially filtered out — narrowband filters
+              isolate specific emission lines (Hα, OIII) that are unaffected by broadband city glare.
+              You can do remarkable deep-sky imaging from a Bortle 7 backyard with the right filters.
+              Visual observation has no such workaround.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'planets' && (
+        <div className="fade-in">
+          <p className="font-display text-base leading-relaxed mb-8 max-w-3xl" style={{ color: '#c8c3b1' }}>
+            The five naked-eye planets — Mercury, Venus, Mars, Jupiter, Saturn — have been known since
+            antiquity. Uranus and Neptune are recent additions (1781 and 1846). Here's how to find and
+            recognise them.
+          </p>
+
+          <div className="space-y-6 mb-10">
+            {[
+              { name: 'Mercury', mag: '−2 to +5', visible: 'Briefly at dawn or dusk, never far from the Sun. Visible at "elongations" every ~3 months for ~2 weeks each.', look: 'Bright "star" close to the horizon at twilight. Through a telescope: small phases like a tiny Moon.' },
+              { name: 'Venus', mag: '−4.7 to −3', visible: '"Morning star" or "evening star" — always near the Sun but often dazzlingly bright. Visible for months at a time.', look: 'The brightest non-Moon object in the sky. Through a telescope: shows phases like the Moon — Galileo\'s discovery that disproved geocentrism.' },
+              { name: 'Mars', mag: '−2.9 to +1.8', visible: 'Every ~2 years comes to opposition and is visible all night. Other times it\'s in the morning or evening sky.', look: 'Distinctly red-orange. Through a telescope at opposition: polar ice caps, dark surface features like Syrtis Major.' },
+              { name: 'Jupiter', mag: '−2.9 to −1.6', visible: 'Up about half of every night for most of every year. Easy to find — second-brightest planet after Venus.', look: 'Bright steady yellow-white "star." Binoculars show 4 moons in a line; a small scope shows the cloud bands and Great Red Spot.' },
+              { name: 'Saturn', mag: '+0.5 to +1.5', visible: 'Up about half of every year. Fainter than Jupiter but still naked-eye easy.', look: 'Pale yellow. Through any telescope: the rings — astronomy\'s most reliable jaw-drop moment.' },
+            ].map(p => (
+              <div key={p.name} className="p-5 rounded" style={{ background: PANEL, border: `1px solid ${BORDER}` }}>
+                <div className="flex items-baseline justify-between mb-3">
+                  <h4 className="font-display text-2xl" style={{ letterSpacing: '-0.01em' }}>{p.name}</h4>
+                  <div className="font-mono text-xs" style={{ color: DIM }}>mag {p.mag}</div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: ACCENT }}>When to look</div>
+                    <div className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{p.visible}</div>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: ACCENT }}>How to recognise</div>
+                    <div className="font-display text-sm leading-relaxed" style={{ color: '#c8c3b1' }}>{p.look}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Section title="How to tell planets from stars">
+            <p>
+              Three ways, in order of reliability:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Planets don't twinkle</strong> (much). Stars twinkle because
+              they're effectively point sources, and atmospheric turbulence wobbles their image around.
+              Planets have a small but real angular size, so the wobble averages out. If a "bright star"
+              shines steadily and the ones around it twinkle — that's a planet.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Planets are on the ecliptic.</strong> Mercury, Venus, Mars,
+              Jupiter, and Saturn all stick close to the same arc across the sky — the path of the Sun
+              and Moon. If you see a bright object very high overhead, far from where the Sun travels,
+              it's not a planet.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Planets move between constellations</strong> over weeks and
+              months. Watch the same patch of sky over a season and a planet will visibly shift against
+              the fixed stars. The word "planet" comes from the Greek <em>planētēs</em> — wanderer.
+            </p>
+          </Section>
+
+          <Section title="Looking at the Moon">
+            <p>
+              The single most rewarding object in amateur astronomy. The Moon shows different terrain
+              every night as the terminator (day-night boundary) moves across it — shadows are long
+              there, and craters, mountains, and rilles leap out in relief.
+            </p>
+            <p>
+              Best time to look: anywhere between first quarter and a few days before full. A full Moon
+              is actually a <em>bad</em> time to observe lunar detail — with no shadows, the surface
+              looks flat and washed out.
+            </p>
+            <p>
+              Three lunar features worth knowing:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Tycho</strong> — the youngest big crater on the near side
+              (~108 Myr), with bright "rays" streaking across the southern highlands. Easy in any optic.<br />
+              <strong style={{ color: ACCENT }}>Copernicus</strong> — magnificent terraced crater walls, central
+              peaks, ejecta blanket. Even a small scope shows it spectacularly.<br />
+              <strong style={{ color: ACCENT }}>The Apennines</strong> — a mountain range bordering Mare Imbrium.
+              Apollo 15 landed at the base. Best seen near first quarter.
+            </p>
+          </Section>
+
+          <Section title="Satellites — the modern night sky">
+            <p>
+              On any clear evening you can see ~10–30 satellites drifting steadily across the sky in
+              an hour. The brightest is the International Space Station, which can briefly outshine
+              every star except Sirius (~mag −4 at favourable passes). Tools like Heavens-Above and
+              Stellarium predict passes for your exact location.
+            </p>
+            <p>
+              The recent Starlink mega-constellation has added thousands of bright satellites to the
+              sky — sometimes visible as "trains" of newly launched satellites in formation before they
+              spread out. Astronomers have raised significant concerns about their impact on professional
+              observatories.
+            </p>
+          </Section>
+
+          <TryThis title="Plan an observation session"
+                   items={[
+                     { title: 'Find what\'s up tonight', text: 'Install Stellarium (free, exists for phone and desktop) or use the website. Set your location. Look at what crosses the meridian tonight, what time it transits, and what its altitude will be. Plan to look at it then.', gear: 'Free app' },
+                     { title: 'Catch an ISS pass', text: 'Heavens-Above.com or NASA\'s Spot The Station tells you exactly when and where to look. The ISS is unmistakable — bright as Jupiter, moving visibly, no flashing lights, crosses the sky in 3–5 minutes.', gear: 'Eyes' },
+                     { title: 'Watch a sunset planet', text: 'On any clear evening just after sunset, look toward the western horizon. If Venus is in evening apparition, you can\'t miss it. Watch it set — and notice how it moves with the rotation of the sky, not your local landscape.', gear: 'Eyes' },
+                   ]} />
+        </div>
+      )}
+
+      <OpenQuestions items={[
+        { q: 'Why is the night sky dark?',
+          detail: '— "Olbers\' paradox." In a static, infinite, eternal universe filled uniformly with stars, every line of sight should eventually hit a star, and the sky should be as bright as the average stellar surface. The resolution is a combination of cosmic expansion, finite age, and absorption — but the original question is profound. The darkness of the sky is direct observational evidence that the universe is not static and eternal.' },
+        { q: 'Are we losing the night sky for good?',
+          detail: '— Studies show ~80% of the world\'s population now lives under light-polluted skies. ~one-third of humanity can no longer see the Milky Way from where they live. Whether dark skies can be restored in populated areas is partly a technical question (smarter lighting) and partly a political and economic one.' },
+        { q: 'What\'s the future of professional ground-based astronomy?',
+          detail: '— With LEO satellite constellations growing and atmospheric seeing limits unchanged, some areas of professional astronomy are migrating to space. But the cost ratio (~$1B for a Roman-class space telescope vs ~$300M for a comparable ground scope) keeps ground-based work essential. Adaptive optics has narrowed the seeing gap dramatically.' },
+      ]} />
     </PageShell>
   );
 }
@@ -3527,6 +4921,8 @@ export default function App() {
     bb:     <BigBangTimeline   onBack={() => setView('hub')} />,
     exo:    <ExoplanetDetection onBack={() => setView('hub')} />,
     moon:   <MoonTopic         onBack={() => setView('hub')} />,
+    obs:    <ObservationalAstronomy onBack={() => setView('hub')} />,
+    paths:  <LearningPaths     onBack={() => setView('hub')} onSelect={setView} />,
   };
-  return views[view] || <Hub onSelect={setView} />;
+  return views[view] || <Hub onSelect={setView} onShowPaths={() => setView('paths')} />;
 }
