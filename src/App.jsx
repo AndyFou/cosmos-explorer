@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, Eye, EyeOff, X, ChevronLeft, ChevronRight, Sparkles, Zap, BookOpen, Info } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   COSMOS EXPLORER v0.3
+   COSMOS EXPLORER v0.4
    An interactive astrophysics primer at first-year-course depth.
    ─────────────────────────────────────────────────────────────────────────── */
 
@@ -88,7 +88,7 @@ function PageShell({ children, onBack, title, eyebrow }) {
             </button>
           ) : <div />}
           <div className="font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: DIM }}>
-            cosmos explorer · v0.3
+            cosmos explorer · v0.4
           </div>
         </div>
         {eyebrow && (
@@ -191,8 +191,9 @@ const TOPICS = [
   { id: 'gal',    n: '08', title: 'Galaxy Morphology',             sub: 'The Hubble sequence and modern classifications',      ready: true },
   { id: 'bb',     n: '09', title: 'The Big Bang Timeline',         sub: 'From Planck era to recombination, logarithmically',   ready: true },
   { id: 'exo',    n: '10', title: 'Exoplanet Detection',           sub: 'Transits, radial velocity, microlensing, imaging',    ready: true },
-  { id: 'sr',     n: '11', title: 'Special Relativity Essentials', sub: 'The Lorentz factor and what it does to spacetime',    ready: false },
-  { id: 'cmb',    n: '12', title: 'The Cosmic Microwave Background', sub: 'A baby photo of the universe at 380,000 years',     ready: false },
+  { id: 'moon',   n: '11', title: 'The Moon · Phases & Tides',     sub: 'Our nearest neighbour and the rhythms it drives',     ready: true },
+  { id: 'sr',     n: '12', title: 'Special Relativity Essentials', sub: 'The Lorentz factor and what it does to spacetime',    ready: false },
+  { id: 'cmb',    n: '13', title: 'The Cosmic Microwave Background', sub: 'A baby photo of the universe at 380,000 years',     ready: false },
 ];
 
 function StarField() {
@@ -217,7 +218,7 @@ function Hub({ onSelect }) {
       <StarField />
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-16 md:pt-24 pb-16">
         <div className="font-mono text-xs uppercase tracking-[0.3em] mb-4" style={{ color: ACCENT }}>
-          An interactive primer · v0.3
+          An interactive primer · v0.4
         </div>
         <h1 className="font-display font-light text-6xl md:text-7xl leading-[1.0] mb-6 max-w-4xl" style={{ letterSpacing: '-0.025em' }}>
           Cosmos<br />
@@ -2795,6 +2796,719 @@ function ExoplanetDetection({ onBack }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+//  11 · THE MOON · PHASES, TIDES, AND LUNAR SCIENCE
+// ═══════════════════════════════════════════════════════════════════════════
+
+const MOON_PHASES = [
+  { id: 'new',  ang: 0,    name: 'New Moon',         illum: 0,    rise: 'sunrise',  set: 'sunset',  visible: 'invisible (with the Sun)' },
+  { id: 'wc1',  ang: 45,   name: 'Waxing Crescent',  illum: 0.25, rise: '~9 am',    set: '~9 pm',   visible: 'afternoon & evening west' },
+  { id: 'fq',   ang: 90,   name: 'First Quarter',    illum: 0.5,  rise: 'noon',     set: 'midnight',visible: 'afternoon & evening' },
+  { id: 'wg1',  ang: 135,  name: 'Waxing Gibbous',   illum: 0.75, rise: '~3 pm',    set: '~3 am',   visible: 'evening & most of night' },
+  { id: 'full', ang: 180,  name: 'Full Moon',        illum: 1,    rise: 'sunset',   set: 'sunrise', visible: 'all night' },
+  { id: 'wg2',  ang: 225,  name: 'Waning Gibbous',   illum: 0.75, rise: '~9 pm',    set: '~9 am',   visible: 'late evening & morning' },
+  { id: 'lq',   ang: 270,  name: 'Last Quarter',     illum: 0.5,  rise: 'midnight', set: 'noon',    visible: 'late night & morning' },
+  { id: 'wc2',  ang: 315,  name: 'Waning Crescent',  illum: 0.25, rise: '~3 am',    set: '~3 pm',   visible: 'pre-dawn east' },
+];
+
+/** Render a moon at a given phase angle. ang = 0 (new) to 360 (back to new), with 180 = full. */
+function MoonGlyph({ ang, size = 100 }) {
+  const r = size / 2 - 2;
+  const cx = size / 2, cy = size / 2;
+  // Convert phase angle to terminator position
+  // ang 0 = new (0% lit), 90 = first qtr (right half lit), 180 = full, 270 = last qtr (left half lit)
+  const phaseRad = (ang * Math.PI) / 180;
+  // cos(phase) gives the projected terminator x-position relative to centre
+  // At new (ang=0): cos = 1, terminator at +r (no light visible)
+  // At first qtr (ang=90): cos = 0, terminator at centre (right lit)
+  // At full (ang=180): cos = -1, terminator at -r (fully lit)
+  // At last qtr (ang=270): cos = 0, terminator at centre (left lit)
+  const k = Math.cos(phaseRad); // -1 to 1
+  // Which side is lit?
+  const litOnRight = ang < 180;
+
+  // Build a clip path for the lit portion using two ellipse arcs
+  // Outer disk circle + terminator ellipse forms a crescent or gibbous
+  const ellipseRx = Math.abs(k) * r;
+  const sweepOuter = litOnRight ? 1 : 0;
+  const sweepInner = (k >= 0) === litOnRight ? 0 : 1;
+
+  // Lit region path: top of disk → bottom along outer circle → back up along terminator
+  const litPath = `
+    M ${cx} ${cy - r}
+    A ${r} ${r} 0 0 ${sweepOuter} ${cx} ${cy + r}
+    A ${ellipseRx} ${r} 0 0 ${sweepInner} ${cx} ${cy - r}
+    Z
+  `;
+
+  const gradId = `moon-grad-${ang}-${size}`;
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+      <defs>
+        <radialGradient id={gradId} cx="40%" cy="35%">
+          <stop offset="0%" stopColor="#fdf6e3" />
+          <stop offset="70%" stopColor="#e8dcc0" />
+          <stop offset="100%" stopColor="#9a8e72" />
+        </radialGradient>
+      </defs>
+      {/* Dark side of the moon (shown faintly so the disc is always visible) */}
+      <circle cx={cx} cy={cy} r={r} fill="#1a1d28" stroke={BORDER_STRONG} strokeWidth="0.5" />
+      {/* Lit portion */}
+      <path d={litPath} fill={`url(#${gradId})`} />
+      {/* Maria suggestion - subtle */}
+      <circle cx={cx - r * 0.2} cy={cy - r * 0.2} r={r * 0.12} fill="#000" opacity="0.08" />
+      <circle cx={cx + r * 0.15} cy={cy + r * 0.25} r={r * 0.18} fill="#000" opacity="0.08" />
+      <circle cx={cx - r * 0.3} cy={cy + r * 0.1} r={r * 0.08} fill="#000" opacity="0.08" />
+    </svg>
+  );
+}
+
+function MoonTopic({ onBack }) {
+  const [phaseIdx, setPhaseIdx] = useState(4); // start at full
+  const [tab, setTab] = useState('phases'); // phases | tides | eclipses
+  const phase = MOON_PHASES[phaseIdx];
+
+  // For the phase explainer diagram: orbital geometry view
+  // Show: Sun rays from the left, Earth at centre, Moon at orbital position
+  const OrbitDiagram = ({ ang, W = 800, H = 360 }) => {
+    const cx = W / 2 + 80, cy = H / 2;
+    const orbitR = 130;
+    // Phase angle: 0 = new (Moon between Earth and Sun, ang = 180° in our diagram from +x)
+    // 180 = full (Moon opposite the Sun, ang = 0° from +x)
+    // Convert phase angle to orbital angle (Sun on left, so new moon is at left of Earth)
+    const orbAng = Math.PI - (ang * Math.PI) / 180; // radians
+    const mx = cx + orbitR * Math.cos(orbAng);
+    const my = cy + orbitR * Math.sin(orbAng);
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+        {/* Sun rays from the left */}
+        <defs>
+          <linearGradient id="sun-rays" x1="0" x2="1">
+            <stop offset="0%" stopColor="#ffc97a" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#ffc97a" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="200" height={H} fill="url(#sun-rays)" />
+        {[H/2 - 80, H/2 - 40, H/2, H/2 + 40, H/2 + 80].map((y, i) => (
+          <line key={i} x1="20" x2="180" y1={y} y2={y} stroke="#ffc97a" strokeWidth="1" opacity="0.5" />
+        ))}
+        <text x="100" y="30" textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+              fontSize="10" fill={ACCENT} letterSpacing="0.15em">SUNLIGHT →</text>
+
+        {/* Moon orbit */}
+        <circle cx={cx} cy={cy} r={orbitR} fill="none" stroke={BORDER_STRONG} strokeDasharray="2 4" />
+
+        {/* Phantom moons at the 8 phase positions */}
+        {MOON_PHASES.map((p, i) => {
+          const a = Math.PI - (p.ang * Math.PI) / 180;
+          const x = cx + orbitR * Math.cos(a);
+          const y = cy + orbitR * Math.sin(a);
+          const isActive = i === phaseIdx;
+          // The actual moon visualization (how it looks as half-lit by sunlight)
+          return (
+            <g key={p.id} onClick={() => setPhaseIdx(i)} style={{ cursor: 'pointer' }}>
+              {isActive && <circle cx={x} cy={y} r="22" fill="none" stroke={ACCENT} strokeWidth="1" opacity="0.6" />}
+              {/* Sun-lit half (always faces sun, i.e. left side) */}
+              <circle cx={x} cy={y} r="12" fill="#1a1d28" stroke={BORDER_STRONG} strokeWidth="0.5" />
+              <path d={`M ${x} ${y - 12} A 12 12 0 0 0 ${x} ${y + 12} Z`} fill="#fdf6e3" />
+            </g>
+          );
+        })}
+
+        {/* Earth */}
+        <circle cx={cx} cy={cy} r="18" fill="#4d8edc" />
+        <path d={`M ${cx} ${cy - 18} A 18 18 0 0 0 ${cx} ${cy + 18} Z`} fill="#1a1d28" opacity="0.5" />
+        <text x={cx} y={cy + 38} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK}>Earth</text>
+
+        {/* Active moon (highlighted) */}
+        <circle cx={mx} cy={my} r="15" fill="none" stroke={ACCENT} strokeWidth="1.5" />
+
+        {/* What the moon looks like from Earth - inset */}
+        <g transform={`translate(${W - 130}, 30)`}>
+          <text x="50" y="-6" textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                fontSize="9" fill={DIM} letterSpacing="0.15em">SEEN FROM EARTH</text>
+          <g transform="translate(0, 0)">
+            <MoonGlyph ang={phase.ang} size={100} />
+          </g>
+          <text x="50" y="120" textAnchor="middle" fontFamily="JetBrains Mono, monospace"
+                fontSize="10" fill={INK}>{phase.name}</text>
+        </g>
+      </svg>
+    );
+  };
+
+  // Tide diagram
+  const TideDiagram = ({ W = 800, H = 360 }) => {
+    const cx = W / 2, cy = H / 2;
+    const earthR = 50;
+    // Two bulges - one toward moon (right), one opposite (left)
+    // Exaggerated for visibility
+    const bulgeAmount = 18;
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+        <defs>
+          <radialGradient id="ocean-grad">
+            <stop offset="0%" stopColor="#4d8edc" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#4d8edc" stopOpacity="0.15" />
+          </radialGradient>
+        </defs>
+
+        {/* Ocean bulges - elongated ellipse along Earth-Moon line */}
+        <ellipse cx={cx} cy={cy} rx={earthR + bulgeAmount} ry={earthR - 5}
+                 fill="url(#ocean-grad)" stroke={ACCENT2} strokeWidth="1" opacity="0.7" />
+
+        {/* Earth */}
+        <circle cx={cx} cy={cy} r={earthR} fill="#3a5a7a" />
+        <circle cx={cx} cy={cy} r={earthR} fill="none" stroke={INK} opacity="0.3" />
+
+        {/* Continent suggestion */}
+        <path d={`M ${cx - 30} ${cy - 20} Q ${cx - 10} ${cy - 30}, ${cx + 5} ${cy - 15}
+                  Q ${cx + 15} ${cy + 5}, ${cx - 5} ${cy + 20} Q ${cx - 30} ${cy + 15}, ${cx - 30} ${cy - 20} Z`}
+              fill="#5a6a4a" opacity="0.7" />
+
+        {/* High-tide labels */}
+        <g>
+          <line x1={cx + earthR + bulgeAmount + 4} x2={cx + earthR + bulgeAmount + 30}
+                y1={cy} y2={cy - 30} stroke={ACCENT} strokeWidth="0.5" />
+          <text x={cx + earthR + bulgeAmount + 32} y={cy - 32} fontFamily="JetBrains Mono, monospace" fontSize="10" fill={ACCENT}>
+            high tide (sub-lunar)
+          </text>
+        </g>
+        <g>
+          <line x1={cx - earthR - bulgeAmount - 4} x2={cx - earthR - bulgeAmount - 30}
+                y1={cy} y2={cy - 30} stroke={ACCENT} strokeWidth="0.5" />
+          <text x={cx - earthR - bulgeAmount - 32} y={cy - 32} textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={ACCENT}>
+            high tide (anti-lunar)
+          </text>
+        </g>
+        <text x={cx} y={cy - earthR - bulgeAmount - 8} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={ACCENT2}>
+          low tide
+        </text>
+        <text x={cx} y={cy + earthR + bulgeAmount + 18} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={ACCENT2}>
+          low tide
+        </text>
+
+        {/* Moon on the right */}
+        <g transform={`translate(${W - 80}, ${cy})`}>
+          <MoonGlyph ang={180} size={48} />
+          <text x="24" y="40" textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK}>Moon</text>
+        </g>
+
+        {/* Force arrows */}
+        <g>
+          {/* Arrow toward moon at sub-lunar point */}
+          <line x1={cx + earthR + 4} x2={cx + earthR + 20} y1={cy} y2={cy} stroke={ACCENT3} strokeWidth="1.5" markerEnd="url(#arrow)" />
+          {/* Arrow away from moon at anti-lunar */}
+          <line x1={cx - earthR - 4} x2={cx - earthR - 20} y1={cy} y2={cy} stroke={ACCENT3} strokeWidth="1.5" markerEnd="url(#arrow)" />
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 Z" fill={ACCENT3} />
+            </marker>
+          </defs>
+        </g>
+
+        <text x={cx} y={H - 16} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>
+          Two bulges: near side feels more lunar gravity than Earth's centre; far side feels less.
+        </text>
+      </svg>
+    );
+  };
+
+  // Eclipse diagram
+  const EclipseDiagram = ({ kind, W = 800, H = 300 }) => {
+    const sunX = 80, sunY = H / 2, sunR = 45;
+    const earthX = W - 200, earthY = H / 2, earthR = 22;
+    const moonR = 8;
+
+    if (kind === 'solar') {
+      // Moon between Sun and Earth
+      const moonX = earthX - 110, moonY = earthY;
+      return (
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+          {/* Sun */}
+          <defs>
+            <radialGradient id="sun-grad-ec">
+              <stop offset="0%" stopColor="#fff8e0" />
+              <stop offset="70%" stopColor="#ffc97a" />
+              <stop offset="100%" stopColor="#ff8a70" stopOpacity="0.4" />
+            </radialGradient>
+          </defs>
+          <circle cx={sunX} cy={sunY} r={sunR} fill="url(#sun-grad-ec)" />
+          <text x={sunX} y={sunY + sunR + 16} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK}>Sun</text>
+
+          {/* Light rays / shadow cones (umbra + penumbra) */}
+          {/* Umbra: tangent lines from inner (sun-moon) crossing */}
+          {/* Schematic - just draw narrowing cone from Sun edges past Moon */}
+          <g opacity="0.4">
+            <polygon points={`${sunX},${sunY - sunR} ${moonX},${moonY - moonR} ${moonX},${moonY + moonR} ${sunX},${sunY + sunR}`}
+                     fill="#ffc97a" opacity="0.1" />
+          </g>
+          {/* Umbra cone past moon */}
+          <polygon points={`${moonX},${moonY - moonR} ${moonX + 130},${moonY - 2} ${moonX + 130},${moonY + 2} ${moonX},${moonY + moonR}`}
+                   fill="#1a1d28" opacity="0.8" />
+          <text x={moonX + 65} y={moonY - 14} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={ACCENT}>
+            umbra
+          </text>
+
+          {/* Moon */}
+          <circle cx={moonX} cy={moonY} r={moonR} fill="#1a1d28" stroke={DIM} strokeWidth="0.5" />
+          <text x={moonX} y={moonY + moonR + 14} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK}>Moon</text>
+
+          {/* Earth */}
+          <circle cx={earthX} cy={earthY} r={earthR} fill="#4d8edc" />
+          <path d={`M ${earthX} ${earthY - earthR} A ${earthR} ${earthR} 0 0 1 ${earthX} ${earthY + earthR} Z`} fill="#1a1d28" opacity="0.5" />
+          <text x={earthX} y={earthY + earthR + 14} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK}>Earth</text>
+
+          <text x={W/2} y={H - 12} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>
+            Solar eclipse: Moon's shadow falls on Earth. Only ~270 km wide path of totality.
+          </text>
+        </svg>
+      );
+    } else {
+      // Lunar eclipse: Earth between Sun and Moon
+      const moonX = W - 80, moonY = earthY;
+      return (
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+          <defs>
+            <radialGradient id="sun-grad-ec2">
+              <stop offset="0%" stopColor="#fff8e0" />
+              <stop offset="70%" stopColor="#ffc97a" />
+              <stop offset="100%" stopColor="#ff8a70" stopOpacity="0.4" />
+            </radialGradient>
+          </defs>
+          <circle cx={sunX} cy={sunY} r={sunR} fill="url(#sun-grad-ec2)" />
+          <text x={sunX} y={sunY + sunR + 16} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK}>Sun</text>
+
+          {/* Earth shadow extending past Earth */}
+          <polygon points={`${earthX - 40},${earthY - earthR} ${earthX + 250},${earthY - 4} ${earthX + 250},${earthY + 4} ${earthX - 40},${earthY + earthR}`}
+                   fill="#1a1d28" opacity="0.85" />
+          <text x={earthX + 100} y={earthY - 14} fontFamily="JetBrains Mono, monospace" fontSize="9" fill={ACCENT}>
+            Earth's shadow (umbra)
+          </text>
+
+          {/* Earth */}
+          <circle cx={earthX} cy={earthY} r={earthR} fill="#4d8edc" />
+          <text x={earthX} y={earthY + earthR + 14} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={INK}>Earth</text>
+
+          {/* Moon in shadow - reddish due to refracted sunlight */}
+          <circle cx={moonX} cy={moonY} r={moonR + 2} fill="#cd5c3c" opacity="0.8" />
+          <text x={moonX} y={moonY + moonR + 16} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={ACCENT3}>Moon (blood)</text>
+
+          <text x={W/2} y={H - 12} textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={DIM}>
+            Lunar eclipse: Moon enters Earth's shadow. Red light refracted through Earth's atmosphere illuminates it.
+          </text>
+        </svg>
+      );
+    }
+  };
+
+  return (
+    <PageShell onBack={onBack} eyebrow="11 — Earth–Moon System"
+               title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>Moon</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-8" style={{ color: '#c8c3b1' }}>
+        Our nearest neighbour, the only other world humans have walked on, and the engine behind tides,
+        eclipses, and a measurable slowing of Earth's rotation. Every detail of the Moon is wrapped up in
+        the geometry of its orbit and the gravity that holds it.
+      </p>
+
+      {/* Fast facts */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-px mb-10" style={{ background: BORDER }}>
+        {[
+          ['Mean distance', '384,400 km'],
+          ['Diameter', '3,474 km (~¼ Earth)'],
+          ['Orbital period', '27.32 days (sidereal)'],
+          ['Mass', '7.35 × 10²² kg (1.2% Earth)'],
+        ].map(([k, v]) => (
+          <div key={k} className="p-4" style={{ background: BG }}>
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>{k}</div>
+            <div className="font-display text-base" style={{ color: INK }}>{v}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabs */}
+      <div className="grid grid-cols-3 gap-px mb-6" style={{ background: BORDER }}>
+        {[
+          ['phases', 'Phases & Orbit'],
+          ['tides', 'Tides'],
+          ['eclipses', 'Eclipses'],
+        ].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)}
+                  className="p-4 text-center transition"
+                  style={{ background: tab === id ? `${ACCENT}15` : BG,
+                           borderTop: tab === id ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+            <div className="font-display text-base" style={{ color: tab === id ? ACCENT : INK, letterSpacing: '-0.01em' }}>{label}</div>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'phases' && (
+        <div className="fade-in">
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT }}>
+            Orbital geometry · click any phase
+          </div>
+          <div className="relative mb-4" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+            <OrbitDiagram ang={phase.ang} />
+          </div>
+
+          {/* Phase strip */}
+          <div className="grid grid-cols-8 gap-px mb-6" style={{ background: BORDER }}>
+            {MOON_PHASES.map((p, i) => (
+              <button key={p.id} onClick={() => setPhaseIdx(i)}
+                      className="p-3 text-center transition"
+                      style={{ background: phaseIdx === i ? `${ACCENT}10` : BG }}>
+                <div className="flex justify-center mb-2">
+                  <MoonGlyph ang={p.ang} size={40} />
+                </div>
+                <div className="font-mono text-[9px] leading-tight" style={{ color: phaseIdx === i ? ACCENT : DIM }}>
+                  {p.name}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-px mb-8" style={{ background: BORDER }}>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Phase</div>
+              <div className="font-display text-base" style={{ color: INK }}>{phase.name}</div>
+            </div>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Illuminated</div>
+              <div className="font-display text-base" style={{ color: INK }}>{Math.round(phase.illum * 100)}%</div>
+            </div>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Rises / sets</div>
+              <div className="font-display text-base" style={{ color: INK }}>{phase.rise} / {phase.set}</div>
+            </div>
+            <div className="p-4" style={{ background: BG }}>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: DIM }}>Best seen</div>
+              <div className="font-display text-base" style={{ color: INK }}>{phase.visible}</div>
+            </div>
+          </div>
+
+          <Section title="The phases are a geometric illusion">
+            <p>
+              Half the Moon is always lit by the Sun — there is no actual "dark side." What changes is
+              how much of that lit half we can see from Earth. The phase angle is simply the
+              Sun–Moon–Earth angle: 0° at full, 180° at new, 90° at quarter.
+            </p>
+            <p>
+              The dividing line on the Moon's disc — between lit and unlit — is the <em>terminator</em>.
+              It moves across the Moon at ~15 km per hour (lunar surface speed) as the phase advances.
+              The terminator is the best place to look with a small telescope: shadows are long there,
+              and crater rims, mountains, and rilles stand out in sharp relief.
+            </p>
+          </Section>
+
+          <Section title="Synodic vs sidereal month — two different periods">
+            <p>
+              The Moon orbits Earth in <strong style={{ color: ACCENT }}>27.32 days</strong> (sidereal
+              month — return to the same star). But the time from one full moon to the next is
+              <strong style={{ color: ACCENT }}> 29.53 days</strong> (synodic month). The difference is because
+              Earth is also moving around the Sun, so the Moon has to "catch up" by an extra ~27° each
+              orbit to be once again on the opposite side of Earth from the Sun.
+            </p>
+            <Eq>1 / T<sub>syn</sub> = 1 / T<sub>sid</sub> − 1 / T<sub>year</sub></Eq>
+            <p>
+              Plug in T<sub>sid</sub> = 27.32 d, T<sub>year</sub> = 365.25 d: T<sub>syn</sub> = 29.53 d.
+              The synodic month is what drives the calendar — most lunar calendars (Islamic, Hebrew,
+              Chinese) are built on it. 12 synodic months make 354 days, which is why the Islamic
+              calendar drifts ~11 days per solar year against the Gregorian one.
+            </p>
+          </Section>
+
+          <Section title="The Moon always shows the same face — tidal locking">
+            <p>
+              Look at a full moon any time and you see the same pattern of dark <em>maria</em> (the
+              "Man in the Moon"). That's because the Moon's rotation period equals its orbital period
+              — exactly 27.32 days. This is no coincidence: it's the inevitable result of
+              <em> tidal locking</em>.
+            </p>
+            <p>
+              Earth's gravity raises a tidal bulge on the Moon. If the Moon rotates faster than it
+              orbits, the bulge gets dragged ahead of the Earth-Moon line, and Earth's gravity pulls
+              backward on it — slowing the Moon's spin. The process runs to completion in ~10⁸ years
+              for a body the size of our Moon. Result: synchronous rotation. The same physics has
+              locked Mercury into a 3:2 spin-orbit resonance, and most large moons of the gas giants
+              into 1:1 locks.
+            </p>
+            <p>
+              We do see <em>slightly</em> more than 50% of the Moon over time — about 59% — because of
+              <em> libration</em>: the Moon's orbit is eccentric and slightly tilted, so it appears to
+              rock back and forth and nod up and down over a month. The Apollo missions exploited
+              these librations to image regions just past the nominal limb.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'tides' && (
+        <div className="fade-in">
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT }}>
+            The two tidal bulges
+          </div>
+          <div className="relative mb-8" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+            <TideDiagram />
+          </div>
+
+          <Section title="Why there are two high tides per day, not one">
+            <p>
+              The intuitive picture — Moon's gravity pulls the ocean toward it, making one bulge — is
+              wrong. There are <em>two</em> bulges: one on the near side facing the Moon, one on the
+              far side opposite to it. Most coasts have two high tides and two low tides every ~25 hours.
+            </p>
+            <p>
+              The reason is that tides are a <em>differential</em> gravitational effect. The Moon pulls
+              every part of Earth, but it pulls the near side a bit harder than Earth's centre, and
+              Earth's centre a bit harder than the far side. In the frame of Earth's centre, water on
+              the near side accelerates toward the Moon (because the Moon pulls it harder than it pulls
+              the Earth's centre), and water on the far side accelerates <em>away</em> from the Moon
+              (because the Moon pulls Earth's centre harder than it pulls the far-side water). Both
+              cases produce a bulge.
+            </p>
+            <Eq>
+              Tidal acceleration:  a<sub>tidal</sub> ≈ 2 G M r / d³
+            </Eq>
+            <p>
+              Where M is the perturbing body's mass, d the distance to it, and r the radius of the
+              perturbed body. The key feature: tidal force falls off as <strong>1/d³</strong>, not 1/d².
+              That cube is why the Moon matters more for tides than the Sun, even though the Sun
+              produces far more gravitational acceleration overall.
+            </p>
+          </Section>
+
+          <Section title="Sun vs Moon — and why the Moon wins">
+            <p>
+              The Sun is 27 million times more massive than the Moon, but ~390 times further away.
+              Plugging into the 1/d³ scaling: solar tidal force ≈ Moon's × (M<sub>☉</sub>/M<sub>moon</sub>) × (d<sub>moon</sub>/d<sub>☉</sub>)³
+              ≈ 27 × 10⁶ / 390³ ≈ 0.46. So the Sun's tidal force is about half the Moon's.
+            </p>
+            <p>
+              When Sun and Moon are aligned (new and full moons), their tidal effects add — giving
+              extra-large <strong style={{ color: ACCENT }}>spring tides</strong>. When they're at right angles
+              (quarter moons), they partly cancel — giving small <strong style={{ color: ACCENT }}>neap tides</strong>.
+              The fortnightly spring-neap cycle is one of the most reliable signals in oceanography.
+              "Spring" has nothing to do with the season — it's from the Old English for "to leap up."
+            </p>
+          </Section>
+
+          <Section title="Tides actually drain energy from Earth's rotation">
+            <p>
+              Earth spins under the tidal bulges. Friction between the rotating ocean and the seafloor
+              drags the bulges slightly ahead of the Earth-Moon line. That displaced near-side bulge
+              has gravitational mass — and it pulls the Moon forward in its orbit, while the Moon's
+              gravity pulls backward on the bulge, slowing Earth's spin.
+            </p>
+            <p>
+              The numbers are real and measured:
+              <br />
+              <strong style={{ color: ACCENT }}>Earth's day is getting longer</strong> by about 2.3 milliseconds
+              per century. Coral fossils from 400 million years ago record ~400 days per year (a 22-hour day).
+              <br />
+              <strong style={{ color: ACCENT }}>The Moon is receding from Earth</strong> at 3.8 cm/year, measured
+              directly by laser ranging off the Apollo retroreflectors. Angular momentum lost from Earth's
+              spin is transferred to the Moon's orbit.
+            </p>
+            <p>
+              In the very long run (tens of billions of years), if nothing else intervened, Earth would
+              tidally lock to the Moon — a 47-day Earth day, with the Moon hanging over a single point on
+              Earth forever. But the Sun will become a red giant first, and the whole system gets
+              disrupted long before this completes.
+            </p>
+          </Section>
+
+          <Section title="Why a beach tide is metres, not centimetres">
+            <p>
+              The naive equilibrium tide — what you'd get on an ocean perfectly covering a smooth Earth —
+              is only about <strong>54 cm</strong> for the Moon's contribution. Yet some coasts (Bay of
+              Fundy in Canada, Severn Estuary in the UK) see tidal ranges over 15 m. The difference is
+              <em> resonance</em>.
+            </p>
+            <p>
+              Ocean basins have natural sloshing frequencies determined by their geometry. When that
+              frequency is close to the ~12.4-hour tidal forcing period, the response is amplified —
+              sometimes by an order of magnitude or more. The Bay of Fundy's natural period is about 13
+              hours, very near resonance, which is why it has the largest tides in the world. The
+              open Pacific, by contrast, has tidal ranges of just ~50 cm in the middle.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'eclipses' && (
+        <div className="fade-in">
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT }}>
+            Solar eclipse — Moon between Sun and Earth
+          </div>
+          <div className="relative mb-8" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+            <EclipseDiagram kind="solar" />
+          </div>
+
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-3" style={{ color: ACCENT }}>
+            Lunar eclipse — Earth between Sun and Moon
+          </div>
+          <div className="relative mb-8" style={{ border: `1px solid ${BORDER}`, background: PANEL }}>
+            <EclipseDiagram kind="lunar" />
+          </div>
+
+          <Section title="Why we don't have an eclipse every month">
+            <p>
+              Every new moon should be a solar eclipse and every full moon a lunar eclipse — if the
+              Moon's orbit were in the same plane as Earth's orbit around the Sun. But the Moon's
+              orbit is tilted by <strong style={{ color: ACCENT }}>5.14°</strong> relative to the ecliptic.
+              Most months, the new moon passes above or below the Sun's disc as seen from Earth, and
+              the full moon misses Earth's shadow.
+            </p>
+            <p>
+              Eclipses can only happen when a new or full moon coincides with the Moon being near one
+              of the two <em>nodes</em> — the points where its orbit crosses Earth's orbital plane.
+              These alignments happen roughly twice a year, giving "eclipse seasons" lasting ~37 days
+              each. The exact dates drift through the calendar because the lunar nodes themselves
+              precess westward, completing a full circuit in 18.6 years.
+            </p>
+          </Section>
+
+          <Section title="The Saros cycle — predicting eclipses">
+            <p>
+              The Babylonians noticed by ~600 BCE that eclipses repeat with a period of
+              <strong style={{ color: ACCENT }}> 18 years 11 days 8 hours</strong>. We now call this the Saros.
+              It arises from a triple coincidence: 223 synodic months = 242 draconic months = 239
+              anomalistic months, all to within a few hours.
+            </p>
+            <p>
+              Two eclipses one Saros apart have nearly the same geometry — same kind (solar/lunar),
+              same approximate duration, same season. The 8-hour offset means each successive eclipse
+              in a series shifts ~120° west in longitude on Earth, so any given Saros series is visible
+              from a given location only every ~54 years. A complete Saros series lasts ~12–15 centuries
+              and contains 70–80 eclipses.
+            </p>
+          </Section>
+
+          <Section title="Total solar eclipses are a cosmic coincidence">
+            <p>
+              The Sun's diameter is ~400× the Moon's, but the Sun is ~400× farther away. So the two
+              discs subtend almost exactly the same angle in the sky (~0.5°). This is why total solar
+              eclipses look like they do — with the Moon perfectly covering the Sun's photosphere and
+              revealing the corona.
+            </p>
+            <p>
+              Nothing requires this. No other planet in our solar system has a moon that produces such
+              precise total eclipses. And it's temporary: the Moon is receding at 3.8 cm/year, and in
+              about 600 million years it will be too small to ever fully cover the Sun. From then on,
+              all solar eclipses will be annular ("ring-of-fire"), with the Sun's edge visible around
+              the Moon. We happen to live in the geological epoch when total solar eclipses exist.
+            </p>
+          </Section>
+
+          <Section title="Why a totally eclipsed Moon turns red">
+            <p>
+              A totally eclipsed Moon — fully inside Earth's umbra — should be dark. Instead it glows
+              dim copper-red, the famous "blood moon." The reason: Earth's atmosphere acts as a giant
+              lens, refracting sunlight into the umbral shadow. Blue light is scattered away (the same
+              Rayleigh scattering that makes our sky blue); the red light that makes it through reaches
+              the Moon.
+            </p>
+            <p>
+              An observer standing on the eclipsed Moon would see Earth in silhouette, ringed by a thin
+              red glow — the combined sunrises and sunsets of every horizon on Earth, all at once. The
+              exact shade depends on Earth's atmospheric conditions: after large volcanic eruptions
+              (which loft dust and aerosols high into the stratosphere), lunar eclipses can be nearly
+              black.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {/* Origin section - always visible at the bottom */}
+      <div className="mt-12 pt-8" style={{ borderTop: `1px solid ${BORDER}` }}>
+        <h3 className="font-display text-2xl mb-6" style={{ letterSpacing: '-0.01em' }}>Origin: the giant-impact hypothesis</h3>
+
+        <Section title="A Mars-sized impactor, ~4.5 billion years ago">
+          <p>
+            The leading theory: ~30 million years after the solar system formed, a Mars-sized body
+            traditionally named <em>Theia</em> struck the proto-Earth at a glancing angle. The impact
+            vapourised much of Earth's mantle and a similar mass of Theia, ejecting a disc of molten
+            silicate into orbit. The Moon coalesced from that disc within a few hundred years.
+          </p>
+          <p>
+            This explains a series of otherwise puzzling facts: the Moon is unusually large relative
+            to its planet (1.2% of Earth's mass — most moons are ~10⁻⁴ of their planet); the Moon has
+            essentially no iron core (Theia's iron sank into Earth's core during the impact); the
+            Moon's bulk composition matches Earth's mantle remarkably well; the Earth-Moon system
+            has anomalously high angular momentum (the impact spun things up).
+          </p>
+          <p>
+            The strongest single piece of evidence: oxygen isotope ratios. Different bodies in the
+            solar system have measurably different ¹⁶O / ¹⁷O / ¹⁸O ratios. Earth and Moon are
+            <em> identical</em> to within current measurement precision — implying they share a common
+            origin or were thoroughly mixed by a giant impact. Mars, by contrast, has clearly distinct
+            isotope ratios.
+          </p>
+        </Section>
+
+        <Section title="Why the Moon matters for life on Earth">
+          <p>
+            Earth's spin axis is tilted 23.4° to its orbit, giving us seasons. The Moon stabilises this
+            tilt — without it, gravitational nudges from the other planets would cause Earth's
+            obliquity to wander chaotically between ~0° and ~85° over millions of years, with
+            catastrophic climate consequences. Mars, with only two tiny moons, has obliquity excursions
+            from ~10° to ~60°.
+          </p>
+          <p>
+            Strong tidal mixing in shallow seas — driven by the Moon when it was much closer than today
+            (just a few Earth radii away in the very early Earth) — may also have played a role in
+            mixing organic chemistry and accelerating the origin of life. Whether this is essential or
+            just helpful is an open question.
+          </p>
+        </Section>
+
+        <Section title="Geology in a few sentences">
+          <p>
+            The dark patches we call <em>maria</em> ("seas") are basaltic lava plains, mostly formed
+            3.0–3.8 billion years ago when large impacts cracked the crust and magma from the warm
+            mantle flooded out. Maria cover ~16% of the surface, almost all on the near side — possibly
+            because the near-side crust is thinner, a relic of an early thermal asymmetry.
+          </p>
+          <p>
+            The bright <em>highlands</em> are older crust — anorthosite, made of the floated remains of
+            a global magma ocean that crystallised in the Moon's first ~100 million years. Highland
+            craters preserve a record of the inner solar system's bombardment history, especially the
+            "Late Heavy Bombardment" centred ~3.9 Gyr ago.
+          </p>
+          <p>
+            The Moon has no atmosphere, no magnetic field today (though it had one ~3.5 Gyr ago, now
+            preserved in remanent magnetisation of returned samples), and no active volcanism. It is
+            geologically dead at first order — but its interior is not perfectly cold. Lunar quakes
+            detected by the Apollo seismometers reveal a small partially molten layer near the
+            core-mantle boundary.
+          </p>
+        </Section>
+
+        <Section title="Things still open">
+          <p>
+            <strong style={{ color: ACCENT }}>Exact dynamics of the giant impact</strong> — simulations show many
+            scenarios that match observations; we don't know which is correct. Some recent models propose
+            multiple smaller impacts instead.
+          </p>
+          <p>
+            <strong style={{ color: ACCENT }}>Lunar water</strong> — once thought completely dry, the Moon is
+            now known to contain water ice in permanently shadowed polar craters (LCROSS impact, 2009;
+            LRO observations). The total amount, distribution, and origin (cometary delivery vs trapped
+            from solar wind) are still being mapped — relevant for any sustained human presence.
+          </p>
+          <p>
+            <strong style={{ color: ACCENT }}>The far side</strong> — the lunar far side has thicker crust, far
+            fewer maria, and the largest impact basin in the solar system (the South Pole-Aitken basin,
+            ~2,500 km across). Why the two sides differ so dramatically is still debated. China's
+            Chang'e 4 and 6 missions are returning surface and sample data from this previously
+            unvisited terrain.
+          </p>
+        </Section>
+      </div>
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 //  ROOT
 // ═══════════════════════════════════════════════════════════════════════════
 export default function App() {
@@ -2812,6 +3526,7 @@ export default function App() {
     gal:    <GalaxyMorph       onBack={() => setView('hub')} />,
     bb:     <BigBangTimeline   onBack={() => setView('hub')} />,
     exo:    <ExoplanetDetection onBack={() => setView('hub')} />,
+    moon:   <MoonTopic         onBack={() => setView('hub')} />,
   };
   return views[view] || <Hub onSelect={setView} />;
 }
