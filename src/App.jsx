@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, Eye, EyeOff, X, ChevronLeft, ChevronRight, Sparkles, Zap, BookOpen, Info } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   COSMOS EXPLORER v0.7
+   COSMOS EXPLORER v0.8
    An interactive astrophysics primer at first-year-course depth.
    ─────────────────────────────────────────────────────────────────────────── */
 
@@ -109,7 +109,7 @@ function PageShell({ children, onBack, title, eyebrow }) {
               ⎙ print
             </button>
             <div className="font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: DIM }}>
-              cosmos explorer · v0.7
+              cosmos explorer · v0.8
             </div>
           </div>
         </div>
@@ -228,6 +228,20 @@ const GLOSSARY = {
   'orbital resonance': 'When two orbiting bodies have orbital periods related by a small-integer ratio. Causes stable or unstable mutual gravitational interactions. Examples: Neptune and Pluto are in 3:2 resonance; Io, Europa, Ganymede are in 4:2:1 (Laplace resonance).',
   'gravity assist': 'Using a planetary flyby to change a spacecraft\'s velocity by stealing a tiny amount of the planet\'s orbital energy. Allowed Voyager to reach all four giant planets; lets New Horizons reach Pluto in 9 years.',
   'tidal force': 'The differential gravitational force a body experiences across its extent because gravity weakens with distance. Causes ocean tides, tidal heating (e.g. Io), and tidal disruption of stars by black holes.',
+  'frost line': 'The distance from a young star (~3 AU around a Sun-like star) beyond which volatiles like water, ammonia, and methane condense to solid ice. Inside the line: rocky planets. Outside: ice giants and gas giants.',
+  'differentiation': 'The process by which a molten planet sorts itself by density — heavy elements (iron, nickel) sink to form a core, lighter materials (silicates) float to form a mantle and crust. All terrestrial planets are differentiated.',
+  'accretion': 'The gradual growth of a body by accumulating surrounding material — gas, dust, or smaller bodies (planetesimals). The dominant mode of planet formation, and also of black-hole growth.',
+  'planetesimal': 'A solid object 1 km to ~100 km in size formed in the early solar nebula, the building block of planets. Surviving examples today are asteroids and comets.',
+  'kuiper belt': 'A disk of icy bodies beyond Neptune\'s orbit (30–50 AU), containing Pluto, Eris, and many smaller worlds. Short-period comets originate here.',
+  'oort cloud': 'A hypothesised spherical shell of icy bodies at ~2,000 to 200,000 AU, from which long-period comets originate. Inferred but never directly observed.',
+  'diffraction limit': 'The fundamental angular resolution limit of any optical system, set by the wave nature of light: θ ≈ 1.22 λ/D, where D is the aperture diameter and λ is the wavelength. Bigger apertures and shorter wavelengths give sharper images.',
+  'seeing': 'The blurring of astronomical images caused by turbulence in Earth\'s atmosphere. Even with a giant telescope, ground-based seeing limits typical visible-light resolution to ~1 arcsecond at average sites, ~0.4 arcsec at the best sites.',
+  'adaptive optics': 'A technique using deformable mirrors to correct atmospheric turbulence in real time, allowing ground-based telescopes to approach their diffraction limit. Requires a bright reference star (natural or laser-generated).',
+  'ccd': 'Charge-Coupled Device — a silicon imaging detector that revolutionised astronomy in the 1980s. CCDs are ~50× more sensitive than photographic plates and digitise output directly. Nearly all modern telescopes use them or successor CMOS detectors.',
+  'photometry': 'The measurement of total light intensity from an astronomical object through specific filters. Most exoplanet detection, supernova searches, and variable star monitoring rely on precise photometry.',
+  'spectroscopy': 'The measurement of light intensity as a function of wavelength. Splitting light into its spectrum reveals composition, temperature, motion, magnetic fields, and rotation of distant objects.',
+  'interferometry': 'Combining light from multiple telescopes to achieve angular resolution equivalent to a single telescope as large as the separation between them. Used at radio (VLA, EHT) and optical (VLTI, CHARA) wavelengths.',
+  'atmospheric window': 'A band of wavelengths at which Earth\'s atmosphere is reasonably transparent. The main optical window is ~300–1100 nm; the radio window is ~1 cm to ~10 m. Other wavelengths (most IR, UV, X-ray, gamma) require space-based telescopes.',
 };
 
 function Term({ k, children }) {
@@ -574,23 +588,23 @@ const PATHS = {
     title: 'Newcomer',
     sub: 'No mathematical background assumed',
     desc: 'Visual intuition first, equations as context. Start with what you can already observe yourself, then build outward from the familiar to the cosmic. Equations appear, but you can skip past them — the prose carries the story.',
-    order: ['moon', 'obs', 'orb', 'sizes', 'spec', 'hr', 'life', 'gal', 'bb', 'exo', 'ladder', 'bh', 'fusion', 'cmb', 'sr'],
-    note: 'Start with topics you can verify with your own eyes (Moon, constellations), then learn how gravity makes everything move (Orbits), then move to what light tells us (Spectra, HR Diagram), and finally to the things that require trust in physics (Fusion, Black Holes, Relativity).',
+    order: ['obs', 'moon', 'ss', 'sizes', 'tel', 'spec', 'hr', 'life', 'orb', 'exo', 'gal', 'bb', 'cmb', 'fusion', 'ladder', 'bh', 'sr'],
+    note: 'Start with things you can verify with your own eyes (constellations, Moon, nearby planets), then learn what light and telescopes reveal, then move outward to stars, galaxies, and finally the deepest physics.',
   },
   refresher: {
     icon: '🔄',
     title: 'Refresher',
     sub: "You've seen this before",
     desc: "Core spine of stellar physics and cosmology, in the order they're usually taught. Skip the gentle warmups and go straight for the central machinery.",
-    order: ['orb', 'hr', 'life', 'fusion', 'spec', 'sr', 'ladder', 'bb', 'cmb', 'gal', 'bh', 'exo', 'moon', 'obs'],
-    note: 'Heavily weighted to stellar astrophysics in the first half, cosmology and exoplanets in the second. Orbits opens the path as the foundational mechanics on which everything else rests.',
+    order: ['orb', 'tel', 'spec', 'hr', 'life', 'fusion', 'sr', 'ladder', 'exo', 'gal', 'bb', 'cmb', 'bh', 'ss', 'moon', 'obs'],
+    note: 'Heavily weighted to stellar astrophysics in the first half, cosmology and extreme physics in the second. Orbital mechanics and how telescopes work come first as foundational.',
   },
   deepdiver: {
     icon: '🔬',
     title: 'Deep diver',
     sub: 'Career-transition preparation',
-    desc: 'Follow the physics. Start with the most fundamental processes (orbits, relativity, nuclear fusion) and build outward. Pay close attention to derivations, scaling laws, and the worked examples in each topic.',
-    order: ['orb', 'sr', 'fusion', 'hr', 'life', 'spec', 'bh', 'ladder', 'cmb', 'bb', 'gal', 'exo', 'moon', 'obs'],
+    desc: 'Follow the physics. Start with the most fundamental processes (orbits, relativity, fusion) and build outward. Pay close attention to derivations, scaling laws, and the worked examples in each topic.',
+    order: ['orb', 'sr', 'fusion', 'tel', 'spec', 'hr', 'life', 'bh', 'ladder', 'cmb', 'bb', 'gal', 'exo', 'ss', 'moon', 'obs'],
     note: 'This path treats astronomy as applied physics. Each topic builds on machinery from the previous ones. Orbits and Special Relativity are the two foundations everything else assumes.',
   },
 };
@@ -706,21 +720,23 @@ const STARS = [
 //  HUB
 // ═══════════════════════════════════════════════════════════════════════════
 const TOPICS = [
-  { id: 'hr',     n: '01', title: 'Hertzsprung–Russell Diagram',  sub: 'Temperature, luminosity, and the lives of stars',     ready: true },
-  { id: 'sizes',  n: '02', title: 'Stellar Size Comparison',       sub: 'From Earth to hypergiant by orders of magnitude',     ready: true },
-  { id: 'life',   n: '03', title: 'The Stellar Lifecycle',         sub: 'How a star’s initial mass decides its entire fate',   ready: true },
-  { id: 'fusion', n: '04', title: 'Nuclear Fusion in Stars',       sub: 'The binding energy curve and the chains of burning', ready: true },
-  { id: 'spec',   n: '05', title: 'Spectral Classification',       sub: 'Reading the bar code of stellar light',               ready: true },
-  { id: 'ladder', n: '06', title: 'The Cosmic Distance Ladder',    sub: 'How we measure the universe, step by step',           ready: true },
-  { id: 'bh',     n: '07', title: 'Anatomy of a Black Hole',       sub: 'Horizons, photon spheres, and Hawking evaporation',   ready: true },
-  { id: 'gal',    n: '08', title: 'Galaxy Morphology',             sub: 'The Hubble sequence and modern classifications',      ready: true },
-  { id: 'bb',     n: '09', title: 'The Big Bang Timeline',         sub: 'From Planck era to recombination, logarithmically',   ready: true },
-  { id: 'exo',    n: '10', title: 'Exoplanet Detection',           sub: 'Transits, radial velocity, microlensing, imaging',    ready: true },
-  { id: 'moon',   n: '11', title: 'The Moon · Phases & Tides',     sub: 'Our nearest neighbour and the rhythms it drives',     ready: true },
-  { id: 'obs',    n: '12', title: 'Observational Astronomy',       sub: 'Constellations, the sky tonight, and how to look up',  ready: true },
-  { id: 'sr',     n: '13', title: 'Special Relativity Essentials', sub: 'The Lorentz factor and what it does to spacetime',    ready: true },
-  { id: 'cmb',    n: '14', title: 'The Cosmic Microwave Background', sub: 'A baby photo of the universe at 380,000 years',     ready: true },
-  { id: 'orb',    n: '15', title: 'Orbits & Gravity',                sub: 'Falling sideways forever — Kepler, Newton, and weird loops', ready: true },
+  { id: 'obs',    n: '01', title: 'Observational Astronomy',       sub: 'Constellations, the sky tonight, and how to look up',  ready: true },
+  { id: 'moon',   n: '02', title: 'The Moon · Phases & Tides',     sub: 'Our nearest neighbour and the rhythms it drives',     ready: true },
+  { id: 'ss',     n: '03', title: 'The Solar System',              sub: 'Worlds, rings, ice & rock — eight planets and what fills the gaps', ready: true },
+  { id: 'sizes',  n: '04', title: 'Stellar Size Comparison',       sub: 'From Earth to hypergiant by orders of magnitude',     ready: true },
+  { id: 'tel',    n: '05', title: 'How Telescopes See',            sub: 'Light, resolution & detectors — what astronomers actually do', ready: true },
+  { id: 'spec',   n: '06', title: 'Spectral Classification',       sub: 'Reading the bar code of stellar light',               ready: true },
+  { id: 'hr',     n: '07', title: 'Hertzsprung–Russell Diagram',   sub: 'Temperature, luminosity, and the lives of stars',     ready: true },
+  { id: 'life',   n: '08', title: 'The Stellar Lifecycle',         sub: 'How a star’s initial mass decides its entire fate',   ready: true },
+  { id: 'fusion', n: '09', title: 'Nuclear Fusion in Stars',       sub: 'The binding energy curve and the chains of burning', ready: true },
+  { id: 'orb',    n: '10', title: 'Orbits & Gravity',              sub: 'Falling sideways forever — Kepler, Newton, and weird loops', ready: true },
+  { id: 'exo',    n: '11', title: 'Exoplanet Detection',           sub: 'Transits, radial velocity, microlensing, imaging',    ready: true },
+  { id: 'ladder', n: '12', title: 'The Cosmic Distance Ladder',    sub: 'How we measure the universe, step by step',           ready: true },
+  { id: 'gal',    n: '13', title: 'Galaxy Morphology',             sub: 'The Hubble sequence and modern classifications',      ready: true },
+  { id: 'bb',     n: '14', title: 'The Big Bang Timeline',         sub: 'From Planck era to recombination, logarithmically',   ready: true },
+  { id: 'cmb',    n: '15', title: 'The Cosmic Microwave Background', sub: 'A baby photo of the universe at 380,000 years',     ready: true },
+  { id: 'bh',     n: '16', title: 'Anatomy of a Black Hole',       sub: 'Horizons, photon spheres, and Hawking evaporation',   ready: true },
+  { id: 'sr',     n: '17', title: 'Special Relativity Essentials', sub: 'The Lorentz factor and what it does to spacetime',    ready: true },
 ];
 
 function StarField() {
@@ -745,7 +761,7 @@ function Hub({ onSelect, onShowPaths }) {
       <StarField />
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-16 md:pt-24 pb-16">
         <div className="font-mono text-xs uppercase tracking-[0.3em] mb-4" style={{ color: ACCENT }}>
-          An interactive primer · v0.7
+          An interactive primer · v0.8
         </div>
         <h1 className="font-display font-light text-6xl md:text-7xl leading-[1.0] mb-6 max-w-4xl" style={{ letterSpacing: '-0.025em' }}>
           Cosmos<br />
@@ -860,7 +876,7 @@ function HRDiagram({ onBack }) {
   const active = hovered || selected;
 
   return (
-    <PageShell onBack={onBack} eyebrow="01 — Stellar Properties"
+    <PageShell onBack={onBack} eyebrow="07 — Stellar Properties"
                title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>H–R</em> Diagram</>}>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8">
         <div>
@@ -1245,7 +1261,7 @@ function SizeComparison({ onBack }) {
   });
 
   return (
-    <PageShell onBack={onBack} eyebrow="02 — Stellar Size Comparison"
+    <PageShell onBack={onBack} eyebrow="04 — Stellar Size Comparison"
                title={<>A walk up the <em style={{ color: ACCENT, fontStyle: 'italic' }}>ladder of scale</em></>}>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
         <div>
@@ -1472,7 +1488,7 @@ function StellarLifecycle({ onBack }) {
   ];
 
   return (
-    <PageShell onBack={onBack} eyebrow="03 — Stellar Evolution"
+    <PageShell onBack={onBack} eyebrow="08 — Stellar Evolution"
                title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>Lifecycle</em> of a Star</>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
         Set the initial mass and watch the entire arc of the star’s life rewrite itself. Mass is the
@@ -1746,7 +1762,7 @@ function NuclearFusion({ onBack }) {
   const yBE = be => PB - (be / 10) * (PB - PT);
 
   return (
-    <PageShell onBack={onBack} eyebrow="04 — Nuclear Astrophysics"
+    <PageShell onBack={onBack} eyebrow="09 — Nuclear Astrophysics"
                title={<>Nuclear Fusion <em style={{ color: ACCENT, fontStyle: 'italic' }}>in stars</em></>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
         Stars shine by binding lighter nuclei into heavier ones. The energy released comes from the
@@ -2028,7 +2044,7 @@ function SpectralClass({ onBack }) {
   const tempColor = c.color;
 
   return (
-    <PageShell onBack={onBack} eyebrow="05 — Observational Stellar Spectroscopy"
+    <PageShell onBack={onBack} eyebrow="06 — Observational Stellar Spectroscopy"
                title={<><em style={{ color: ACCENT, fontStyle: 'italic' }}>Spectral</em> Classification</>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
         A star’s spectrum is a bar code. Absorption lines are produced by atoms and ions in the cooler
@@ -2258,7 +2274,7 @@ function DistanceLadder({ onBack }) {
   const [open, setOpen] = useState('paral');
 
   return (
-    <PageShell onBack={onBack} eyebrow="06 — Cosmography"
+    <PageShell onBack={onBack} eyebrow="12 — Cosmography"
                title={<>The Cosmic <em style={{ color: ACCENT, fontStyle: 'italic' }}>Distance Ladder</em></>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
         Astronomy faces a deep problem: we cannot move. Every distance — from the Moon to the most distant
@@ -2471,7 +2487,7 @@ function BlackHole({ onBack }) {
   ];
 
   return (
-    <PageShell onBack={onBack} eyebrow="07 — Compact Objects & Relativity"
+    <PageShell onBack={onBack} eyebrow="16 — Compact Objects & Relativity"
                title={<>Anatomy of a <em style={{ color: ACCENT, fontStyle: 'italic' }}>Black Hole</em></>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
         A black hole is the simplest macroscopic object in physics: from far away, only three numbers
@@ -2907,7 +2923,7 @@ function GalaxyMorph({ onBack }) {
   const W = 900, H = 400;
 
   return (
-    <PageShell onBack={onBack} eyebrow="08 — Extragalactic Astronomy"
+    <PageShell onBack={onBack} eyebrow="13 — Extragalactic Astronomy"
                title={<>Galaxy <em style={{ color: ACCENT, fontStyle: 'italic' }}>Morphology</em></>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
         Edwin Hubble’s 1936 classification of galaxies into ellipticals, lenticulars, spirals, barred
@@ -3219,7 +3235,7 @@ function BigBangTimeline({ onBack }) {
   }
 
   return (
-    <PageShell onBack={onBack} eyebrow="09 — Cosmology"
+    <PageShell onBack={onBack} eyebrow="14 — Cosmology"
                title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>Big Bang</em> Timeline</>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
         The history of the universe spans 62 orders of magnitude in time — from the Planck era at
@@ -3649,7 +3665,7 @@ function ExoplanetDetection({ onBack }) {
   const yM = lm => SPB - (SPB - SPT) * (lm - logM_min) / (logM_max - logM_min);
 
   return (
-    <PageShell onBack={onBack} eyebrow="10 — Exoplanetary Science"
+    <PageShell onBack={onBack} eyebrow="11 — Exoplanetary Science"
                title={<>Detecting <em style={{ color: ACCENT, fontStyle: 'italic' }}>Other Worlds</em></>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
         Until 1992, the only known planets orbited the Sun. We now know of more than 5,800 exoplanets in
@@ -4258,7 +4274,7 @@ function MoonTopic({ onBack }) {
   };
 
   return (
-    <PageShell onBack={onBack} eyebrow="11 — Earth–Moon System"
+    <PageShell onBack={onBack} eyebrow="02 — Earth–Moon System"
                title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>Moon</em></>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-8" style={{ color: '#c8c3b1' }}>
         Our nearest neighbour, the only other world humans have walked on, and the engine behind tides,
@@ -4926,7 +4942,7 @@ function ObservationalAstronomy({ onBack }) {
 
   // What to look for - by category
   return (
-    <PageShell onBack={onBack} eyebrow="12 — Looking Up"
+    <PageShell onBack={onBack} eyebrow="01 — Looking Up"
                title={<>Observational <em style={{ color: ACCENT, fontStyle: 'italic' }}>Astronomy</em></>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
         Astronomy started by stepping outside and looking up. That's still the most direct connection
@@ -5295,7 +5311,7 @@ function SpecialRelativity({ onBack }) {
   const gamma = 1 / Math.sqrt(1 - v * v);
 
   return (
-    <PageShell onBack={onBack} eyebrow="13 — Spacetime"
+    <PageShell onBack={onBack} eyebrow="17 — Spacetime"
                title={<>Special <em style={{ color: ACCENT, fontStyle: 'italic' }}>Relativity</em></>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
         Einstein's 1905 reformulation of mechanics. Two postulates — physics is the same in every
@@ -5672,7 +5688,7 @@ function CMB({ onBack }) {
   const [T, setT] = useState(2.725); // CMB temperature in K
 
   return (
-    <PageShell onBack={onBack} eyebrow="14 — Relic Radiation"
+    <PageShell onBack={onBack} eyebrow="15 — Relic Radiation"
                title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>Cosmic Microwave Background</em></>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
         Every direction you point a sensitive radio antenna, you receive a faint hum at ~2.725 K. It is
@@ -6200,7 +6216,7 @@ function Orbits({ onBack }) {
   const [ecc, setEcc] = useState(0.3);
 
   return (
-    <PageShell onBack={onBack} eyebrow="15 — Gravity & Motion"
+    <PageShell onBack={onBack} eyebrow="10 — Gravity & Motion"
                title={<>Orbits & <em style={{ color: ACCENT, fontStyle: 'italic' }}>Gravity</em></>}>
       <p className="font-display text-lg max-w-3xl leading-relaxed mb-3" style={{ color: '#c8c3b1' }}>
         An orbit is what happens when you fall and miss the ground. Newton imagined firing a cannonball
@@ -6800,6 +6816,1266 @@ function Orbits({ onBack }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+//  16 · THE SOLAR SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+
+const PLANETS = [
+  { id: 'mer', name: 'Mercury', type: 'terrestrial',
+    r_au: 0.387, radius_E: 0.383, mass_E: 0.055, day_h: 4222.6, year_d: 88, T_K: '100–700',
+    atm: 'Negligible (exosphere of Na, K, He)',
+    moons: 0,
+    fact: 'Smallest planet. No atmosphere to redistribute heat — surface temperature swings 600 K between day and night. Polar craters in permanent shadow may harbor water ice.' },
+  { id: 'ven', name: 'Venus', type: 'terrestrial',
+    r_au: 0.723, radius_E: 0.949, mass_E: 0.815, day_h: -5832.5, year_d: 224.7, T_K: '737',
+    atm: '96% CO₂, 92 bar, sulfuric acid clouds',
+    moons: 0,
+    fact: 'Hottest planet despite being further from Sun than Mercury. Runaway greenhouse effect. Rotates backwards (retrograde) once every 243 Earth days — slower than its 225-day year.' },
+  { id: 'ear', name: 'Earth', type: 'terrestrial',
+    r_au: 1.0, radius_E: 1.0, mass_E: 1.0, day_h: 23.93, year_d: 365.25, T_K: '288',
+    atm: '78% N₂, 21% O₂, 1% Ar',
+    moons: 1,
+    fact: 'The only known body with surface liquid water and plate tectonics. The O₂ atmosphere is biological in origin — a direct biosignature.' },
+  { id: 'mar', name: 'Mars', type: 'terrestrial',
+    r_au: 1.524, radius_E: 0.532, mass_E: 0.107, day_h: 24.62, year_d: 687, T_K: '210',
+    atm: '95% CO₂, 0.006 bar — too thin to retain heat',
+    moons: 2,
+    fact: 'Once had liquid water and an atmosphere; lost both as its core cooled and the magnetic field shut off. Olympus Mons (~22 km tall) is the tallest known volcano in the Solar System.' },
+  { id: 'jup', name: 'Jupiter', type: 'gas giant',
+    r_au: 5.203, radius_E: 11.21, mass_E: 317.8, day_h: 9.93, year_d: 4332.6, T_K: '165 (1 bar level)',
+    atm: '90% H, 10% He, traces of NH₃, CH₄',
+    moons: 95,
+    fact: 'Most massive planet — 2.5× the rest of the Solar System combined. The Great Red Spot is a 350+ year-old storm bigger than Earth. Spins so fast (10 hr) that it\'s noticeably oblate.' },
+  { id: 'sat', name: 'Saturn', type: 'gas giant',
+    r_au: 9.537, radius_E: 9.45, mass_E: 95.16, day_h: 10.66, year_d: 10759, T_K: '134 (1 bar level)',
+    atm: '96% H, 3% He',
+    moons: 146,
+    fact: 'Least dense planet (0.69 g/cm³) — would float in water if you had a bathtub big enough. Spectacular ring system spans ~270,000 km but is only ~10 m thick.' },
+  { id: 'ura', name: 'Uranus', type: 'ice giant',
+    r_au: 19.19, radius_E: 4.01, mass_E: 14.54, day_h: -17.24, year_d: 30687, T_K: '76',
+    atm: '83% H, 15% He, 2% CH₄ (gives it blue colour)',
+    moons: 28,
+    fact: 'Tipped on its side (axial tilt 98°) — probably from a massive ancient impact. Each pole gets 42 years of continuous sunlight followed by 42 years of darkness.' },
+  { id: 'nep', name: 'Neptune', type: 'ice giant',
+    r_au: 30.07, radius_E: 3.88, mass_E: 17.15, day_h: 16.11, year_d: 60190, T_K: '72',
+    atm: '80% H, 19% He, 1% CH₄',
+    moons: 16,
+    fact: 'Strongest winds in the Solar System (up to 2,100 km/h). Was discovered by mathematics (Le Verrier 1846) before being observed — its existence inferred from anomalies in Uranus\'s orbit.' },
+];
+
+function SolarSystem({ onBack }) {
+  const [tab, setTab] = useState('worlds');
+  const [planetIdx, setPlanetIdx] = useState(3); // Earth default
+
+  const p = PLANETS[planetIdx];
+
+  return (
+    <PageShell onBack={onBack} eyebrow="03 — Our Cosmic Neighbourhood"
+               title={<>The <em style={{ color: ACCENT, fontStyle: 'italic' }}>Solar System</em></>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        Eight planets, hundreds of moons, millions of asteroids, trillions of comets, all orbiting a
+        single star. The Solar System is the only planetary system we can study up close — the
+        ground-truth against which we calibrate everything we learn about exoplanets, planetary
+        formation, and habitability. It also happens to contain the only life we know of.
+      </p>
+
+      {/* Tabs */}
+      <div className="grid grid-cols-3 md:grid-cols-5 gap-px mb-6" style={{ background: BORDER }}>
+        {[
+          ['worlds', 'The Eight Worlds'],
+          ['formation', 'Formation'],
+          ['smallbodies', 'Asteroids & Comets'],
+          ['rings', 'Rings & Moons'],
+          ['active', 'Active Frontiers'],
+        ].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)}
+                  className="p-3 md:p-4 text-center transition"
+                  style={{ background: tab === id ? `${ACCENT}15` : BG,
+                           borderTop: tab === id ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+            <div className="font-display text-xs md:text-sm" style={{ color: tab === id ? ACCENT : INK, letterSpacing: '-0.01em' }}>{label}</div>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'worlds' && (
+        <div className="fade-in">
+          <Section title="Two families of planets">
+            <p>
+              The inner four planets (Mercury, Venus, Earth, Mars) are <strong style={{ color: ACCENT }}>terrestrial</strong> —
+              rocky, dense (3.9–5.5 g/cm³), small (under 1.3 Earth radii), with thin or absent atmospheres.
+              They formed inside the <Term k="frost line">frost line</Term>, where the young Sun was hot
+              enough to vaporise water ice and the only available solids were metals and silicates.
+            </p>
+            <p>
+              The outer four (Jupiter, Saturn, Uranus, Neptune) are <strong style={{ color: ACCENT }}>giants</strong> —
+              mostly hydrogen and helium with substantial water/methane/ammonia ice envelopes. Saturn is
+              less dense than water; Jupiter is mostly fluid metallic hydrogen below its visible cloud
+              tops. None has a true surface in the terrestrial sense. They formed beyond the frost line
+              where ices could condense, giving their planetesimal cores more material to grow large
+              enough (~10 Earth masses) to capture and retain gas from the solar nebula.
+            </p>
+            <p>
+              A finer distinction: Jupiter and Saturn are <strong style={{ color: ACCENT }}>gas giants</strong>
+              dominated by H/He. Uranus and Neptune are <strong style={{ color: ACCENT }}>ice giants</strong>,
+              dominated by water/methane/ammonia (in supercritical fluid form). The distinction matters
+              because the formation pathways and interior physics differ substantially.
+            </p>
+          </Section>
+
+          <div className="my-8">
+            <div className="grid grid-cols-4 md:grid-cols-8 gap-px mb-6" style={{ background: BORDER }}>
+              {PLANETS.map((pl, i) => (
+                <button key={pl.id} onClick={() => setPlanetIdx(i)}
+                        className="p-3 text-center transition"
+                        style={{ background: planetIdx === i ? `${ACCENT}10` : BG,
+                                 borderTop: planetIdx === i ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+                  <div className="font-display text-sm" style={{ color: planetIdx === i ? ACCENT : INK }}>{pl.name}</div>
+                </button>
+              ))}
+            </div>
+
+            <div className="fade-in" key={p.id}>
+              <div className="flex items-baseline justify-between mb-4">
+                <h3 className="font-display text-3xl" style={{ letterSpacing: '-0.02em' }}>{p.name}</h3>
+                <span className="font-mono text-xs uppercase tracking-[0.2em]" style={{ color: ACCENT }}>{p.type}</span>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-px mb-6" style={{ background: BORDER }}>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Distance from Sun</div>
+                  <div className="font-mono text-base" style={{ color: INK }}>{p.r_au} AU</div>
+                </div>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Radius (Earth = 1)</div>
+                  <div className="font-mono text-base" style={{ color: INK }}>{p.radius_E}</div>
+                </div>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Mass (Earth = 1)</div>
+                  <div className="font-mono text-base" style={{ color: INK }}>{p.mass_E}</div>
+                </div>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Day length</div>
+                  <div className="font-mono text-base" style={{ color: INK }}>{p.day_h < 0 ? `${Math.abs(p.day_h).toFixed(1)} h (retrograde)` : `${p.day_h.toFixed(1)} h`}</div>
+                </div>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Year</div>
+                  <div className="font-mono text-base" style={{ color: INK }}>{p.year_d} d</div>
+                </div>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Surface T</div>
+                  <div className="font-mono text-base" style={{ color: INK }}>{p.T_K} K</div>
+                </div>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Moons</div>
+                  <div className="font-mono text-base" style={{ color: INK }}>{p.moons}</div>
+                </div>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Atmosphere</div>
+                  <div className="font-display text-sm" style={{ color: INK }}>{p.atm}</div>
+                </div>
+              </div>
+
+              <p className="font-display text-base leading-relaxed" style={{ color: '#c8c3b1' }}>{p.fact}</p>
+            </div>
+          </div>
+
+          <Section title="Surfaces and atmospheres tell stories">
+            <p>
+              A planet's surface preserves its history. <strong style={{ color: ACCENT }}>Cratering</strong>
+              is the universal record-keeper: every airless body retains every impact ever to hit it. The
+              Moon's heavily-cratered far side has been recording the inner Solar System's bombardment for
+              4 billion years.
+            </p>
+            <p>
+              Earth, by contrast, has almost no large craters — they're erased by erosion, plate tectonics,
+              and atmosphere. Venus is similar (volcanic resurfacing). Mars sits between: enough geological
+              activity to bury old craters but not enough to keep up with new impacts. Mercury and the
+              Moon look frozen in time.
+            </p>
+            <p>
+              Atmospheres are equally informative. Earth's free oxygen is biologically maintained — it
+              would oxidise away in ~10 million years without life. Venus's CO₂ atmosphere is the
+              outcome of a runaway greenhouse: surface heat vaporised oceans, water vapour amplified
+              warming, oceans boiled into the atmosphere, and the hydrogen subsequently escaped to space.
+              Once started, it can\'t reverse. Mars lost most of its atmosphere to space when its
+              core solidified and its magnetic field shut off ~3.8 Gyr ago.
+            </p>
+          </Section>
+
+          <Section title="What makes Earth different?">
+            <p>
+              Several apparently unrelated features set Earth apart: a large Moon, plate tectonics, a
+              strong magnetic field, liquid water, a nitrogen-oxygen atmosphere, and life. These may
+              be linked.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>The Moon</strong> probably formed from a Mars-sized impactor
+              hitting proto-Earth. The collision stripped much of Earth's mantle, leaving us with an
+              unusually dense interior, and also gifted Earth significant axial tilt and rotational
+              angular momentum.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Plate tectonics</strong> require a hot interior and a
+              specific viscosity range — too hot, and you get a Venus-style stagnant lid; too cool, and
+              you get Mars-style frozen tectonics. Plate tectonics also act as a CO₂ thermostat: silicate
+              weathering removes CO₂; volcanic outgassing replaces it; equilibrium stabilises Earth's
+              climate over geological timescales.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>The magnetic field</strong> protects the atmosphere from
+              solar wind stripping. It requires a liquid metallic core sustained by convection — which
+              requires sufficient heat. Once a small planet's core solidifies (as Mars\'s did), the
+              dynamo dies, the field collapses, and the atmosphere bleeds away.
+            </p>
+            <p>
+              Whether all this together is "rare" or "common" is one of the great questions in astrobiology.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'formation' && (
+        <div className="fade-in">
+          <Section title="How a solar system forms">
+            <p>
+              ~4.6 billion years ago, a region of a giant molecular cloud (mostly hydrogen, ~1% heavier
+              elements from previous stellar generations) became gravitationally unstable and collapsed.
+              Conservation of angular momentum spun it into a flattened, rotating disc — the solar
+              nebula. At the centre, density rose until thermonuclear fusion ignited and the Sun was
+              born.
+            </p>
+            <p>
+              Within the disc, dust grains collided and stuck together, growing from microns to
+              centimetres to kilometres over a few million years. Once bodies reached ~1 km
+              (<Term k="planetesimal">planetesimals</Term>), their mutual gravity dominated and growth
+              accelerated. The biggest survivors became planetary embryos; chaotic collisions among
+              embryos produced the final planets.
+            </p>
+          </Section>
+
+          <Section title="The frost line and the two-family pattern">
+            <p>
+              Temperature in the protoplanetary disc fell with distance from the young Sun. At ~3 AU lay
+              the <Term k="frost line">frost line</Term> — beyond which water, methane, and ammonia
+              could condense as solid ice. The solid materials available for accretion roughly tripled
+              outside the frost line compared to inside.
+            </p>
+            <p>
+              Inside the frost line, the only available solids were silicates and metals, producing
+              small rocky planets that ran out of material before reaching gas-capturing mass. Outside
+              the frost line, abundant ices let cores grow to ~10 Earth masses fast enough to
+              gravitationally capture and retain hydrogen and helium gas from the surrounding disc —
+              producing the giant planets.
+            </p>
+            <p>
+              The Sun blew away the disc gas within ~5 Myr after forming. Cores that hadn't reached
+              critical mass by then (Uranus, Neptune, possibly the rocky planets) were left as bare
+              cores. Cores that did reach critical mass (Jupiter, Saturn) became gas giants.
+            </p>
+          </Section>
+
+          <Section title="Migration: planets don't stay where they form">
+            <p>
+              Theoretical models from the late 1990s onward (and confirmed by exoplanet observations)
+              show that planets gravitationally interact with the gas disc they form in, exchanging
+              angular momentum. The result: planets migrate, often inward.
+            </p>
+            <p>
+              The "Nice Model" (proposed 2005) of Solar System history holds that the giant planets
+              formed closer together than they are now and migrated outward as Neptune scattered Kuiper
+              belt objects. Jupiter and Saturn briefly crossed a 2:1 resonance, which destabilised
+              orbits across the Solar System — likely causing the Late Heavy Bombardment (~3.9 Gyr ago,
+              evidenced by lunar crater statistics).
+            </p>
+            <p>
+              The "Grand Tack" model goes further: Jupiter may have migrated inward to ~1.5 AU before
+              being pulled back outward by Saturn. This would have starved the inner Solar System of
+              material, explaining why Mars is small and the asteroid belt has so little mass.
+            </p>
+          </Section>
+
+          <Section title="The asteroid belt: a planet that never was">
+            <p>
+              Between Mars and Jupiter lies the main asteroid belt — millions of rocky bodies, the
+              largest being Ceres (~940 km diameter, since 2006 classified as a dwarf planet). Total
+              mass of the entire belt is less than 5% of the Moon's mass.
+            </p>
+            <p>
+              The belt is what's left when planet formation fails. Jupiter's gravity stirred up
+              planetesimal velocities so much that collisions tended to fragment rather than accrete.
+              The belt also has gaps at orbital resonances with Jupiter (Kirkwood gaps) where bodies
+              were scattered out.
+            </p>
+            <p>
+              Asteroids are time capsules of early Solar System chemistry — particularly the C-type
+              (carbonaceous) asteroids of the outer belt, which preserve volatiles and organics largely
+              unchanged since formation. NASA's OSIRIS-REx (Bennu, 2020) and JAXA's Hayabusa2 (Ryugu,
+              2019) brought back samples for laboratory analysis.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'smallbodies' && (
+        <div className="fade-in">
+          <Section title="Three populations of small bodies">
+            <p>
+              Beyond the eight planets, the Solar System contains three large populations of leftover
+              bodies — each in a distinct dynamical environment:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Asteroids</strong> — rocky bodies mostly between 2 and 4 AU
+              from the Sun (main belt). ~1 million known objects {'>'} 1 km. Stirred by Jupiter\'s gravity;
+              compositions vary from primitive (C-type) to differentiated (S-type, M-type).
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Kuiper Belt Objects (KBOs)</strong> — icy bodies between
+              30 and 50 AU. Pluto is the most famous; over 1,000 are known {'>'} 100 km. The Kuiper Belt is
+              the source of short-period (P {'<'} 200 yr) comets like Halley.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Oort Cloud Objects</strong> — inferred icy bodies at
+              2,000–200,000 AU in a roughly spherical halo. Never directly observed. Source of long-period
+              comets like Hale-Bopp and ISON. Total population estimated at ~10¹¹ bodies.
+            </p>
+          </Section>
+
+          <Section title="Comets: dirty snowballs from the deep freeze">
+            <p>
+              Comets are icy planetesimals, ~1–50 km across, composed of water ice, frozen CO₂ and CO,
+              ammonia, methane, and organic compounds, plus dust ("dirty snowball" — Fred Whipple,
+              1950). When they swing in close to the Sun (within ~3 AU), the ices sublime, releasing gas
+              and dust that form the spectacular <strong style={{ color: ACCENT }}>tail</strong>.
+            </p>
+            <p>
+              A comet actually has two tails: a <strong style={{ color: ACCENT }}>dust tail</strong>
+              (curved, yellow-white, from sunlight pressure on dust grains) and an
+              <strong style={{ color: ACCENT }}> ion tail</strong> (straight, blue, from the solar wind
+              dragging ionised gases). Both always point away from the Sun, not in the direction of
+              motion. A comet receding from the Sun has its tail "in front" of it.
+            </p>
+            <p>
+              Comet 67P/Churyumov-Gerasimenko was visited by ESA's Rosetta mission (2014-2016), which
+              also landed Philae on the surface. Findings included complex organics, abundant water ice
+              (but with a different deuterium/hydrogen ratio than Earth's oceans, suggesting Earth's
+              water came mostly from asteroids, not comets), and a surprisingly low density (~0.5 g/cm³ —
+              the comet is half empty space).
+            </p>
+          </Section>
+
+          <Section title="Meteorites: free samples from space">
+            <p>
+              Meteorites — fragments of asteroids, comets, the Moon, or Mars that survive atmospheric
+              entry — provide our most direct samples of other Solar System bodies. The oldest
+              meteorites contain inclusions dated to 4.567 ± 0.001 billion years — the formation age of
+              the Solar System, measured radiometrically.
+            </p>
+            <p>
+              Three main types:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Chondrites</strong> (~85%) — primitive, never melted,
+              preserving the chemistry of the early solar nebula. Carbonaceous chondrites contain amino
+              acids and other organic molecules — interesting for astrobiology.<br/>
+              <strong style={{ color: ACCENT }}>Achondrites</strong> (~8%) — fragments of differentiated
+              parent bodies, similar to terrestrial igneous rocks. Some are confirmed lunar or Martian
+              meteorites (identified by their distinctive isotopic compositions).<br/>
+              <strong style={{ color: ACCENT }}>Iron meteorites</strong> (~6%) — cores of disrupted
+              planetary embryos. Composed mostly of iron-nickel alloy.
+            </p>
+            <p>
+              About 100 tonnes of meteoritic material falls on Earth each day (mostly as dust). Major
+              impacts are rare but consequential: the Chicxulub impactor (~10 km, 66 Mya) wiped out
+              the non-avian dinosaurs. Modern surveys (LINEAR, ATLAS, the Vera C. Rubin Observatory)
+              track all near-Earth asteroids {'>'} 1 km — none currently on impact trajectory.
+            </p>
+          </Section>
+
+          <Section title="Pluto and the dwarf planets">
+            <p>
+              In 2006, the IAU redefined "planet" to require three things: orbits the Sun; round (in
+              hydrostatic equilibrium); and has "cleared its orbital neighbourhood" of other bodies.
+              Pluto fails the third — it shares its neighbourhood with countless other KBOs.
+            </p>
+            <p>
+              Dwarf planets are bodies meeting the first two but not the third. Officially recognised:
+              Pluto, Eris, Haumea, Makemake (all KBOs), and Ceres (in the asteroid belt). Likely
+              candidates pending IAU recognition: Sedna, Orcus, Quaoar, Gonggong, and others — total
+              probably 50–200 trans-Neptunian dwarf planets eventually.
+            </p>
+            <p>
+              The 2015 New Horizons flyby of Pluto revealed an extraordinarily geologically active world
+              with nitrogen ice glaciers flowing across plains of solid nitrogen and methane, mountains
+              of water ice, and possible cryovolcanism. Pluto has just enough internal heat to remain
+              active — unexpected for a body so far from the Sun.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'rings' && (
+        <div className="fade-in">
+          <Section title="Why giant planets have rings">
+            <p>
+              All four giant planets have ring systems. Saturn's are by far the most spectacular —
+              spanning ~270,000 km but only ~10 metres thick, containing 99.9% water ice. Jupiter's
+              rings are faint and dusty. Uranus has narrow, dark rings. Neptune has incomplete "ring arcs"
+              held together by shepherd moons.
+            </p>
+            <p>
+              Rings exist where moons can't. All four giant planets' main ring systems lie inside the
+              <Term k="roche limit"> Roche limit</Term> — the distance below which tidal forces exceed
+              self-gravity. Material there can't accrete into a moon; any moon that strayed inside
+              would tear apart.
+            </p>
+          </Section>
+
+          <Section title="Where Saturn's rings come from">
+            <p>
+              For decades it was assumed the rings were primordial — leftover material from Saturn's
+              formation. But Cassini\'s observations (2004-2017) suggest they're much younger: only
+              ~100–400 million years old. The evidence is their cleanness — they're 99.9% pure water
+              ice with very little contamination from meteoritic dust, which has been falling on them
+              continuously.
+            </p>
+            <p>
+              The current best theory: a moon, or small icy body, strayed too close to Saturn (perhaps
+              perturbed by Titan), crossed the Roche limit, and was torn apart. The remains spread into
+              the disc-shaped ring system we see now.
+            </p>
+            <p>
+              Cassini also found that the rings are slowly raining material onto Saturn at a rate of
+              ~10 tonnes per second. At this rate, the rings will dissipate in ~100–300 million years.
+              We are extraordinarily lucky to observe them at all in cosmic terms.
+            </p>
+          </Section>
+
+          <Section title="Moons of the outer Solar System">
+            <p>
+              Giant planet moons are some of the most interesting objects in the Solar System. A few
+              standouts:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Io</strong> (Jupiter) — the most volcanically active body
+              known. Tidal heating from Jupiter and orbital resonance with Europa and Ganymede keeps
+              its interior molten. Hundreds of active volcanoes resurface it every ~1 million years.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Europa</strong> (Jupiter) — subsurface ocean beneath
+              ~20 km of ice. Tidally heated. Twice as much liquid water as all Earth's oceans combined.
+              Strong astrobiology target. Europa Clipper (launched 2024) will arrive 2030.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Ganymede</strong> (Jupiter) — largest moon in the Solar
+              System (larger than Mercury). Has its own magnetic field — the only moon with one.
+              Internal water-ice ocean.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Titan</strong> (Saturn) — only moon with a thick atmosphere
+              (1.45 bar, nitrogen + methane). Surface has rivers and lakes of liquid methane and ethane,
+              dunes of organic compounds. Cassini-Huygens landed there in 2005. Dragonfly mission
+              (launching 2028) will fly a quadcopter across its surface.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Enceladus</strong> (Saturn) — small icy moon with active
+              cryogeysers erupting from its south pole. Cassini flew through the plumes and detected
+              water, salts, organics, and hydrogen — all the ingredients for life. Strong astrobiology
+              target.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Triton</strong> (Neptune) — large moon orbiting backwards,
+              probably captured from the Kuiper belt. Active cryovolcanism, thin nitrogen atmosphere.
+            </p>
+          </Section>
+
+          <Section title="The habitable zone, rewritten">
+            <p>
+              Traditional habitable-zone thinking placed liquid water (and thus life) at planet distances
+              receiving ~Earth-like sunlight. But Europa, Enceladus, and Titan are far outside that
+              zone, yet have liquid water beneath their icy crusts — kept liquid by tidal heating, not
+              solar radiation.
+            </p>
+            <p>
+              This dramatically expands where life might exist. A planet around an M dwarf with the
+              right tidal heating could have a subsurface ocean for billions of years. So could "rogue"
+              planets ejected from their star systems, drifting through interstellar space.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'active' && (
+        <div className="fade-in">
+          <Section title="What we're actively exploring right now">
+            <p>
+              The Solar System is being explored at a pace unprecedented in history. A partial inventory
+              of current major missions:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Mars</strong> — Perseverance (rover, 2020–), Curiosity
+              (rover, 2012–), Ingenuity helicopter (now retired), multiple orbiters (MRO, MAVEN, Hope).
+              Sample return planned for ~2033.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>The Moon</strong> — Artemis program (US-led return),
+              Chang\'e missions (China, including far-side sample returns), Chandrayaan (India). Multiple
+              landers planned 2024–2030.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>The Sun</strong> — Parker Solar Probe (closest-ever flybys),
+              Solar Orbiter (high-latitude views). Active heliophysics observation.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Asteroids</strong> — Lucy (touring Jupiter Trojans), Psyche
+              (heading to metal asteroid 16 Psyche). OSIRIS-APEX (extended mission after Bennu return).
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Outer Solar System</strong> — JUICE (ESA, Jupiter system),
+              Europa Clipper (NASA, launched 2024). Dragonfly to Titan launching 2028.
+            </p>
+          </Section>
+
+          <Section title="The Vera C. Rubin Observatory">
+            <p>
+              Just starting operations: an 8.4-m telescope in Chile that will survey the entire visible
+              sky every 3-4 nights for 10 years. Among many science goals, it will discover an estimated
+              5+ million new asteroids, hundreds of thousands of new trans-Neptunian objects, and
+              probably the first interstellar comets in real time as they enter the Solar System.
+            </p>
+          </Section>
+
+          <Section title="Planet Nine?">
+            <p>
+              Several extreme trans-Neptunian objects (Sedna, 2012 VP113, others) have similar orbital
+              alignments, hinting at gravitational perturbation by an unseen large body. Predictions
+              (Batygin & Brown, 2016) suggest a ~5–10 Earth-mass planet at ~400–800 AU.
+            </p>
+            <p>
+              Despite intensive searches, "Planet Nine" remains undetected. It could be there but very
+              hard to see (extremely distant, dim, slow-moving). Or the orbital alignment might be
+              statistical fluke. The Vera C. Rubin Observatory should settle the question within a
+              decade.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      <Playground
+        title="Surface gravity and escape velocity"
+        description="A body's surface gravity is g = GM/r². Escape velocity is v_esc = √(2GM/r). Try the planets — or invent a hypothetical world."
+        inputs={[
+          { key: 'M', label: 'Mass (Earth = 1)', default: 1, min: -3, max: 3, log: true, unit: 'M⊕' },
+          { key: 'R', label: 'Radius (Earth = 1)', default: 1, min: -1.5, max: 1.5, log: true, unit: 'R⊕' },
+        ]}
+        compute={(v) => {
+          const G = 6.674e-11;
+          const M_kg = v.M * 5.972e24;
+          const R_m = v.R * 6.371e6;
+          const g = G * M_kg / Math.pow(R_m, 2);
+          const v_esc = Math.sqrt(2 * G * M_kg / R_m);
+          const v_esc_km_s = v_esc / 1000;
+          const g_in_earth = g / 9.81;
+          const density = M_kg / ((4/3) * Math.PI * Math.pow(R_m, 3));
+          return { g, g_in_earth, v_esc_km_s, density };
+        }}
+        outputs={[
+          { key: 'g', label: 'Surface gravity', unit: 'm/s²' },
+          { key: 'g_in_earth', label: 'In Earth gravities', unit: 'g' },
+          { key: 'v_esc_km_s', label: 'Escape velocity', unit: 'km/s' },
+          { key: 'density', label: 'Average density', unit: 'kg/m³' },
+        ]}
+      />
+
+      <Quiz questions={[
+        { q: 'The frost line in the early Solar System was important because:',
+          options: ['It set the temperature for liquid water', 'It separated where ices could condense from where they couldn\'t — controlling what solids were available for planet formation', 'It marked the boundary of the asteroid belt', 'It was where Jupiter formed'],
+          correct: 1,
+          explain: 'The frost line (~3 AU in the early Solar System) is the distance from the Sun beyond which water, methane, and ammonia could condense as ices. This roughly tripled the available solid mass for planet formation, explaining why the outer planets are so much more massive than the inner ones.' },
+        { q: 'Why does Saturn have such spectacular rings but Earth doesn\'t?',
+          options: ['Saturn has more moons', 'Saturn\'s rings lie inside its Roche limit, where Earth has no equivalent population of material', 'Saturn\'s gravity is stronger', 'Earth\'s atmosphere prevents ring formation'],
+          correct: 1,
+          explain: 'Inside the Roche limit, tidal forces exceed self-gravity, preventing material from accreting into moons. Saturn happens to have abundant icy material in this zone (probably from a disrupted moon ~100-400 Myr ago). Earth has the Moon outside its Roche limit but no significant population of close-in material.' },
+        { q: 'Why is Venus hotter than Mercury despite being further from the Sun?',
+          options: ['Venus is more volcanically active', 'Mercury has retrograde rotation', 'Venus has a thick CO₂ atmosphere causing extreme greenhouse warming', 'Mercury\'s polar craters block sunlight'],
+          correct: 2,
+          explain: 'Venus\'s atmosphere is ~96% CO₂ at 92 bar pressure — a runaway greenhouse effect traps heat. Surface temperature is ~737 K (hotter than Mercury\'s dayside maximum of ~700 K), and it stays at 737 K everywhere on the planet day and night, because the thick atmosphere redistributes heat.' },
+      ]} />
+
+      <OpenQuestions items={[
+        { q: 'Does Planet Nine exist?',
+          detail: '— Multiple extreme trans-Neptunian objects show orbital alignments suggesting gravitational perturbation by an unseen ~5–10 Earth-mass body at ~400–800 AU. Intensive searches (including with the Subaru telescope) have not found it. The Vera C. Rubin Observatory should detect it (if it exists) within a few years of operations.' },
+        { q: 'Where did Earth\'s water come from?',
+          detail: '— Earth formed dry (inside the frost line). The water must have been delivered later, but by what? D/H isotope ratios from comets are mostly too heavy compared to Earth\'s oceans. Carbonaceous chondrites match better, suggesting most water came from asteroids. But the timing and total contribution remain uncertain.' },
+        { q: 'Is there life on Europa, Enceladus, or Mars?',
+          detail: '— All three have subsurface (or once-surface) liquid water and the chemistry of life. Europa Clipper (arriving Jupiter 2030) and Dragonfly to Titan (arriving 2034) will start providing data. Mars sample return is planned for ~2033. We may know within 20 years.' },
+        { q: 'Why is the Solar System\'s architecture unusual?',
+          detail: '— Exoplanet statistics show our system is atypical. We have no super-Earths (the most common planet type in the galaxy); our giant planets are unusually spread out; our small inner planets are unusually small. The current best explanation is the Grand Tack — Jupiter\'s migration in to ~1.5 AU and back out, depleting the inner Solar System.' },
+      ]} />
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  17 · HOW TELESCOPES SEE: LIGHT, RESOLUTION & DETECTORS
+// ═══════════════════════════════════════════════════════════════════════════
+
+const EM_BANDS = [
+  { id: 'radio', name: 'Radio', range: '> 1 mm', lambda: '1 mm – 100 m', E: '< 10⁻³ eV',
+    sources: 'Pulsars, neutral hydrogen (21 cm), AGN jets, CMB, masers',
+    facilities: 'VLA, ALMA, MeerKAT, FAST, SKA (under construction)',
+    note: 'Long wavelengths pass through dust and Earth\'s atmosphere easily. Most radio astronomy is ground-based.',
+    atm: 'transparent' },
+  { id: 'mm', name: 'Submillimeter / mm', range: '0.3 – 3 mm', lambda: '0.3 – 3 mm', E: '~10⁻³ eV',
+    sources: 'Cold dust, molecular clouds, CMB anisotropies, protoplanetary discs',
+    facilities: 'ALMA, JCMT, IRAM, SPT',
+    note: 'Critical for studying cold gas and planet formation. Requires high dry sites (ALMA is at 5,000 m in Chile).',
+    atm: 'partial' },
+  { id: 'ir', name: 'Infrared', range: '0.75 – 300 μm', lambda: '0.75 μm – 0.3 mm', E: '~0.001–1 eV',
+    sources: 'Cool stars, dust-obscured galaxies, protoplanetary discs, exoplanet atmospheres',
+    facilities: 'JWST, Spitzer (retired), ALMA, IRTF, ground-based 8-10m + AO',
+    note: 'Penetrates dust that blocks visible light. Mostly absorbed by Earth\'s atmosphere — space telescopes dominate.',
+    atm: 'mostly blocked' },
+  { id: 'opt', name: 'Visible / Optical', range: '380 – 750 nm', lambda: '380 – 750 nm', E: '~1.5–3 eV',
+    sources: 'Stars, galaxies, reflected planetary light, nebulae',
+    facilities: 'Hubble, Keck, VLT, Subaru, Gemini, ELT (under construction), Vera Rubin',
+    note: 'The atmospheric window we evolved to see in. Where photographic astronomy began and where most discoveries happen.',
+    atm: 'transparent' },
+  { id: 'uv', name: 'Ultraviolet', range: '10 – 380 nm', lambda: '10 – 380 nm', E: '~3–100 eV',
+    sources: 'Hot stars, accretion disks, young stellar populations, ISM',
+    facilities: 'Hubble (UV), GALEX (retired), HST/STIS',
+    note: 'Blocked by atmospheric ozone — almost all UV astronomy must be space-based.',
+    atm: 'mostly blocked' },
+  { id: 'xray', name: 'X-ray', range: '0.01 – 10 nm', lambda: '0.01 – 10 nm', E: '~100 eV – 100 keV',
+    sources: 'Black holes accreting, neutron stars, hot cluster gas, supernova remnants',
+    facilities: 'Chandra, XMM-Newton, NuSTAR, eROSITA, NICER',
+    note: 'Blocked entirely by atmosphere. Requires space telescopes with grazing-incidence mirrors (X-rays go through normal mirrors).',
+    atm: 'blocked' },
+  { id: 'gamma', name: 'Gamma-ray', range: '< 0.01 nm', lambda: '< 0.01 nm', E: '> 100 keV',
+    sources: 'Pulsars, AGN, gamma-ray bursts, dark matter (?), pulsars',
+    facilities: 'Fermi LAT, INTEGRAL, HESS, MAGIC, CTA (under construction)',
+    note: 'No mirrors — gamma rays Compton-scatter or pair-produce in detectors. Space telescopes detect directly; ground arrays detect Cherenkov radiation from cosmic-ray air showers.',
+    atm: 'blocked' },
+];
+
+function Telescopes({ onBack }) {
+  const [tab, setTab] = useState('em');
+  const [bandIdx, setBandIdx] = useState(3); // optical default
+  const [aperture, setAperture] = useState(8); // meters
+  const [wavelength, setWavelength] = useState(550); // nm
+
+  const band = EM_BANDS[bandIdx];
+
+  // Diffraction limit: θ = 1.22 λ/D, returns arcseconds
+  const lambda_m = wavelength * 1e-9;
+  const theta_rad = 1.22 * lambda_m / aperture;
+  const theta_arcsec = theta_rad * 206265;
+
+  // Collecting area scales as D²
+  const area = Math.PI * Math.pow(aperture / 2, 2);
+  const area_vs_eye = area / Math.PI / Math.pow(0.007 / 2, 2); // dark-adapted eye ~7mm
+
+  return (
+    <PageShell onBack={onBack} eyebrow="05 — Light & Instruments"
+               title={<>How <em style={{ color: ACCENT, fontStyle: 'italic' }}>Telescopes</em> See</>}>
+      <p className="font-display text-lg max-w-3xl leading-relaxed mb-10" style={{ color: '#c8c3b1' }}>
+        Every fact in astronomy ultimately comes from photons collected, focused, filtered, and counted.
+        Behind every spectrum and every distance measurement is a chain of physical machinery — mirrors,
+        detectors, electronics — turning faint light into data. Understanding that chain demystifies
+        what astronomers actually do.
+      </p>
+
+      {/* Tabs */}
+      <div className="grid grid-cols-3 md:grid-cols-5 gap-px mb-6" style={{ background: BORDER }}>
+        {[
+          ['em', 'The EM Spectrum'],
+          ['resolution', 'Resolution & Aperture'],
+          ['detectors', 'Detectors & CCDs'],
+          ['techniques', 'Photometry & Spectroscopy'],
+          ['frontier', 'Modern Telescopes'],
+        ].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)}
+                  className="p-3 md:p-4 text-center transition"
+                  style={{ background: tab === id ? `${ACCENT}15` : BG,
+                           borderTop: tab === id ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+            <div className="font-display text-xs md:text-sm" style={{ color: tab === id ? ACCENT : INK, letterSpacing: '-0.01em' }}>{label}</div>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'em' && (
+        <div className="fade-in">
+          <Section title="One spectrum, seven windows">
+            <p>
+              Light is a wave of oscillating electric and magnetic fields. The wavelength — the distance
+              between crests — varies over more than 15 orders of magnitude across the electromagnetic
+              spectrum, from kilometres-long radio waves to picometres-long gamma rays. Each band carries
+              different astronomy.
+            </p>
+            <p>
+              What we see with our eyes (380–750 nm) is a narrow slice between ultraviolet and infrared.
+              We evolved to detect this band because it's where the Sun is brightest and where Earth's
+              atmosphere is transparent. From an astronomical standpoint, it's nearly arbitrary — every
+              other band reveals different processes.
+            </p>
+          </Section>
+
+          <Section title="The atmospheric windows">
+            <p>
+              Earth's atmosphere is opaque across most wavelengths. Only two main windows are open: the
+              <strong style={{ color: ACCENT }}> optical/near-IR window</strong> (~300–1100 nm) and the
+              <strong style={{ color: ACCENT }}> radio window</strong> (~1 cm to ~10 m). Almost
+              everything else — UV, most of the infrared, X-rays, gamma rays — has to be observed from
+              space, or from very high mountains with limited reach.
+            </p>
+            <p>
+              This is why X-ray and UV astronomy didn't exist before the Space Age: there was no way to
+              get a telescope above the atmosphere. It's also why high, dry observatories matter so much:
+              Mauna Kea (4,200 m), the Atacama Desert (5,000 m), the South Pole. Above most of the water
+              vapour, parts of the infrared open up.
+            </p>
+          </Section>
+
+          <div className="my-8">
+            <div className="grid grid-cols-7 gap-px mb-6" style={{ background: BORDER }}>
+              {EM_BANDS.map((b, i) => (
+                <button key={b.id} onClick={() => setBandIdx(i)}
+                        className="p-2 md:p-3 text-center transition"
+                        style={{ background: bandIdx === i ? `${ACCENT}10` : BG,
+                                 borderTop: bandIdx === i ? `2px solid ${ACCENT}` : `2px solid transparent` }}>
+                  <div className="font-display text-[10px] md:text-xs" style={{ color: bandIdx === i ? ACCENT : INK }}>{b.name}</div>
+                </button>
+              ))}
+            </div>
+
+            <div className="fade-in" key={band.id}>
+              <div className="flex items-baseline justify-between mb-4">
+                <h3 className="font-display text-2xl" style={{ letterSpacing: '-0.02em' }}>{band.name}</h3>
+                <span className="font-mono text-xs uppercase tracking-[0.2em]"
+                      style={{ color: band.atm === 'transparent' ? '#7aff7a' : band.atm === 'partial' ? ACCENT : ACCENT3 }}>
+                  atmosphere: {band.atm}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-px mb-4" style={{ background: BORDER }}>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Wavelength</div>
+                  <div className="font-mono text-sm" style={{ color: INK }}>{band.lambda}</div>
+                </div>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Photon energy</div>
+                  <div className="font-mono text-sm" style={{ color: INK }}>{band.E}</div>
+                </div>
+                <div className="p-4" style={{ background: BG }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Sources</div>
+                  <div className="font-display text-sm" style={{ color: INK }}>{band.sources}</div>
+                </div>
+              </div>
+
+              <p className="font-display text-base leading-relaxed mb-3" style={{ color: '#c8c3b1' }}>{band.note}</p>
+              <p className="font-mono text-xs" style={{ color: ACCENT }}>Facilities: {band.facilities}</p>
+            </div>
+          </div>
+
+          <Section title="The same object looks different in every band">
+            <p>
+              The Crab Nebula in optical: a fuzzy expanding gas cloud. In radio: a synchrotron source from
+              the pulsar's wind. In X-rays: a bright torus with collimated jets around the pulsar. In
+              gamma rays: pulses every 33 ms from the rapidly rotating neutron star. Same object, five
+              different physical pictures, each invisible to the others.
+            </p>
+            <p>
+              This is why modern astronomy is increasingly <strong style={{ color: ACCENT }}>multiwavelength</strong>.
+              Real understanding of a galaxy, a supernova remnant, or an accreting black hole requires
+              stitching together observations across the spectrum. The same object yields radio (cold gas
+              and synchrotron), infrared (dust and obscured star formation), optical (stars and nebulae),
+              UV (hot stars and AGN), X-ray (hot gas and accretion), and gamma-ray (relativistic particles)
+              data — each constraining different physical processes.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'resolution' && (
+        <div className="fade-in">
+          <Section title="Three things a telescope does">
+            <p>
+              At its core, a telescope is doing three jobs simultaneously:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>One — collecting area.</strong> The larger the aperture,
+              the more photons per second from a given source. The faintest sources detectable scale as
+              D² × t (aperture area × exposure time). Doubling the diameter quadruples the light gathered.
+              The 10-m Keck telescopes gather ~2 million times more light than a dark-adapted human eye.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Two — angular resolution.</strong> The smallest angular
+              detail the telescope can in principle resolve. Set by the
+              <Term k="diffraction limit"> diffraction limit</Term>:
+            </p>
+            <Eq>θ ≈ 1.22 × λ / D    (in radians)</Eq>
+            <p>
+              Bigger aperture and shorter wavelength give sharper images. A 1-m optical telescope has a
+              diffraction limit of ~0.14 arcsec; a 10-m telescope reaches ~0.014 arcsec — in principle.
+              In practice atmospheric turbulence blurs ground-based optical telescopes to ~0.5-1 arcsec
+              ("<Term k="seeing">seeing</Term>") — much worse than the diffraction limit. This is why
+              going to space helps so much.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Three — wavelength coverage.</strong> The optics, detectors,
+              and physical design determine which bands you can observe. A radio dish is a totally different
+              instrument from an X-ray mirror — they don\'t share components or techniques.
+            </p>
+          </Section>
+
+          <div className="my-8 p-6 rounded" style={{ border: `1px solid ${ACCENT}30`, background: 'rgba(255, 201, 122, 0.04)' }}>
+            <div className="flex items-center gap-3 mb-4"><Pill>interactive</Pill></div>
+            <h4 className="font-display text-xl mb-2" style={{ letterSpacing: '-0.01em' }}>Diffraction limit & collecting area</h4>
+            <p className="font-display text-sm leading-relaxed mb-6" style={{ color: DIM }}>
+              The fundamental tradeoffs of telescope design. Try a 1 m, 2 m, 8 m (VLT), 10 m (Keck), 39 m (ELT), or 100 m (SKA dish).
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+              <div>
+                <div className="flex justify-between items-baseline mb-2">
+                  <span className="font-display text-sm" style={{ color: INK }}>Aperture diameter (D)</span>
+                  <span className="font-mono text-sm" style={{ color: ACCENT }}>{aperture} m</span>
+                </div>
+                <input type="range" min="0.1" max="100" step="0.1" value={aperture}
+                       onChange={e => setAperture(parseFloat(e.target.value))} className="w-full" />
+              </div>
+              <div>
+                <div className="flex justify-between items-baseline mb-2">
+                  <span className="font-display text-sm" style={{ color: INK }}>Wavelength (λ)</span>
+                  <span className="font-mono text-sm" style={{ color: ACCENT }}>{wavelength < 1000 ? `${wavelength.toFixed(0)} nm` : `${(wavelength/1000).toFixed(1)} μm`}</span>
+                </div>
+                <input type="range" min="100" max="1000000" step="10"
+                       value={Math.log10(wavelength) * 1000}
+                       onChange={e => setWavelength(Math.pow(10, parseFloat(e.target.value) / 1000))}
+                       className="w-full" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-px mb-4" style={{ background: BORDER }}>
+              <div className="p-3" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Diffraction limit</div>
+                <div className="font-mono text-base" style={{ color: ACCENT }}>{theta_arcsec < 1 ? `${(theta_arcsec * 1000).toFixed(1)} mas` : `${theta_arcsec.toFixed(2)}″`}</div>
+              </div>
+              <div className="p-3" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Collecting area</div>
+                <div className="font-mono text-base" style={{ color: INK }}>{area.toFixed(2)} m²</div>
+              </div>
+              <div className="p-3" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>vs. dark-adapted eye</div>
+                <div className="font-mono text-base" style={{ color: INK }}>{area_vs_eye.toExponential(2)}×</div>
+              </div>
+              <div className="p-3" style={{ background: BG }}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: DIM }}>Compare to atm. seeing</div>
+                <div className="font-mono text-base" style={{ color: theta_arcsec < 0.5 ? '#7aff7a' : ACCENT3 }}>
+                  {theta_arcsec < 0.5 ? 'AO/space-limited' : 'seeing-limited'}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-px" style={{ background: BORDER }}>
+              {[
+                { D: 0.007, λ: 550, label: 'Human eye' },
+                { D: 0.2, λ: 550, label: 'Amateur 8″' },
+                { D: 2.4, λ: 550, label: 'Hubble' },
+                { D: 6.5, λ: 2000, label: 'JWST' },
+                { D: 10, λ: 550, label: 'Keck' },
+                { D: 39, λ: 550, label: 'ELT (2028)' },
+              ].map(p => (
+                <button key={p.label} onClick={() => { setAperture(p.D); setWavelength(p.λ); }}
+                        className="p-2 text-center transition hover:bg-white/5"
+                        style={{ background: BG }}>
+                  <div className="font-mono text-xs" style={{ color: ACCENT }}>{p.label}</div>
+                  <div className="font-mono text-[10px] mt-1" style={{ color: DIM }}>{p.D} m</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Section title="Seeing and adaptive optics">
+            <p>
+              On the ground, the atmosphere ruins what big mirrors can in principle achieve. Turbulent
+              cells of warm and cool air ~10 cm across cause light from a star to wander randomly,
+              creating a "seeing disk" typically 0.5-1 arcsec wide. No matter how big your telescope, in
+              traditional imaging you can't resolve finer than that.
+            </p>
+            <p>
+              <Term k="adaptive optics">Adaptive optics</Term> changes that. A deformable mirror
+              continuously reshapes itself ~1000 times per second to undo the atmospheric distortion,
+              guided by either a bright natural reference star or an artificial laser-generated guide
+              star high in the atmosphere. With AO, 8-10m ground-based telescopes can now achieve
+              diffraction-limited resolution in the near-IR — actually sharper than Hubble.
+            </p>
+            <p>
+              Combined with extreme AO (high-order systems), this enables direct imaging of exoplanets
+              and detailed studies of stellar surfaces, AGN environments, and the supermassive black
+              hole at the Galactic centre. Reinhard Genzel and Andrea Ghez shared the 2020 Nobel for
+              tracking individual stars orbiting Sgr A* using AO over 25 years.
+            </p>
+          </Section>
+
+          <Section title="Interferometry: combining apertures">
+            <p>
+              For radio astronomy, atmospheric distortions are negligible — but radio wavelengths are so
+              long that even the largest single dish has poor resolution. The solution:
+              <Term k="interferometry"> interferometry</Term>. Combine signals from multiple distant
+              telescopes; the effective angular resolution is set by the separation between them, not
+              the size of each.
+            </p>
+            <p>
+              The Very Large Array (VLA) in New Mexico uses 27 dishes spread over up to 36 km, achieving
+              resolution equivalent to a 36 km dish. ALMA in Chile does the same at millimetre
+              wavelengths with 66 dishes. The Event Horizon Telescope linked dishes across continents
+              to achieve a baseline of ~10,000 km — enough resolution to image the supermassive black
+              holes in M87 and at the Milky Way's centre at angular scales of ~20 μas.
+            </p>
+            <p>
+              Optical interferometry is much harder (shorter wavelengths require holding optical path
+              lengths constant to {'<'} 1 micron), but VLT-Interferometer (combining ESO's four 8m dishes)
+              and CHARA (Mt. Wilson) have done remarkable work imaging stellar surfaces and close
+              binaries.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'detectors' && (
+        <div className="fade-in">
+          <Section title="Before CCDs: the dark ages">
+            <p>
+              For most of astronomy's history, the detector was the human eye. Galileo, Herschel, and
+              Hubble all observed by eye through eyepieces. The eye is remarkably sensitive but has
+              terrible quantum efficiency (~10% on a good day), can't integrate light over time (so
+              faint sources stay faint), and produces only subjective records.
+            </p>
+            <p>
+              Photographic plates (mid-1800s to mid-1900s) added the ability to integrate — long exposures
+              revealed faint nebulae and galaxies invisible to the eye — and created permanent records.
+              But plates had quantum efficiency of only ~1-3%. Most photons hitting a plate did nothing.
+              Photographic astronomy revealed enormous amounts but was fundamentally inefficient.
+            </p>
+          </Section>
+
+          <Section title="The CCD revolution">
+            <p>
+              The <Term k="ccd">Charge-Coupled Device</Term>, invented at Bell Labs in 1969 (Boyle and
+              Smith, 2009 Nobel), changed astronomy almost as much as the telescope itself. A CCD is
+              a grid of silicon pixels; each photon hitting the silicon liberates a photoelectron via
+              the photoelectric effect. The pixels accumulate charge during the exposure; afterwards
+              the charge packets are clocked across the chip, amplified, and digitised.
+            </p>
+            <p>
+              Quantum efficiency: ~80-95% across the visible band — 30-50× better than photographic
+              plates. Linear response: doubling the exposure doubles the signal. Direct digital output:
+              no scanning of plates required. Low dark current and read noise with cooling. For most
+              optical astronomy, CCDs are the detector of choice.
+            </p>
+            <p>
+              Modern astronomical CCDs are large (often {'>'} 100 megapixels in a single chip, with mosaics
+              of many chips covering large focal planes), cooled to ~−110°C to suppress thermal noise,
+              and capable of detecting single photons in faint-source observations. The Vera C. Rubin
+              Observatory's 3,200 megapixel camera (largest ever built) is a mosaic of 189 CCD chips
+              covering 64 cm — about the size of a beach ball.
+            </p>
+          </Section>
+
+          <Section title="Detectors at other wavelengths">
+            <p>
+              <strong style={{ color: ACCENT }}>Near-infrared</strong> (1-5 μm): HgCdTe (mercury cadmium
+              telluride) arrays. Used in JWST's NIRCam, ground-based AO imagers. Less mature than CCDs;
+              quantum efficiency ~70%.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Mid/far-infrared</strong> (5-200 μm): Si:As (silicon-doped
+              arsenic) arrays, bolometers. JWST MIRI uses these. Requires extreme cooling — JWST's MIRI
+              operates at 7 K.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Radio</strong>: Coherent receivers (amplifying the wave
+              itself before detection). Maintains both amplitude and phase, enabling interferometry.
+              Sensitivity limited by noise temperature; best receivers reach ~10 K noise.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>X-ray</strong>: Microcalorimeters (each photon's energy
+              measured by tiny temperature rise), CCDs hardened for X-rays, gas proportional counters.
+              X-ray "imaging" requires grazing-incidence optics — X-rays only reflect at very shallow
+              angles, so X-ray telescopes use nested cylindrical mirrors.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Gamma-ray</strong>: Compton scattering or pair-production
+              detection. No focusing possible — gamma rays must be tracked through dense materials. For
+              ground-based detection at the highest energies, Cherenkov telescope arrays detect the
+              optical flashes produced when gamma rays generate air showers in Earth's atmosphere.
+            </p>
+          </Section>
+
+          <Section title="What signal-to-noise means">
+            <p>
+              Astronomical observations are fundamentally about counting photons. If a source produces
+              N photons during your exposure, Poisson statistics tell us the uncertainty in N is √N.
+              Signal-to-noise (S/N) is N / √N = √N. To detect a faint source, you need enough photons
+              that the signal stands out from the noise.
+            </p>
+            <p>
+              Other noise sources add in quadrature: detector read noise (per pixel, per readout),
+              dark current (thermal electrons), and sky background (the dominant noise for most ground
+              observations of faint sources). The total noise budget determines whether a source is
+              detectable in a given exposure.
+            </p>
+            <Eq>S/N = N_source / √(N_source + N_sky + N_dark + N_read²)</Eq>
+            <p>
+              In long exposures of faint sources where source counts are small compared to sky, S/N
+              grows as √(exposure time). Doubling the exposure improves S/N by √2, not 2×. Quadrupling
+              it doubles S/N. Going from a 1-hour exposure to a 100-hour exposure improves your detection
+              limit by only 10×. This is why telescope time is so precious and why surveys like Hubble
+              Deep Field were so revolutionary.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'techniques' && (
+        <div className="fade-in">
+          <Section title="Two fundamental measurements">
+            <p>
+              Nearly everything we know about distant objects comes from two basic measurements:
+              <Term k="photometry"> photometry</Term> (how much light, in specific wavelength bands) and
+              <Term k="spectroscopy"> spectroscopy</Term> (how light intensity varies with wavelength,
+              in fine detail). Both have been done for over a century; both continue to be refined.
+            </p>
+          </Section>
+
+          <Section title="Photometry: light through filters">
+            <p>
+              You can't reconstruct a full spectrum just by integrating all light in one band — that
+              gives a single number per source. But you can measure light through several different
+              filters and reconstruct the rough spectral shape.
+            </p>
+            <p>
+              Standard photometric systems define filters with specific transmission curves. The
+              UBVRI system (Johnson-Cousins): U (UV, ~365 nm centre), B (blue, ~445 nm), V (visual,
+              ~551 nm), R (red, ~658 nm), I (near-IR, ~806 nm). Modern surveys use ugriz (SDSS) or
+              other systems. Each filter band gives one number per source — its apparent magnitude in
+              that filter.
+            </p>
+            <p>
+              "<strong style={{ color: ACCENT }}>Colour</strong>" in astronomy means the difference
+              between magnitudes in two bands: B − V, V − R, etc. Bluer objects have negative B − V;
+              redder objects have positive B − V. The Sun has B − V ≈ 0.65 (yellow-ish). Vega has B − V = 0
+              (defines the zero by convention). Betelgeuse has B − V ≈ 1.85 (very red).
+            </p>
+            <p>
+              From colours, you can estimate temperature (Wien's law tells you peak emission wavelength),
+              redshift (the spectrum shifts redward), interstellar reddening (dust preferentially blocks
+              blue light), and even spectral type to within a subclass — all from just a few magnitude
+              measurements. This is why photometric surveys can characterise millions of sources at once
+              far faster than spectroscopy could.
+            </p>
+          </Section>
+
+          <Section title="Spectroscopy: dispersing light">
+            <p>
+              A spectrograph spreads incoming light into its constituent wavelengths using a prism or
+              diffraction grating. The result is a 2D image — wavelength along one axis, position along
+              the slit along the other. From this you can measure:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Spectral lines</strong> (absorption or emission) →
+              chemical composition, temperature, ionisation state, magnetic field strength<br/>
+              <strong style={{ color: ACCENT }}>Doppler shifts</strong> in line positions → radial
+              velocity, rotation (line broadening from differential motion), turbulence<br/>
+              <strong style={{ color: ACCENT }}>Continuum shape</strong> → temperature, reddening<br/>
+              <strong style={{ color: ACCENT }}>Cosmological redshift</strong> → distance (for galaxies)
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Spectral resolution</strong> R = λ/Δλ measures how finely
+              the spectrograph distinguishes wavelengths. Low-resolution surveys (R ~ 1000) can classify
+              stellar types and measure approximate redshifts. High-resolution spectrographs (R ~ 100,000+)
+              can measure radial velocities to better than 1 m/s — sufficient to detect Earth-mass
+              exoplanets around other stars. ESPRESSO at the VLT reaches R = 200,000.
+            </p>
+          </Section>
+
+          <Section title="From photons to data: the actual pipeline">
+            <p>
+              A typical observation goes through many stages between the detector and a publishable
+              measurement:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Raw frame</strong> — the CCD readout, contaminated by
+              bias offsets, dark current, flat-field variations, cosmic ray hits, bad pixels<br/>
+              <strong style={{ color: ACCENT }}>Calibration</strong> — subtract bias and dark frames,
+              divide by flat field (image of evenly-illuminated screen) to correct pixel-to-pixel
+              sensitivity variations<br/>
+              <strong style={{ color: ACCENT }}>Cosmic ray rejection</strong> — identify spurious bright
+              pixels from charged-particle hits (combine multiple exposures, or detect outlier shapes)<br/>
+              <strong style={{ color: ACCENT }}>Astrometric calibration</strong> — work out which pixel
+              corresponds to which celestial coordinate (uses Gaia reference stars)<br/>
+              <strong style={{ color: ACCENT }}>Photometric calibration</strong> — convert pixel counts
+              to physical fluxes by reference to standard stars<br/>
+              <strong style={{ color: ACCENT }}>Source extraction & catalogue</strong> — identify
+              individual sources, measure their positions, fluxes, shapes
+            </p>
+            <p>
+              Each stage has its own systematic errors. Real astronomy is as much about understanding
+              and controlling these systematics as it is about taking the original data.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      {tab === 'frontier' && (
+        <div className="fade-in">
+          <Section title="The current generation">
+            <p>
+              <strong style={{ color: ACCENT }}>JWST</strong> (2021–) — 6.5 m segmented mirror at Sun-Earth
+              L2, operating 0.6 to 28 μm (mostly infrared). Most powerful astronomical instrument ever
+              built. Reaching back to the first galaxies, characterising exoplanet atmospheres,
+              transforming what we know about everything.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Hubble</strong> (1990–) — Aging but still highly productive
+              2.4-m UV/optical/near-IR telescope. Continues to deliver unique UV science JWST can't do.
+              Expected to operate into the 2030s.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>VLT / Keck / Gemini / Subaru</strong> — 8-10m ground-based
+              optical/IR telescopes with AO. Workhorses of modern observational astronomy. Combined,
+              they observe most known discoveries in followup.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>ALMA</strong> (2013–) — 66-dish millimetre/submillimetre
+              interferometer in Chile. Revolutionised understanding of protoplanetary discs, star
+              formation, and the cold universe.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Chandra / XMM-Newton</strong> — Major X-ray observatories
+              from 1999. Mapping black hole accretion, supernova remnants, cluster gas.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Gaia</strong> (2013–) — All-sky astrometric survey, has
+              measured positions, motions, and brightness of ~2 billion stars to microarcsecond precision.
+              Fundamental reference frame for everything else.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Vera C. Rubin Observatory</strong> (just starting) — 8.4-m
+              survey telescope in Chile. Will image the entire visible sky every 3-4 nights for 10 years.
+              Expected to revolutionise time-domain astronomy: transients, asteroids, supernovae, Solar
+              System dynamics.
+            </p>
+          </Section>
+
+          <Section title="The next generation">
+            <p>
+              <strong style={{ color: ACCENT }}>ELT</strong> (Extremely Large Telescope, first light ~2028)
+              — 39-m segmented mirror in Chile. Will be the largest optical/IR telescope ever built.
+              Direct imaging of Earth-like exoplanets becomes possible.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>SKA</strong> (Square Kilometre Array, 2027+) — Distributed
+              radio telescope array spanning South Africa and Australia. Total collecting area approaching
+              1 km². Will revolutionise radio astronomy from cosmology to pulsars to SETI.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Roman Space Telescope</strong> (~2027) — 2.4-m Hubble-class
+              telescope but with a wide field 100× Hubble's. Will survey huge sky areas, find ~100,000
+              transiting exoplanets, map dark energy via cosmic structure.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>LISA</strong> (~2035) — Space-based gravitational wave
+              interferometer with arms 2.5 million km long. Will detect supermassive black hole mergers,
+              extreme mass-ratio inspirals, and white-dwarf binaries throughout the Galaxy.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Habitable Worlds Observatory</strong> (~2040s) — proposed
+              successor to Hubble/JWST, designed specifically to image and characterise Earth-like
+              exoplanets, including hunt for biosignatures.
+            </p>
+          </Section>
+
+          <Section title="Multi-messenger astronomy">
+            <p>
+              Astronomy is no longer just about light. Modern observations also detect:
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Cosmic rays</strong> — high-energy particles from
+              supernovae and AGN. Detected for over a century; origins still partially mysterious.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Neutrinos</strong> — IceCube (cubic km of Antarctic ice
+              instrumented with photomultipliers) detected the first astrophysical neutrinos from
+              blazar TXS 0506+056 in 2017. Solar neutrinos are routinely detected. Supernova SN 1987A
+              produced detectable neutrinos.
+            </p>
+            <p>
+              <strong style={{ color: ACCENT }}>Gravitational waves</strong> — LIGO and Virgo have now
+              detected ~100 binary mergers (black holes, neutron stars). GW170817 (a neutron-star merger)
+              was observed in both gravitational waves and across the entire EM spectrum — the first
+              "multi-messenger" detection.
+            </p>
+            <p>
+              Each new "messenger" opens fundamentally new astronomy. The combination of EM, neutrinos,
+              and gravitational waves is the new frontier — and the 2030s will likely see all three
+              becoming routine.
+            </p>
+          </Section>
+        </div>
+      )}
+
+      <WorkedExample title="Can the ELT image an Earth-like exoplanet directly?"
+                     steps={[
+                       { text: 'Earth around the Sun is at 1 AU. The closest Sun-like star is α Centauri A at ~1.3 pc (~4.3 ly). What angular separation does an Earth-analog at 1 AU around α Cen A subtend from Earth?',
+                         eq: 'θ = 1 AU / 1.3 pc = 1 / (1.3 × 206265) AU ≈ 3.7 × 10⁻⁶ rad ≈ 0.77 arcsec' },
+                       { text: 'The ELT has a 39 m aperture. At 800 nm (near-IR), the diffraction limit is:',
+                         eq: 'θ_diff = 1.22 × 800e−9 / 39 ≈ 2.5e−8 rad ≈ 0.0052 arcsec' },
+                       { text: 'So the ELT can in principle resolve features 150× finer than the planet-star separation. The "resolution" isn\'t the limitation. The actual challenge is contrast.',
+                         eq: 'Contrast: planet/star flux ratio ~10⁻¹⁰ in reflected light' },
+                       { text: 'A coronagraph blocks the star\'s light; advanced AO further suppresses residual scattered starlight. State-of-the-art is ~10⁻⁷ contrast at 0.5 arcsec. Reaching 10⁻¹⁰ requires another factor of ~1000.',
+                         answer: 'ELT can probably image young, hot, self-luminous Jupiters around nearby stars (already done at 8m). Imaging an Earth-analog requires ~10⁻¹⁰ contrast — extremely difficult but possibly achievable for the brightest, closest cases. The Habitable Worlds Observatory is specifically designed for this. ELT will demonstrate the techniques; HWO will do the science.' },
+                     ]} />
+
+      <Quiz questions={[
+        { q: 'The diffraction limit of a telescope is set primarily by:',
+          options: ['Atmospheric seeing', 'Aperture diameter and wavelength', 'Detector sensitivity', 'Distance to the source'],
+          correct: 1,
+          explain: 'θ ≈ 1.22 λ/D. The diffraction limit is a fundamental property of wave physics, set entirely by the aperture and the wavelength. Atmospheric seeing degrades real ground-based performance below this limit; adaptive optics partially restore it.' },
+        { q: 'Why are X-ray telescopes built so differently from optical telescopes?',
+          options: ['X-rays don\'t carry energy', 'X-rays pass through normal mirrors — must use grazing-incidence optics', 'X-rays are too faint', 'X-rays don\'t come from space'],
+          correct: 1,
+          explain: 'X-rays only reflect off mirrors at very shallow grazing angles (otherwise they pass through). X-ray telescopes use nested cylindrical mirrors that bounce X-rays through small angles to a focal point. This makes them fundamentally different from the parabolic mirrors used for visible light.' },
+        { q: 'Going from a 4-hour exposure to a 100-hour exposure improves S/N by approximately:',
+          options: ['25×', '5×', '2.5×', 'Negligible improvement'],
+          correct: 1,
+          explain: 'S/N grows as √(exposure time). √(100/4) = √25 = 5. The Hubble Deep Field famously used a ~100-hour exposure to reach extremely faint sources — but doubling that to 200 hours would have improved S/N by only ~1.4×.' },
+        { q: 'A photometric system measures an object\'s brightness in:',
+          options: ['Different wavelength filters', 'Different angular positions', 'Different times', 'Different polarisations'],
+          correct: 0,
+          explain: 'Photometry measures total light through specific filters (e.g. UBVRI, ugriz). The differences between filter measurements ("colours") encode information about temperature, redshift, and reddening — making photometry an efficient way to characterise large numbers of sources without full spectroscopy.' },
+      ]} />
+
+      <TryThis title="Engage with real telescope data"
+               items={[
+                 { title: 'Browse JWST images at stsci.edu', text: 'The MAST archive (mast.stsci.edu) hosts every publicly released JWST observation. You can download raw and reduced data, browse images of nearby galaxies, distant cosmic dawn, exoplanet atmospheres. Most professional analysis starts here.', gear: 'Browser' },
+                 { title: 'Use Aladin Sky Atlas', text: 'aladin.cds.unistra.fr - a free interactive sky atlas. Click any region and see overlaid images from optical (SDSS, DSS), infrared (2MASS, WISE), X-ray (ROSAT), radio (NVSS). Same object, every wavelength. Strikingly different pictures.', gear: 'Browser' },
+                 { title: 'Calculate signal-to-noise for a hypothetical observation', text: 'Use the ESO Exposure Time Calculator (eso.org/observing/etc) to plan an observation. Try: 1-hour VLT exposure of a 22nd-mag galaxy. The calculator will tell you what S/N you\'ll achieve — and lets you experiment with seeing, airmass, moon phase.', gear: 'Browser' },
+                 { title: 'See ALMA images of protoplanetary discs', text: 'almaobservatory.org has stunning images of planet-forming discs around young stars — actual current images of solar system formation in progress. The gaps in HL Tauri\'s disc are very plausibly forming planets.', gear: 'Browser' },
+               ]} />
+
+      <OpenQuestions items={[
+        { q: 'Can we find biosignatures with the next generation of telescopes?',
+          detail: '— The Habitable Worlds Observatory is designed specifically to spectroscopically characterise exoplanet atmospheres looking for O₂ + CH₄, water vapour, methane and other signatures. Whether biosignatures could be definitively distinguished from abiotic processes remains an active question.' },
+        { q: 'How do we detect Earth-mass planets around Sun-like stars?',
+          detail: '— Earth produces a 9 cm/s radial-velocity wobble in the Sun. The best spectrographs reach ~50 cm/s. Closing the gap requires extreme precision and stellar-activity modelling. The Roman Space Telescope and the ELT instruments are designed to push toward this limit.' },
+        { q: 'What\'s next after gravitational waves?',
+          detail: '— Multi-messenger astronomy combining EM, gravitational waves, and neutrinos is an emerging area. The 2030s will see LISA, CTA (very-high-energy gamma rays), IceCube-Gen2, and HWO all coming online — possibly enabling entirely new science from yet-undiscovered classes of source.' },
+      ]} />
+    </PageShell>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 //  ROOT
 // ═══════════════════════════════════════════════════════════════════════════
 export default function App() {
@@ -6822,6 +8098,8 @@ export default function App() {
     sr:     <SpecialRelativity onBack={() => setView('hub')} />,
     cmb:    <CMB               onBack={() => setView('hub')} />,
     orb:    <Orbits            onBack={() => setView('hub')} />,
+    ss:     <SolarSystem       onBack={() => setView('hub')} />,
+    tel:    <Telescopes        onBack={() => setView('hub')} />,
     paths:  <LearningPaths     onBack={() => setView('hub')} onSelect={setView} />,
   };
   return views[view] || <Hub onSelect={setView} onShowPaths={() => setView('paths')} />;
